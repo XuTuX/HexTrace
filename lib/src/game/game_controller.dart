@@ -3,7 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 
-enum GameColor { coral, amber, mint, azure, violet, lime }
+enum GameColor { coral, amber, mint, azure, violet }
 
 extension GameColorKey on GameColor {
   String get key => switch (this) {
@@ -12,7 +12,6 @@ extension GameColorKey on GameColor {
     GameColor.mint => 'mint',
     GameColor.azure => 'azure',
     GameColor.violet => 'violet',
-    GameColor.lime => 'lime',
   };
 }
 
@@ -461,9 +460,7 @@ class HexGameController extends ChangeNotifier {
     colorBar = List<ColorBarEntry>.from(colorBar)
       ..removeRange(usedWindow.start, usedWindow.end + 1);
 
-    while (colorBar.length < colorBarSize) {
-      colorBar.add(_newBarEntry());
-    }
+    _refillColorBar();
   }
 
   void _ensurePlayableStateAfterBoardChange() {
@@ -529,11 +526,8 @@ class HexGameController extends ChangeNotifier {
     statusText = '';
     statusTone = GameMessageTone.info;
 
-    colorBar = List<ColorBarEntry>.generate(
-      colorBarSize,
-      (_) => _newBarEntry(),
-      growable: false,
-    );
+    colorBar = const [];
+    _refillColorBar();
     _randomizeBoardUntilPlayable();
     _startTimer();
     _notify();
@@ -576,8 +570,36 @@ class HexGameController extends ChangeNotifier {
     return GameColor.values[_random.nextInt(GameColor.values.length)];
   }
 
-  ColorBarEntry _newBarEntry() {
-    return ColorBarEntry(id: _nextBarEntryId++, color: _randomColor());
+  void _refillColorBar() {
+    final List<ColorBarEntry> nextBar = List<ColorBarEntry>.from(colorBar);
+
+    while (nextBar.length < colorBarSize) {
+      nextBar.add(_newBarEntry(existingEntries: nextBar));
+    }
+
+    colorBar = List<ColorBarEntry>.unmodifiable(nextBar);
+  }
+
+  GameColor _nextBarColor({required List<ColorBarEntry> existingEntries}) {
+    final Set<GameColor> presentColors = existingEntries
+        .map((entry) => entry.color)
+        .toSet();
+    final List<GameColor> missingColors = GameColor.values
+        .where((color) => !presentColors.contains(color))
+        .toList(growable: false);
+
+    if (missingColors.isEmpty) {
+      return _randomColor();
+    }
+
+    return missingColors[_random.nextInt(missingColors.length)];
+  }
+
+  ColorBarEntry _newBarEntry({List<ColorBarEntry> existingEntries = const []}) {
+    return ColorBarEntry(
+      id: _nextBarEntryId++,
+      color: _nextBarColor(existingEntries: existingEntries),
+    );
   }
 
   bool _isOnBoard(HexCoord coord) {

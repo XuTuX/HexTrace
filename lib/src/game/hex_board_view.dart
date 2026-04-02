@@ -92,6 +92,9 @@ class _HexBoardViewState extends State<HexBoardView>
 }
 
 class HexBoardLayout {
+  static const double _tileInsetFactor = 0.09;
+  static const double _cornerRadiusFactor = 0.22;
+
   HexBoardLayout._({
     required this.radius,
     required this.width,
@@ -175,17 +178,61 @@ class HexBoardLayout {
   }
 
   static Path _buildHexPath(Offset center, double radius) {
-    final double halfWidth = math.sqrt(3) * radius / 2;
-    final Path path = Path()
-      ..moveTo(center.dx, center.dy - radius)
-      ..lineTo(center.dx + halfWidth, center.dy - radius / 2)
-      ..lineTo(center.dx + halfWidth, center.dy + radius / 2)
-      ..lineTo(center.dx, center.dy + radius)
-      ..lineTo(center.dx - halfWidth, center.dy + radius / 2)
-      ..lineTo(center.dx - halfWidth, center.dy - radius / 2)
-      ..close();
+    final double inset = math.max(1.5, radius * _tileInsetFactor);
+    final double effectiveRadius = math.max(6, radius - inset);
+    final double halfWidth = math.sqrt(3) * effectiveRadius / 2;
+    final List<Offset> points = <Offset>[
+      Offset(center.dx, center.dy - effectiveRadius),
+      Offset(center.dx + halfWidth, center.dy - effectiveRadius / 2),
+      Offset(center.dx + halfWidth, center.dy + effectiveRadius / 2),
+      Offset(center.dx, center.dy + effectiveRadius),
+      Offset(center.dx - halfWidth, center.dy + effectiveRadius / 2),
+      Offset(center.dx - halfWidth, center.dy - effectiveRadius / 2),
+    ];
+
+    final double cornerRadius = math.min(
+      effectiveRadius * _cornerRadiusFactor,
+      effectiveRadius * 0.32,
+    );
+    final Path path = Path();
+
+    for (int index = 0; index < points.length; index++) {
+      final Offset previous = points[(index - 1 + points.length) % points.length];
+      final Offset current = points[index];
+      final Offset next = points[(index + 1) % points.length];
+      final double previousEdge = (current - previous).distance;
+      final double nextEdge = (next - current).distance;
+      final double localRadius = math.min(
+        cornerRadius,
+        math.min(previousEdge, nextEdge) / 2,
+      );
+      final Offset start = _pointToward(current, previous, localRadius);
+      final Offset end = _pointToward(current, next, localRadius);
+
+      if (index == 0) {
+        path.moveTo(start.dx, start.dy);
+      } else {
+        path.lineTo(start.dx, start.dy);
+      }
+
+      path.quadraticBezierTo(current.dx, current.dy, end.dx, end.dy);
+    }
+
+    path.close();
 
     return path;
+  }
+
+  static Offset _pointToward(Offset from, Offset to, double distance) {
+    final Offset delta = to - from;
+    final double length = delta.distance;
+
+    if (length == 0) {
+      return from;
+    }
+
+    final Offset direction = delta / length;
+    return from + (direction * distance);
   }
 }
 
@@ -256,8 +303,8 @@ class HexBoardPainter extends CustomPainter {
           scale: isAnimated ? scale : 1,
           borderColor: dragSet.contains(coord)
               ? dragColor
-              : Colors.white.withValues(alpha: 0.14),
-          borderWidth: dragSet.contains(coord) ? 4 : 1.6,
+              : const Color(0xFF244353),
+          borderWidth: dragSet.contains(coord) ? 4 : 1.2,
           coreAlpha: dragSet.contains(coord) ? 0.5 : 0.12,
           isClearing: clearingSet.contains(coord),
         );

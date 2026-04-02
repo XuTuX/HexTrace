@@ -15,12 +15,11 @@ class GamePalette {
 
   static Color colorFor(GameColor color) {
     return switch (color) {
-      GameColor.coral => const Color(0xFFFF735A),
-      GameColor.amber => const Color(0xFFFFC14D),
-      GameColor.mint => const Color(0xFF53D8A0),
-      GameColor.azure => const Color(0xFF53A7FF),
-      GameColor.violet => const Color(0xFFA77BFF),
-      GameColor.lime => const Color(0xFFB8E64A),
+      GameColor.coral => const Color(0xFFFF5A5F),
+      GameColor.amber => const Color(0xFFFFB703),
+      GameColor.mint => const Color(0xFF00C853),
+      GameColor.azure => const Color(0xFF00B8F0),
+      GameColor.violet => const Color(0xFF7B61FF),
     };
   }
 
