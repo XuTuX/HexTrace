@@ -8,7 +8,6 @@ import 'package:crypto/crypto.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hexor/config/app_config.dart';
-import 'package:hexor/controllers/game_controller.dart';
 import 'package:hexor/services/database_service.dart';
 import 'package:hexor/utils/random_nickname_generator.dart';
 
@@ -297,12 +296,6 @@ class AuthService extends GetxController {
   }
 
   Future<void> signOut() async {
-    // Clear saved game state so user starts fresh after logout
-    try {
-      final gameController = Get.find<GameController>();
-      await gameController.clearSavedGame();
-    } catch (_) {}
-
     await _supabase.auth.signOut();
     userNickname.value = null; // Clear nickname
   }
@@ -326,13 +319,7 @@ class AuthService extends GetxController {
         // Continue with sign out even if DB deletion fails
       }
 
-      // 1.5 Clear saved game state
-      try {
-        final gameController = Get.find<GameController>();
-        await gameController.clearSavedGame();
-      } catch (_) {}
-
-      // 1.6 Clear local score keys for this user
+      // 1.5 Clear local score keys for this user
       if (deletingUserId != null) {
         try {
           final prefs = await SharedPreferences.getInstance();
