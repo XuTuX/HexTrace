@@ -132,9 +132,11 @@ class _AnimatedColorStreamState extends State<AnimatedColorStream> {
         final slotWidth = (constraints.maxWidth -
                 (_slotGap * (widget.entries.length - 1))) /
             widget.entries.length;
+        
+        final slotHeight = slotWidth * 1.25;
 
         return SizedBox(
-          height: 48,
+          height: slotHeight + 8,
           child: Stack(
             clipBehavior: Clip.none,
             children: _visualEntries.values.map((visual) {
@@ -148,7 +150,7 @@ class _AnimatedColorStreamState extends State<AnimatedColorStream> {
                   left: visual.index * (slotWidth + _slotGap),
                   top: 0,
                   width: slotWidth,
-                  height: 48,
+                  height: slotHeight,
                   child: AnimatedOpacity(
                     duration: _moveDuration,
                     curve: Curves.easeOutCubic,
@@ -218,7 +220,7 @@ class _ColorStreamSlot extends StatelessWidget {
       margin: EdgeInsets.fromLTRB(leftMargin, topMargin, rightMargin, bottomMargin),
       decoration: BoxDecoration(
         color: fill,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: charcoalBlack,
           width: 2.0,
@@ -234,8 +236,8 @@ class _ColorStreamSlot extends StatelessWidget {
       child: Center(
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 120),
-          width: highlighted ? 18 : 10,
-          height: highlighted ? 18 : 10,
+          width: highlighted ? 12 : 8,
+          height: highlighted ? 12 : 8,
           decoration: BoxDecoration(
             color: Colors.white,
             shape: BoxShape.circle,
