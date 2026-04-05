@@ -398,7 +398,7 @@ class HexGameController extends ChangeNotifier {
       startingSeconds.toDouble() + 25,
       timeRemaining + _timeBonusForLength(matchedPath.length),
     );
-    statusText = combo > 1 ? '콤보 x$combo, +$gainedScore점' : '+$gainedScore점';
+    statusText = combo > 1 ? 'COMBO x$combo\n+$gainedScore PTS' : '+$gainedScore PTS';
     statusTone = GameMessageTone.success;
     _notify();
 

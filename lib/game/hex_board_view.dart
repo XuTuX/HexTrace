@@ -93,8 +93,8 @@ class _HexBoardViewState extends State<HexBoardView>
 }
 
 class HexBoardLayout {
-  static const double _tileInsetFactor = 0.09;
-  static const double _cornerRadiusFactor = 0.22;
+  static const double _tileInsetFactor = 0.14;
+  static const double _cornerRadiusFactor = 0.28;
 
   HexBoardLayout._({
     required this.radius,
@@ -269,6 +269,34 @@ class HexBoardPainter extends CustomPainter {
       DragState.idle => GamePalette.drag,
     };
 
+    // --- Pass 1: Draw Shadows ---
+    for (var row = 0; row < board.length; row++) {
+      for (var col = 0; col < board[row].length; col++) {
+        final coord = HexCoord(col, row);
+        if (!dragSet.contains(coord)) {
+          final isAnimated = animatedTiles.contains(coord);
+          final tileProgress = isAnimated ? _tileProgress(col, board[row].length) : 1;
+          final opacity = 0.3 + (tileProgress * 0.7);
+          final scale = 0.76 + (tileProgress * 0.24);
+
+          canvas.save();
+          final center = layout.centers[coord]!;
+          canvas.translate(center.dx, center.dy);
+          canvas.scale(scale, scale);
+          canvas.translate(-center.dx, -center.dy);
+
+          canvas.drawPath(
+            layout.paths[coord]!.shift(const Offset(0, 4)),
+            Paint()
+              ..style = PaintingStyle.fill
+              ..color = charcoalBlack.withValues(alpha: opacity),
+          );
+          canvas.restore();
+        }
+      }
+    }
+
+    // --- Pass 2: Draw Foregrounds ---
     for (var row = 0; row < board.length; row++) {
       for (var col = 0; col < board[row].length; col++) {
         final coord = HexCoord(col, row);
@@ -286,9 +314,10 @@ class HexBoardPainter extends CustomPainter {
           opacity: isAnimated ? opacity : 1,
           scale: isAnimated ? scale : 1,
           borderColor: dragSet.contains(coord) ? dragColor : charcoalBlack,
-          borderWidth: dragSet.contains(coord) ? 4 : 2,
+          borderWidth: dragSet.contains(coord) ? 4 : 2.5,
           coreAlpha: dragSet.contains(coord) ? 0.5 : 0.12,
           isClearing: clearingSet.contains(coord),
+          isPressed: dragSet.contains(coord),
         );
       }
     }
@@ -312,7 +341,7 @@ class HexBoardPainter extends CustomPainter {
           ..strokeWidth = layout.radius * 0.3
           ..strokeCap = StrokeCap.round
           ..strokeJoin = StrokeJoin.round
-          ..color = dragColor.withValues(alpha: 0.34),
+          ..color = dragColor.withValues(alpha: 0.5),
       );
 
       canvas.drawPath(
@@ -326,26 +355,7 @@ class HexBoardPainter extends CustomPainter {
       );
     }
 
-    for (var index = 0; index < dragPath.length; index++) {
-      final coord = dragPath[index];
-      final center = layout.centers[coord]!;
-      final painter = TextPainter(
-        text: TextSpan(
-          text: '${index + 1}',
-          style: TextStyle(
-            color: charcoalBlack,
-            fontSize: layout.radius * 0.62,
-            fontWeight: FontWeight.w900,
-          ),
-        ),
-        textDirection: TextDirection.ltr,
-      )..layout();
-
-      painter.paint(
-        canvas,
-        Offset(center.dx - painter.width / 2, center.dy - painter.height / 2),
-      );
-    }
+    // Index numbers removed per user request
 
     canvas.restore();
   }
@@ -372,16 +382,17 @@ class HexBoardPainter extends CustomPainter {
     required double borderWidth,
     required double coreAlpha,
     required bool isClearing,
+    bool isPressed = false,
   }) {
     canvas.save();
     canvas.translate(center.dx, center.dy);
     canvas.scale(scale, scale);
     canvas.translate(-center.dx, -center.dy);
 
-    canvas.drawPath(
-      path.shift(const Offset(0, 4)),
-      Paint()..color = Colors.black.withValues(alpha: 0.14 * opacity),
-    );
+    if (isPressed) {
+      // Shift everything down when pressed
+      canvas.translate(0, 4);
+    }
 
     canvas.drawPath(
       path,

@@ -65,10 +65,13 @@ class _GameScreenState extends State<GameScreen> {
                   children: [
                     Column(
                       children: [
+                        const Spacer(flex: 1),
                         GameHud(controller: _controller),
+                        const SizedBox(height: 16),
                         Expanded(
+                          flex: 12,
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
                             child: Stack(
                               children: [
                                 Positioned.fill(
@@ -222,39 +225,42 @@ class _FloatingStatusViewState extends State<_FloatingStatusView>
           return const SizedBox.shrink();
         }
 
-        final bool isCombo = _currentText.contains('콤보');
+        final bool isCombo = _currentText.contains('COMBO');
+        final List<String> textLines = _currentText.split('\n');
         final Color textColor =
-            isCombo ? const Color(0xFFC2410C) : const Color(0xFF15803D);
+            isCombo ? const Color(0xFF6366F1) : const Color(0xFF2563EB); // Indigo : Blue
 
         return Center(
           child: Transform.translate(
             offset: Offset(0, _translateY.value),
-            child: Opacity(
-              opacity: _opacity.value,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (isCombo) ...[
-                    Icon(Icons.bolt_rounded, size: 20, color: textColor),
-                    const SizedBox(width: 4),
-                  ],
-                  Text(
-                    _currentText,
-                    style: TextStyle(
-                      color: textColor,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.5,
-                      shadows: [
-                        Shadow(
-                          color: Colors.black.withValues(alpha: 0.2),
-                          offset: const Offset(1, 1),
-                          blurRadius: 2,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+            child: Transform.rotate(
+              angle: isCombo ? -0.05 : 0,
+              child: Opacity(
+                opacity: _opacity.value,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: textLines.map((line) {
+                    final bool isComboLine = line.startsWith('COMBO');
+                    return Text(
+                      line,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: textColor,
+                        fontSize: isComboLine ? 16 : (isCombo ? 28 : 24),
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.2,
+                        height: 1.1,
+                        shadows: [
+                          Shadow(
+                            color: Colors.black.withValues(alpha: 0.3),
+                            offset: const Offset(2, 2),
+                            blurRadius: 4,
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
               ),
             ),
           ),
