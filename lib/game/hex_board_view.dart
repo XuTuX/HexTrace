@@ -313,9 +313,9 @@ class HexBoardPainter extends CustomPainter {
           color: GamePalette.colorFor(board[row][col]),
           opacity: isAnimated ? opacity : 1,
           scale: isAnimated ? scale : 1,
-          borderColor: dragSet.contains(coord) ? dragColor : charcoalBlack,
-          borderWidth: dragSet.contains(coord) ? 4 : 2.5,
-          coreAlpha: dragSet.contains(coord) ? 0.5 : 0.12,
+          borderColor: charcoalBlack,
+          borderWidth: dragSet.contains(coord) ? 4.5 : 2.5,
+          coreAlpha: dragSet.contains(coord) ? 0.8 : 0.12,
           isClearing: clearingSet.contains(coord),
           isPressed: dragSet.contains(coord),
         );
@@ -334,21 +334,12 @@ class HexBoardPainter extends CustomPainter {
         line.lineTo(point.dx, point.dy);
       }
 
+      // Simple, pretty, thin line
       canvas.drawPath(
         line,
         Paint()
           ..style = PaintingStyle.stroke
-          ..strokeWidth = layout.radius * 0.3
-          ..strokeCap = StrokeCap.round
-          ..strokeJoin = StrokeJoin.round
-          ..color = dragColor.withValues(alpha: 0.5),
-      );
-
-      canvas.drawPath(
-        line,
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = layout.radius * 0.13
+          ..strokeWidth = layout.radius * 0.15
           ..strokeCap = StrokeCap.round
           ..strokeJoin = StrokeJoin.round
           ..color = dragColor,

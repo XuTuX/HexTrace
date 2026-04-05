@@ -51,15 +51,17 @@ class _GameScreenState extends State<GameScreen> {
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, _) {
-        return Scaffold(
-          backgroundColor: const Color(0xFFF8F9FA),
-          body: Stack(
-            children: [
-              Positioned.fill(
-                child: CustomPaint(
-                  painter: GridPatternPainter(),
+        return PopScope(
+          canPop: false,
+          child: Scaffold(
+            backgroundColor: const Color(0xFFF8F9FA),
+            body: Stack(
+              children: [
+                Positioned.fill(
+                  child: CustomPaint(
+                    painter: GridPatternPainter(),
+                  ),
                 ),
-              ),
               SafeArea(
                 child: Stack(
                   children: [
@@ -106,10 +108,11 @@ class _GameScreenState extends State<GameScreen> {
               ),
             ],
           ),
-        );
-      },
-    );
-  }
+        ),
+      );
+    },
+  );
+}
 
   void _handleControllerChanged() {
     if (_controller.score < _lastSyncedScore) {
