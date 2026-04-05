@@ -314,7 +314,7 @@ class HexBoardPainter extends CustomPainter {
           opacity: isAnimated ? opacity : 1,
           scale: isAnimated ? scale : 1,
           borderColor: charcoalBlack,
-          borderWidth: dragSet.contains(coord) ? 4.5 : 2.5,
+          borderWidth: 2.5,
           coreAlpha: dragSet.contains(coord) ? 0.8 : 0.12,
           isClearing: clearingSet.contains(coord),
           isPressed: dragSet.contains(coord),
