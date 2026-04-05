@@ -1,5 +1,0 @@
-package com.example.hexor
-
-import io.flutter.embedding.android.FlutterActivity
-
-class MainActivity : FlutterActivity()
