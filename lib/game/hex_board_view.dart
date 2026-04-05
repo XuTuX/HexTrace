@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 import 'package:hexor/constant.dart';
 import 'game_palette.dart';
@@ -16,10 +17,13 @@ class HexBoardView extends StatefulWidget {
 }
 
 class _HexBoardViewState extends State<HexBoardView>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   static const Duration _refillDuration = Duration(milliseconds: 320);
 
   late final AnimationController _refillController;
+  late final Ticker _pressTicker;
+  final Map<HexCoord, double> _pressProgress = {};
+  Duration _lastTick = Duration.zero;
   int _lastBoardAnimationTick = 0;
 
   @override
@@ -31,6 +35,44 @@ class _HexBoardViewState extends State<HexBoardView>
           ..addListener(() {
             setState(() {});
           });
+
+    _pressTicker = createTicker(_onTick)..start();
+  }
+
+  void _onTick(Duration elapsed) {
+    if (_lastTick == Duration.zero) {
+      _lastTick = elapsed;
+      return;
+    }
+    
+    final double dt = (elapsed - _lastTick).inMilliseconds / 1000.0;
+    _lastTick = elapsed;
+    bool needsRepaint = false;
+
+    // Smooth press transition (200ms duration = speed 5.0)
+    for (int r = 0; r < widget.controller.rows; r++) {
+      for (int c = 0; c < widget.controller.cols; c++) {
+        final coord = HexCoord(c, r);
+        final isPressed = widget.controller.dragPath.contains(coord);
+        final target = isPressed ? 1.0 : 0.0;
+        final current = _pressProgress[coord] ?? 0.0;
+        
+        if (current != target) {
+          double next = current;
+          if (current < target) {
+            next = (current + dt * 5.0).clamp(0.0, 1.0);
+          } else {
+            next = (current - dt * 5.0).clamp(0.0, 1.0);
+          }
+          _pressProgress[coord] = next;
+          needsRepaint = true;
+        }
+      }
+    }
+
+    if (needsRepaint && mounted) {
+      setState(() {});
+    }
   }
 
   @override
@@ -50,6 +92,7 @@ class _HexBoardViewState extends State<HexBoardView>
 
   @override
   void dispose() {
+    _pressTicker.dispose();
     _refillController.dispose();
     super.dispose();
   }
@@ -83,6 +126,7 @@ class _HexBoardViewState extends State<HexBoardView>
               dragState: widget.controller.visibleDragState,
               animatedTiles: widget.controller.animatedTiles,
               refillProgress: _refillController.value,
+              pressProgress: _pressProgress,
             ),
             size: Size.infinite,
           ),
@@ -246,6 +290,7 @@ class HexBoardPainter extends CustomPainter {
     required this.dragState,
     required this.animatedTiles,
     required this.refillProgress,
+    required this.pressProgress,
   });
 
   final HexBoardLayout layout;
@@ -255,6 +300,7 @@ class HexBoardPainter extends CustomPainter {
   final DragState dragState;
   final Set<HexCoord> animatedTiles;
   final double refillProgress;
+  final Map<HexCoord, double> pressProgress;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -306,6 +352,8 @@ class HexBoardPainter extends CustomPainter {
         final opacity = 0.3 + (tileProgress * 0.7);
         final scale = 0.76 + (tileProgress * 0.24);
 
+        final pressVal = pressProgress[coord] ?? 0.0;
+
         _paintTile(
           canvas: canvas,
           path: layout.paths[coord]!,
@@ -315,9 +363,9 @@ class HexBoardPainter extends CustomPainter {
           scale: isAnimated ? scale : 1,
           borderColor: charcoalBlack,
           borderWidth: 2.5,
-          coreAlpha: dragSet.contains(coord) ? 0.8 : 0.12,
+          coreAlpha: 0.12 + (0.68 * pressVal), // 0.12 to 0.8
           isClearing: clearingSet.contains(coord),
-          isPressed: dragSet.contains(coord),
+          pressVal: pressVal,
         );
       }
     }
@@ -373,16 +421,16 @@ class HexBoardPainter extends CustomPainter {
     required double borderWidth,
     required double coreAlpha,
     required bool isClearing,
-    bool isPressed = false,
+    double pressVal = 0.0,
   }) {
     canvas.save();
     canvas.translate(center.dx, center.dy);
     canvas.scale(scale, scale);
     canvas.translate(-center.dx, -center.dy);
 
-    if (isPressed) {
-      // Shift everything down when pressed
-      canvas.translate(0, 6);
+    if (pressVal > 0) {
+      // Shift everything down smoothly when pressed
+      canvas.translate(0, 6 * pressVal);
     }
 
     canvas.drawPath(
@@ -401,9 +449,23 @@ class HexBoardPainter extends CustomPainter {
         ..color = borderColor.withValues(alpha: opacity),
     );
 
+    final double currentCoreRadiusScale = 0.10 + (0.12 * pressVal);
+
+    if (pressVal > 0) {
+      // Add a subtle soft glow effect that scales with pressVal
+      canvas.drawCircle(
+        center,
+        layout.radius * (0.10 + (0.22 * pressVal)) * scale,
+        Paint()
+          ..color = Colors.white.withValues(alpha: 0.15 * pressVal * opacity)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
+      );
+    }
+
+    // Draw the center dot
     canvas.drawCircle(
       center,
-      layout.radius * 0.22 * scale,
+      layout.radius * currentCoreRadiusScale * scale,
       Paint()..color = Colors.white.withValues(alpha: coreAlpha * opacity),
     );
 
