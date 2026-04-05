@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:hexor/constant.dart';
 import '../../game/game_controller.dart';
-import '../../game/game_palette.dart';
 import 'animated_color_stream.dart';
 
 class GameHud extends StatelessWidget {
@@ -27,8 +27,8 @@ class GameHud extends StatelessWidget {
                   label: '시간',
                   value: '${controller.timeRemaining.ceil()}초',
                   accent: controller.timeRemaining <= 10
-                      ? GamePalette.danger
-                      : GamePalette.warning,
+                      ? const Color(0xFFDC2626) // Red
+                      : const Color(0xFF2563EB), // Blue
                 ),
               ),
               if (controller.combo > 1) ...[
@@ -37,7 +37,7 @@ class GameHud extends StatelessWidget {
                   child: StatCard(
                     label: '콤보',
                     value: 'x${controller.combo}',
-                    accent: GamePalette.success,
+                    accent: const Color(0xFF16A34A), // Green
                   ),
                 ),
               ],
@@ -59,7 +59,7 @@ class StatCard extends StatelessWidget {
     super.key,
     required this.label,
     required this.value,
-    this.accent = GamePalette.ink,
+    this.accent = const Color(0xFFF97316),
   });
 
   final String label;
@@ -68,37 +68,43 @@ class StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       decoration: BoxDecoration(
-        color: GamePalette.panel.withValues(alpha: 0.92),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        border: Border.all(color: charcoalBlack, width: 2),
+        boxShadow: const [
+          BoxShadow(
+            color: charcoalBlack,
+            offset: Offset(3, 3),
+            blurRadius: 0,
+          ),
+        ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                letterSpacing: 1.1,
-                color: GamePalette.ink.withValues(alpha: 0.6),
-                fontWeight: FontWeight.w700,
-              ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: charcoalBlack.withValues(alpha: 0.65),
+              fontWeight: FontWeight.w900,
+              letterSpacing: 1.1,
+              fontSize: 12,
             ),
-            const SizedBox(height: 6),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w900,
-                color: accent,
-              ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: TextStyle(
+              color: accent,
+              fontWeight: FontWeight.w900,
+              fontSize: 24,
+              height: 1,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -116,34 +122,44 @@ class ColorBarPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
       decoration: BoxDecoration(
-        color: GamePalette.panelAlt.withValues(alpha: 0.9),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        border: Border.all(color: charcoalBlack, width: 2),
+        boxShadow: const [
+          BoxShadow(
+            color: charcoalBlack,
+            offset: Offset(4, 4),
+            blurRadius: 0,
+          ),
+        ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Text(
-                  '색 흐름',
-                  style: TextStyle(fontWeight: FontWeight.w800),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Text(
+                '색 흐름',
+                style: TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 16,
+                  color: charcoalBlack,
                 ),
-                const Spacer(),
-                Text(
-                  '사용한 구간만 사라져요',
-                  style: TextStyle(
-                    color: GamePalette.ink.withValues(alpha: 0.62),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
+              ),
+              const Spacer(),
+              Text(
+                '사용한 구간만 사라져요',
+                style: TextStyle(
+                  color: charcoalBlack.withValues(alpha: 0.62),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
                 ),
-              ],
-            ),
+              ),
+            ],
+          ),
             const SizedBox(height: 12),
             AnimatedColorStream(
               entries: colors,
@@ -151,7 +167,6 @@ class ColorBarPanel extends StatelessWidget {
             ),
           ],
         ),
-      ),
     );
   }
 }

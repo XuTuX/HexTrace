@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import 'package:hexor/constant.dart';
 import 'game_controller.dart';
 import 'game_palette.dart';
 
@@ -257,21 +258,7 @@ class HexBoardPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final backdropPaint = Paint()
-      ..shader = const LinearGradient(
-        colors: [Color(0xFF173445), Color(0xFF102431)],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ).createShader(Offset.zero & size);
-
-    final backdrop = RRect.fromRectAndRadius(
-      Offset.zero & size,
-      const Radius.circular(28),
-    );
-
-    canvas.drawRRect(backdrop, backdropPaint);
     canvas.save();
-    canvas.clipRRect(backdrop);
 
     final dragSet = dragPath.toSet();
     final clearingSet = clearingPath.toSet();
@@ -299,8 +286,8 @@ class HexBoardPainter extends CustomPainter {
           opacity: isAnimated ? opacity : 1,
           scale: isAnimated ? scale : 1,
           borderColor:
-              dragSet.contains(coord) ? dragColor : const Color(0xFF244353),
-          borderWidth: dragSet.contains(coord) ? 4 : 1.2,
+              dragSet.contains(coord) ? dragColor : charcoalBlack,
+          borderWidth: dragSet.contains(coord) ? 4 : 2,
           coreAlpha: dragSet.contains(coord) ? 0.5 : 0.12,
           isClearing: clearingSet.contains(coord),
         );
@@ -347,7 +334,7 @@ class HexBoardPainter extends CustomPainter {
         text: TextSpan(
           text: '${index + 1}',
           style: TextStyle(
-            color: GamePalette.canvas,
+            color: charcoalBlack,
             fontSize: layout.radius * 0.62,
             fontWeight: FontWeight.w900,
           ),

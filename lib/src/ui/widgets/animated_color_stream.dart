@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:hexor/constant.dart';
 import '../../game/game_controller.dart';
 import '../../game/game_palette.dart';
 
@@ -19,7 +20,7 @@ class AnimatedColorStream extends StatefulWidget {
 
 class _AnimatedColorStreamState extends State<AnimatedColorStream> {
   static const Duration _moveDuration = Duration(milliseconds: 260);
-  static const double _slotGap = 3;
+  static const double _slotGap = 5;
 
   final Map<int, _VisualBarEntry> _visualEntries = <int, _VisualBarEntry>{};
 
@@ -126,19 +127,17 @@ class _AnimatedColorStreamState extends State<AnimatedColorStream> {
       }
     }).toSet();
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(18),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final slotWidth = (constraints.maxWidth -
-                  (_slotGap * (widget.entries.length - 1))) /
-              widget.entries.length;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final slotWidth = (constraints.maxWidth -
+                (_slotGap * (widget.entries.length - 1))) /
+            widget.entries.length;
 
-          return SizedBox(
-            height: 56,
-            child: Stack(
-              clipBehavior: Clip.hardEdge,
-              children: _visualEntries.values.map((visual) {
+        return SizedBox(
+          height: 48,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: _visualEntries.values.map((visual) {
                 final isFirst = visual.index <= 0.1;
                 final isLast = visual.index >= widget.entries.length - 1 - 0.1;
 
@@ -149,7 +148,7 @@ class _AnimatedColorStreamState extends State<AnimatedColorStream> {
                   left: visual.index * (slotWidth + _slotGap),
                   top: 0,
                   width: slotWidth,
-                  height: 56,
+                  height: 48,
                   child: AnimatedOpacity(
                     duration: _moveDuration,
                     curve: Curves.easeOutCubic,
@@ -172,8 +171,7 @@ class _AnimatedColorStreamState extends State<AnimatedColorStream> {
             ),
           );
         },
-      ),
-    );
+      );
   }
 }
 
@@ -208,39 +206,45 @@ class _ColorStreamSlot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final fill = GamePalette.colorFor(color);
+    
+    final double topMargin = highlighted ? 3 : 0;
+    final double leftMargin = highlighted ? 3 : 0;
+    final double bottomMargin = highlighted ? 0 : 3;
+    final double rightMargin = highlighted ? 0 : 3;
+    final double shadowDepth = highlighted ? 0 : 3;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 120),
-      margin: const EdgeInsets.symmetric(horizontal: 1.2),
+      margin: EdgeInsets.fromLTRB(leftMargin, topMargin, rightMargin, bottomMargin),
       decoration: BoxDecoration(
         color: fill,
-        borderRadius: BorderRadius.horizontal(
-          left: Radius.circular(isFirst ? 16 : 6),
-          right: Radius.circular(isLast ? 16 : 6),
-        ),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color:
-              highlighted ? Colors.white : Colors.white.withValues(alpha: 0.08),
-          width: highlighted ? 2.8 : 0.8,
+          color: charcoalBlack,
+          width: 2.0,
         ),
-        boxShadow: highlighted
-            ? [
-                BoxShadow(
-                  color: fill.withValues(alpha: 0.55),
-                  blurRadius: 18,
-                  spreadRadius: 1,
-                ),
-              ]
-            : null,
+        boxShadow: [
+          BoxShadow(
+            color: charcoalBlack,
+            offset: Offset(shadowDepth, shadowDepth),
+            blurRadius: 0,
+          ),
+        ],
       ),
       child: Center(
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 120),
-          width: highlighted ? 16 : 10,
-          height: highlighted ? 16 : 10,
+          width: highlighted ? 18 : 10,
+          height: highlighted ? 18 : 10,
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: highlighted ? 0.92 : 0.38),
+            color: Colors.white,
             shape: BoxShape.circle,
+            border: Border.all(color: charcoalBlack, width: 2),
+            boxShadow: highlighted 
+                ? [
+                    BoxShadow(color: fill.withValues(alpha: 0.8), blurRadius: 4, spreadRadius: 2)
+                  ] 
+                : null,
           ),
         ),
       ),

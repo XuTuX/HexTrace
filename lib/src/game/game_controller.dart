@@ -59,8 +59,8 @@ class HexGameController extends ChangeNotifier {
   HexGameController({
     this.rows = 7,
     this.cols = 6,
-    this.colorBarSize = 10,
-    this.startingSeconds = 70,
+    this.colorBarSize = 14,
+    this.startingSeconds = 60,
     Random? random,
   }) : _random = random ?? Random() {
     _resetGame();
@@ -435,9 +435,12 @@ class HexGameController extends ChangeNotifier {
         .map((row) => row.map<GameColor?>((color) => color).toList())
         .toList();
     final nextAnimatedTiles = matchedPath.toSet();
+    final counts = _colorCountsFromBoard(stagedBoard);
 
     for (final coord in matchedPath) {
-      stagedBoard[coord.row][coord.col] = _randomColor();
+      final nextColor = _weightedBoardColor(counts);
+      stagedBoard[coord.row][coord.col] = nextColor;
+      counts[nextColor] = (counts[nextColor] ?? 0) + 1;
     }
 
     board = stagedBoard
@@ -479,11 +482,16 @@ class HexGameController extends ChangeNotifier {
 
   void _randomizeBoardUntilPlayable() {
     for (var attempt = 0; attempt < 200; attempt++) {
+      final counts = <GameColor, int>{};
       board = List<List<GameColor>>.generate(
         rows,
         (_) => List<GameColor>.generate(
           cols,
-          (_) => _randomColor(),
+          (_) {
+            final nextColor = _weightedBoardColor(counts);
+            counts[nextColor] = (counts[nextColor] ?? 0) + 1;
+            return nextColor;
+          },
           growable: false,
         ),
         growable: false,
@@ -559,6 +567,52 @@ class HexGameController extends ChangeNotifier {
 
   GameColor _randomColor() {
     return GameColor.values[_random.nextInt(GameColor.values.length)];
+  }
+
+  Map<GameColor, int> _colorCountsFromBoard(
+      List<List<GameColor?>> sourceBoard) {
+    final counts = <GameColor, int>{};
+
+    for (final row in sourceBoard) {
+      for (final color in row) {
+        if (color == null) {
+          continue;
+        }
+        counts[color] = (counts[color] ?? 0) + 1;
+      }
+    }
+
+    return counts;
+  }
+
+  GameColor _weightedBoardColor(Map<GameColor, int> counts) {
+    final totalTiles = counts.values.fold<int>(0, (sum, value) => sum + value);
+    final average = totalTiles / GameColor.values.length;
+    final weights = <GameColor, double>{};
+    var totalWeight = 0.0;
+
+    // If one color is already overrepresented on the board, lower its spawn
+    // weight so refills naturally drift back toward a healthier spread.
+    for (final color in GameColor.values) {
+      final count = (counts[color] ?? 0).toDouble();
+      final deltaFromAverage = count - average;
+      final weight = deltaFromAverage <= 0
+          ? 1.0 + (-deltaFromAverage * 0.08)
+          : 1.0 / (1.0 + (deltaFromAverage * 0.35));
+
+      weights[color] = weight;
+      totalWeight += weight;
+    }
+
+    var roll = _random.nextDouble() * totalWeight;
+    for (final color in GameColor.values) {
+      roll -= weights[color]!;
+      if (roll <= 0) {
+        return color;
+      }
+    }
+
+    return GameColor.values.last;
   }
 
   void _refillColorBar() {
