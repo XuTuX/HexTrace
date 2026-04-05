@@ -80,6 +80,7 @@ class HexGameController extends ChangeNotifier {
 
   List<HexCoord> dragPath = const [];
   List<HexCoord> clearingPath = const [];
+  List<HexCoord> lastMatchPath = const [];
   DragState dragState = DragState.idle;
   bool invalidPulse = false;
 
@@ -383,6 +384,7 @@ class HexGameController extends ChangeNotifier {
 
     isResolvingMatch = true;
     clearingPath = matchedPath;
+    lastMatchPath = matchedPath;
     _clearDrag();
 
     final now = DateTime.now();
@@ -398,7 +400,7 @@ class HexGameController extends ChangeNotifier {
       startingSeconds.toDouble() + 25,
       timeRemaining + _timeBonusForLength(matchedPath.length),
     );
-    statusText = combo > 1 ? 'COMBO x$combo\n+$gainedScore PTS' : '+$gainedScore PTS';
+    statusText = combo > 1 ? 'COMBO x$combo\n+$gainedScore' : '+$gainedScore';
     statusTone = GameMessageTone.success;
     _notify();
 
@@ -518,6 +520,7 @@ class HexGameController extends ChangeNotifier {
     dragState = DragState.idle;
     dragPath = const [];
     clearingPath = const [];
+    lastMatchPath = const [];
     animatedTiles = const {};
     boardAnimationTick = 0;
     _lastMatchAt = null;

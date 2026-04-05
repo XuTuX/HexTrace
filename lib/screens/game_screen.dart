@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../constant.dart';
 import '../controllers/score_controller.dart';
 import '../game/hex_board_view.dart';
 import '../game/hex_game_controller.dart';
@@ -230,43 +231,92 @@ class _FloatingStatusViewState extends State<_FloatingStatusView>
 
         final bool isCombo = _currentText.contains('COMBO');
         final List<String> textLines = _currentText.split('\n');
-        final Color textColor =
-            isCombo ? const Color(0xFF6366F1) : const Color(0xFF2563EB); // Indigo : Blue
 
-        return Center(
-          child: Transform.translate(
-            offset: Offset(0, _translateY.value),
-            child: Transform.rotate(
-              angle: isCombo ? -0.05 : 0,
-              child: Opacity(
-                opacity: _opacity.value,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: textLines.map((line) {
-                    final bool isComboLine = line.startsWith('COMBO');
-                    return Text(
-                      line,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: textColor,
-                        fontSize: isComboLine ? 16 : (isCombo ? 28 : 24),
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 1.2,
-                        height: 1.1,
-                        shadows: [
-                          Shadow(
-                            color: Colors.black.withValues(alpha: 0.3),
-                            offset: const Offset(2, 2),
-                            blurRadius: 4,
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            Offset centerOffset =
+                Offset(constraints.maxWidth / 2, constraints.maxHeight / 2);
+
+            if (widget.controller.lastMatchPath.isNotEmpty) {
+              final layout = HexBoardLayout.fromSize(
+                size: Size(constraints.maxWidth, constraints.maxHeight),
+                rows: widget.controller.rows,
+                cols: widget.controller.cols,
+              );
+
+              double sumX = 0;
+              double sumY = 0;
+              for (final coord in widget.controller.lastMatchPath) {
+                final point = layout.centers[coord]!;
+                sumX += point.dx;
+                sumY += point.dy;
+              }
+              centerOffset = Offset(
+                sumX / widget.controller.lastMatchPath.length,
+                sumY / widget.controller.lastMatchPath.length,
+              );
+            }
+
+            return Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Positioned(
+                  left: centerOffset.dx,
+                  top: centerOffset.dy,
+                  child: FractionalTranslation(
+                    translation: const Offset(-0.5, -0.5),
+                    child: Transform.translate(
+                      offset: Offset(0, _translateY.value),
+                      child: Transform.rotate(
+                        angle: isCombo ? -0.05 : 0,
+                        child: Opacity(
+                          opacity: _opacity.value,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8),
+                            decoration: BoxDecoration(
+                              color:
+                                  isCombo ? Colors.amberAccent : Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                  color: charcoalBlack, width: 3.0),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: charcoalBlack,
+                                  offset: Offset(0, 4),
+                                  blurRadius: 0,
+                                )
+                              ],
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: textLines.map((line) {
+                                final bool isComboLine =
+                                    line.startsWith('COMBO');
+                                return Text(
+                                  line,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: charcoalBlack,
+                                    fontSize: isComboLine
+                                        ? 14
+                                        : (isCombo ? 20 : 18),
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 1.0,
+                                    height: 1.1,
+                                  ),
+                                );
+                              }).toList(),
+                            ),
                           ),
-                        ],
+                        ),
                       ),
-                    );
-                  }).toList(),
+                    ),
+                  ),
                 ),
-              ),
-            ),
-          ),
+              ],
+            );
+          },
         );
       },
     );
