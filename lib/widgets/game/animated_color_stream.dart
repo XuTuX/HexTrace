@@ -209,11 +209,11 @@ class _ColorStreamSlot extends StatelessWidget {
   Widget build(BuildContext context) {
     final fill = GamePalette.colorFor(color);
 
-    final double topMargin = highlighted ? 3 : 0;
-    final double leftMargin = highlighted ? 3 : 0;
-    final double bottomMargin = highlighted ? 0 : 3;
-    final double rightMargin = highlighted ? 0 : 3;
-    final double shadowDepth = highlighted ? 0 : 3;
+    final double topMargin = highlighted ? 1.5 : 0;
+    final double leftMargin = highlighted ? 1.5 : 0;
+    final double bottomMargin = highlighted ? 0 : 1.5;
+    final double rightMargin = highlighted ? 0 : 1.5;
+    final double shadowDepth = highlighted ? 0 : 1.5;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 120),

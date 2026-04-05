@@ -286,7 +286,7 @@ class HexBoardPainter extends CustomPainter {
           canvas.translate(-center.dx, -center.dy);
 
           canvas.drawPath(
-            layout.paths[coord]!.shift(const Offset(0, 4)),
+            layout.paths[coord]!.shift(const Offset(0, 6)),
             Paint()
               ..style = PaintingStyle.fill
               ..color = charcoalBlack.withValues(alpha: opacity),
@@ -326,12 +326,12 @@ class HexBoardPainter extends CustomPainter {
       final line = Path()
         ..moveTo(
           layout.centers[dragPath.first]!.dx,
-          layout.centers[dragPath.first]!.dy + 4, // Align with pressed tile
+          layout.centers[dragPath.first]!.dy + 6, // Align with pressed tile
         );
 
       for (var index = 1; index < dragPath.length; index++) {
         final point = layout.centers[dragPath[index]]!;
-        line.lineTo(point.dx, point.dy + 4); // Align with pressed tile
+        line.lineTo(point.dx, point.dy + 6); // Align with pressed tile
       }
 
       // Simple, pretty, thin line
@@ -382,7 +382,7 @@ class HexBoardPainter extends CustomPainter {
 
     if (isPressed) {
       // Shift everything down when pressed
-      canvas.translate(0, 4);
+      canvas.translate(0, 6);
     }
 
     canvas.drawPath(
