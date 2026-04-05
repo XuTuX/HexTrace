@@ -69,7 +69,18 @@ class _HexPuzzlePageState extends State<HexPuzzlePage> {
                         Expanded(
                           child: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 12),
-                            child: HexBoardView(controller: _controller),
+                            child: Stack(
+                              children: [
+                                Positioned.fill(
+                                  child: HexBoardView(controller: _controller),
+                                ),
+                                Positioned.fill(
+                                  child: IgnorePointer(
+                                    child: _FloatingStatusView(controller: _controller),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
 
@@ -136,6 +147,128 @@ class _HexPuzzlePageState extends State<HexPuzzlePage> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       enterBottomSheetDuration: const Duration(milliseconds: 300),
+    );
+  }
+}
+
+class _FloatingStatusView extends StatefulWidget {
+  final HexGameController controller;
+
+  const _FloatingStatusView({required this.controller});
+
+  @override
+  State<_FloatingStatusView> createState() => _FloatingStatusViewState();
+}
+
+class _FloatingStatusViewState extends State<_FloatingStatusView>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animController;
+  late Animation<double> _opacity;
+  late Animation<double> _translateY;
+
+  String _currentText = '';
+  int _lastScore = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _animController = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 1000));
+    _opacity = TweenSequence([
+      TweenSequenceItem(tween: Tween<double>(begin: 0, end: 1), weight: 15),
+      TweenSequenceItem(tween: Tween<double>(begin: 1, end: 1), weight: 55),
+      TweenSequenceItem(tween: Tween<double>(begin: 1, end: 0), weight: 30),
+    ]).animate(_animController);
+    _translateY = Tween<double>(begin: 10, end: -40).animate(
+        CurvedAnimation(parent: _animController, curve: Curves.easeOutCubic));
+
+    widget.controller.addListener(_onControllerChanged);
+  }
+
+  @override
+  void didUpdateWidget(covariant _FloatingStatusView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller.removeListener(_onControllerChanged);
+      widget.controller.addListener(_onControllerChanged);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_onControllerChanged);
+    _animController.dispose();
+    super.dispose();
+  }
+
+  void _onControllerChanged() {
+    if (widget.controller.score > _lastScore) {
+      _lastScore = widget.controller.score;
+      setState(() {
+        _currentText = widget.controller.statusText;
+      });
+      _animController.forward(from: 0);
+    } else if (widget.controller.score == 0) {
+      _lastScore = 0;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animController,
+      builder: (context, child) {
+        if (_animController.isDismissed || _currentText.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        final bool isCombo = _currentText.contains('콤보');
+        final Color bgColor = isCombo ? const Color(0xFFFFF7ED) : const Color(0xFFF0FDF4);
+        final Color borderColor = isCombo ? const Color(0xFFEA580C) : const Color(0xFF16A34A);
+        final Color textColor = isCombo ? const Color(0xFFC2410C) : const Color(0xFF15803D);
+
+        return Center(
+          child: Transform.translate(
+            offset: Offset(0, _translateY.value),
+            child: Opacity(
+              opacity: _opacity.value,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: bgColor,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: borderColor, width: 2),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0xFF1E293B), // charcoalBlack
+                      offset: Offset(2, 2),
+                      blurRadius: 0,
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (isCombo) ...[
+                      Icon(Icons.bolt_rounded, size: 16, color: textColor),
+                      const SizedBox(width: 4),
+                    ],
+                    Text(
+                      _currentText,
+                      style: TextStyle(
+                        color: textColor,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

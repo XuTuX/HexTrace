@@ -56,20 +56,11 @@ class GameOverOverlay extends StatelessWidget {
                     child: const Text(
                       'GAME OVER',
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 16,
                         fontWeight: FontWeight.w900,
                         color: Color(0xFFDC2626),
                         letterSpacing: 1.2,
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    '게임이 종료되었습니다',
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.w900,
-                      color: charcoalBlack,
                     ),
                   ),
                   const SizedBox(height: 32),
@@ -91,17 +82,7 @@ class GameOverOverlay extends StatelessWidget {
                     color: charcoalBlack.withValues(alpha: 0.6),
                     isNew: isNewHighScore,
                   ),
-                  const SizedBox(height: 32),
-                  Text(
-                    '시간이 끝났거나 더 이상 가능한 경로가 없어요.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: charcoalBlack.withValues(alpha: 0.5),
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                    ),
-                  ),
-                  const SizedBox(height: 48),
+                  const SizedBox(height: 40),
                   Row(
                     children: [
                       Expanded(
