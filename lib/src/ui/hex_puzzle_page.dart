@@ -9,7 +9,6 @@ import '../../screens/ranking_screen.dart';
 import '../game/game_controller.dart';
 import '../game/hex_board_view.dart';
 import '../../widgets/home_screen/background_painter.dart';
-import '../../widgets/home_screen/home_components.dart';
 import 'widgets/game_hud.dart';
 import 'widgets/game_over_overlay.dart';
 
@@ -73,16 +72,7 @@ class _HexPuzzlePageState extends State<HexPuzzlePage> {
                             child: HexBoardView(controller: _controller),
                           ),
                         ),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 10, 16, 18),
-                          child: SizedBox(
-                            width: double.infinity,
-                            child: PrimaryButton(
-                              label: '새 게임',
-                              onPressed: _restartGame,
-                            ),
-                          ),
-                        ),
+
                       ],
                     ),
                   if (_controller.isGameOver)

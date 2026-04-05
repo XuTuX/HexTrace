@@ -160,13 +160,13 @@ class ColorBarPanel extends StatelessWidget {
               ),
             ],
           ),
-            const SizedBox(height: 12),
-            AnimatedColorStream(
-              entries: colors,
-              highlightedWindows: highlightedWindows,
-            ),
-          ],
-        ),
+          const SizedBox(height: 12),
+          AnimatedColorStream(
+            entries: colors,
+            highlightedWindows: highlightedWindows,
+          ),
+        ],
+      ),
     );
   }
 }

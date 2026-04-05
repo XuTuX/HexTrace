@@ -59,7 +59,7 @@ class HexGameController extends ChangeNotifier {
   HexGameController({
     this.rows = 7,
     this.cols = 6,
-    this.colorBarSize = 11,
+    this.colorBarSize = 10,
     this.startingSeconds = 60,
     Random? random,
   }) : _random = random ?? Random() {
@@ -557,16 +557,16 @@ class HexGameController extends ChangeNotifier {
   int _scoreForLength(int length, int comboCount) {
     final baseScore = 100;
     final extraBlocks = max(0, length - 3);
-    
+
     // Non-linear scaling:
     // length 3 (extra 0) => 0
     // length 4 (extra 1) => 150 + 50 = 200
     // length 5 (extra 2) => 300 + 200 = 500
     // length 6 (extra 3) => 450 + 450 = 900
     final lengthBonus = (extraBlocks * 150) + (extraBlocks * extraBlocks * 50);
-    
+
     final comboBonus = max(0, comboCount - 1) * 50;
-    
+
     return baseScore + lengthBonus + comboBonus;
   }
 
