@@ -326,12 +326,12 @@ class HexBoardPainter extends CustomPainter {
       final line = Path()
         ..moveTo(
           layout.centers[dragPath.first]!.dx,
-          layout.centers[dragPath.first]!.dy,
+          layout.centers[dragPath.first]!.dy + 4, // Align with pressed tile
         );
 
       for (var index = 1; index < dragPath.length; index++) {
         final point = layout.centers[dragPath[index]]!;
-        line.lineTo(point.dx, point.dy);
+        line.lineTo(point.dx, point.dy + 4); // Align with pressed tile
       }
 
       // Simple, pretty, thin line
