@@ -1,4 +1,4 @@
-package com.neoreo.fillyourarea
+package com.neoreo.hexor
 
 import android.content.pm.ActivityInfo
 import android.os.Bundle

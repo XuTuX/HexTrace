@@ -1,52 +1,45 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:math';
 
-import 'package:app_tracking_transparency/app_tracking_transparency.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-import '../gameplay/engine/rune_bloom_engine.dart';
-import '../gameplay/game_constants.dart';
-import '../gameplay/models/board_cell.dart';
-import '../gameplay/models/rune_piece.dart';
-import '../gameplay/models/rune_type.dart';
-import '../screens/game_over.dart';
-import '../services/ad_service.dart';
+import '../gameplay/hex_puzzle/hex_puzzle_logic.dart';
+import '../gameplay/hex_puzzle/hex_puzzle_palette.dart';
 import '../services/settings_service.dart';
 import 'score_controller.dart';
 
-enum ContinueResult {
-  success,
-  alreadyUsed,
-  noValidPulse,
-  adNotCompleted,
-  adUnavailable,
-}
-
 class GameController extends GetxController {
-  late ScoreController scoreController;
-  late SettingsService settingsService;
+  late final ScoreController scoreController;
+  late final SettingsService settingsService;
 
   final Random _random = Random();
 
-  final board = <List<BoardCell?>>[].obs;
-  final activePieces = <RunePiece?>[].obs;
+  final board = <List<HexTileColor>>[].obs;
+  final colorBar = <HexTileColor>[].obs;
+  final dragPath = <HexCoord>[].obs;
+  final lastMatchedPath = <HexCoord>[].obs;
 
+  final dragStatus = DragPathStatus.idle.obs;
+  final highlightedWindow = Rxn<BarWindowMatch>();
+
+  final isResolving = false.obs;
   final isGameOver = false.obs;
-  final hoverCells = <int>[].obs;
-  final hoverColor = Rx<Color?>(null);
-  final lastPlacedCells = <int>[].obs;
-  final lastClearedCells = <int>[].obs;
-  final currentChain = 0.obs;
-  final showTutorial = true.obs;
   final hasSavedGame = false.obs;
-  final hasUsedContinueThisGame = false.obs;
 
-  static const String _tutorialKey = 'rune_bloom_tutorial_seen';
-  static const String _saveKey = 'rune_bloom_state';
+  final score = 0.obs;
+  final timeLeft = HexPuzzleLogic.initialTimeSeconds.obs;
+  final comboDepth = 0.obs;
+  final matchesMade = 0.obs;
+  final shuffleCharges = 1.obs;
+
+  final statusText =
+      'Drag 3 or more adjacent hexes whose colors match any contiguous run in the bar.'
+          .obs;
+  final gameOverReason = ''.obs;
+
+  Timer? _countdownTimer;
+  DateTime? _lastMatchAt;
 
   @override
   void onInit() {
@@ -59,398 +52,356 @@ class GameController extends GetxController {
     }
 
     settingsService = Get.find<SettingsService>();
-
-    _checkTutorial();
     checkHasSavedGame();
   }
 
+  @override
+  void onClose() {
+    _countdownTimer?.cancel();
+    super.onClose();
+  }
+
   Future<void> checkHasSavedGame() async {
-    final prefs = await SharedPreferences.getInstance();
-    hasSavedGame.value = prefs.containsKey(_saveKey);
-  }
-
-  Future<void> saveGameState() async {
-    if (isGameOver.value || board.isEmpty) return;
-
-    final prefs = await SharedPreferences.getInstance();
-    final state = {
-      'score': scoreController.score.value,
-      'placementScore': scoreController.placementScore.value,
-      'cascadeScore': scoreController.cascadeScore.value,
-      'combo': scoreController.combo.value,
-      'board': board
-          .map(
-            (row) => row.map((cell) => cell?.toJson()).toList(growable: false),
-          )
-          .toList(growable: false),
-      'activePieces':
-          activePieces.map((piece) => piece?.toJson()).toList(growable: false),
-      'hasUsedContinueThisGame': hasUsedContinueThisGame.value,
-    };
-
-    await prefs.setString(_saveKey, jsonEncode(state));
-    hasSavedGame.value = true;
-  }
-
-  Future<bool> loadGameState() async {
-    final prefs = await SharedPreferences.getInstance();
-    final stateJson = prefs.getString(_saveKey);
-    if (stateJson == null) return false;
-
-    try {
-      final state = jsonDecode(stateJson) as Map<String, dynamic>;
-
-      scoreController.score.value = state['score'] as int? ?? 0;
-      scoreController.placementScore.value =
-          state['placementScore'] as int? ?? 0;
-      scoreController.cascadeScore.value = state['cascadeScore'] as int? ?? 0;
-      scoreController.combo.value = state['combo'] as int? ?? 0;
-      scoreController.lastIncrement.value = 0;
-      scoreController.showIncrement.value = false;
-
-      final boardJson =
-          List<List<dynamic>>.from(state['board'] as List<dynamic>);
-      board.assignAll(
-        boardJson.map((row) {
-          return row.map<BoardCell?>((cell) {
-            if (cell == null) return null;
-            return BoardCell.fromJson(Map<String, dynamic>.from(cell));
-          }).toList(growable: false);
-        }).toList(growable: false),
-      );
-
-      final activePiecesJson =
-          List<dynamic>.from(state['activePieces'] as List<dynamic>);
-      activePieces.assignAll(activePiecesJson.map((piece) {
-        if (piece == null) return null;
-        return RunePiece.fromJson(Map<String, dynamic>.from(piece));
-      }).toList(growable: false));
-
-      isGameOver.value = false;
-      hoverCells.clear();
-      hoverColor.value = null;
-      lastPlacedCells.clear();
-      lastClearedCells.clear();
-      currentChain.value = scoreController.combo.value;
-      hasUsedContinueThisGame.value =
-          state['hasUsedContinueThisGame'] as bool? ?? false;
-      hasSavedGame.value = true;
-
-      return true;
-    } catch (error) {
-      debugPrint('Error loading Rune Bloom save: $error');
-      return false;
-    }
-  }
-
-  Future<void> clearSavedGame() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_saveKey);
     hasSavedGame.value = false;
   }
 
-  Future<void> _checkTutorial() async {
-    final prefs = await SharedPreferences.getInstance();
-    showTutorial.value = !(prefs.getBool(_tutorialKey) ?? false);
+  Future<void> saveGameState() async {
+    hasSavedGame.value = false;
   }
 
-  Future<void> completeTutorial() async {
-    showTutorial.value = false;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_tutorialKey, true);
-    await _checkTrackingPermission();
+  Future<bool> loadGameState() async {
+    hasSavedGame.value = false;
+    return false;
   }
 
-  void openTutorial() {
-    showTutorial.value = true;
+  Future<void> clearSavedGame() async {
+    hasSavedGame.value = false;
   }
 
   void resetGame() {
+    _countdownTimer?.cancel();
     scoreController.resetScore();
 
-    board.assignAll(RuneBloomEngine.createEmptyBoard());
-    activePieces.clear();
+    score.value = 0;
+    timeLeft.value = HexPuzzleLogic.initialTimeSeconds;
+    comboDepth.value = 0;
+    matchesMade.value = 0;
+    shuffleCharges.value = 1;
+    isResolving.value = false;
     isGameOver.value = false;
-    hoverCells.clear();
-    hoverColor.value = null;
-    lastPlacedCells.clear();
-    lastClearedCells.clear();
-    currentChain.value = 0;
-    hasUsedContinueThisGame.value = false;
+    gameOverReason.value = '';
+    _lastMatchAt = null;
 
-    clearSavedGame();
-    generateNewPieces();
+    _buildPlayableState();
+    _clearDragState();
+    statusText.value =
+        'Find a path of 3+ adjacent hexes that matches any consecutive colors in the bar.';
+    _startTimer();
   }
 
-  void generateNewPieces() {
-    final pieces = List<RunePiece?>.generate(3, (_) => _createRandomPiece());
-    final placeableTemplates = runePieceTemplates
-        .where(
-          (shape) => RuneBloomEngine.canPlacePieceAnywhere(
-            board,
-            RunePiece(
-              id: 'preview',
-              type: RuneType.ember,
-              shape: shape,
-            ),
-          ),
-        )
-        .toList(growable: false);
+  void startDrag(HexCoord coord) {
+    if (!_canInteract) return;
 
-    if (placeableTemplates.isNotEmpty && !_hasAnyPlaceablePiece(pieces)) {
-      pieces[_random.nextInt(pieces.length)] = RunePiece(
-        id: _pieceId(),
-        type: RuneType.values[_random.nextInt(RuneType.values.length)],
-        shape: placeableTemplates[_random.nextInt(placeableTemplates.length)],
-      );
+    dragPath.assignAll([coord]);
+    _updateDragFeedback();
+  }
+
+  void updateDrag(HexCoord coord) {
+    if (!_canInteract || dragPath.isEmpty) return;
+
+    final currentPath = List<HexCoord>.from(dragPath);
+    final last = currentPath.last;
+
+    if (coord == last) {
+      return;
     }
 
-    activePieces.assignAll(pieces);
-  }
-
-  void updateHover(int centerRow, int centerColumn, RunePiece piece) {
-    final previewCells =
-        RuneBloomEngine.pieceCellsAtCenter(piece, centerRow, centerColumn);
-
-    final nextHover = <int>[];
-
-    for (final cell in previewCells) {
-      if (cell.x < 0 ||
-          cell.x >= boardRows ||
-          cell.y < 0 ||
-          cell.y >= boardColumns ||
-          board[cell.x][cell.y] != null) {
-        clearHover();
-        return;
-      }
-
-      nextHover.add(RuneBloomEngine.toCellIndex(cell.x, cell.y));
+    if (currentPath.length >= 2 &&
+        coord == currentPath[currentPath.length - 2]) {
+      currentPath.removeLast();
+      dragPath.assignAll(currentPath);
+      _updateDragFeedback();
+      return;
     }
 
-    hoverCells.assignAll(nextHover);
-    hoverColor.value = hoverColorForRune(piece.type);
+    if (!HexPuzzleLogic.areAdjacent(last, coord) ||
+        currentPath.contains(coord)) {
+      dragStatus.value = DragPathStatus.invalid;
+      statusText.value = 'Keep the route adjacent and do not revisit a tile.';
+      return;
+    }
+
+    currentPath.add(coord);
+    dragPath.assignAll(currentPath);
+    _updateDragFeedback();
   }
 
-  void clearHover() {
-    hoverCells.clear();
-    hoverColor.value = null;
-  }
+  Future<void> endDrag() async {
+    if (dragPath.isEmpty || !_canInteract) {
+      _clearDragState();
+      return;
+    }
 
-  void placePiece(int centerRow, int centerColumn, int pieceIndex) {
-    clearHover();
-
-    if (pieceIndex < 0 || pieceIndex >= activePieces.length) return;
-
-    final piece = activePieces[pieceIndex];
-    if (piece == null) return;
-
-    if (!RuneBloomEngine.canPlacePieceAtCenter(
-      board,
-      piece,
-      centerRow,
-      centerColumn,
-    )) {
+    final evaluation = _currentEvaluation;
+    if (evaluation.isExactMatch &&
+        dragPath.length >= HexPuzzleLogic.minimumPathLength) {
+      await _resolveCurrentMatch(evaluation.window!);
       return;
     }
 
     if (settingsService.isHapticsOn.value) {
-      HapticFeedback.selectionClick();
+      HapticFeedback.heavyImpact();
     }
 
-    final workingBoard = RuneBloomEngine.cloneBoard(board);
-    final placedCells =
-        RuneBloomEngine.pieceCellsAtCenter(piece, centerRow, centerColumn);
+    statusText.value =
+        'That path does not match a contiguous run in the bar. Try a different route.';
+    _clearDragState();
+  }
 
-    for (final cell in placedCells) {
-      workingBoard[cell.x][cell.y] = BoardCell(type: piece.type, level: 1);
-    }
+  void cancelDrag() {
+    if (isResolving.value) return;
+    _clearDragState();
+  }
 
-    final resolution = RuneBloomEngine.resolveCascades(workingBoard);
-    board.assignAll(resolution.board);
+  Future<void> useShuffle() async {
+    if (!_canInteract || shuffleCharges.value <= 0) return;
 
-    lastPlacedCells.assignAll(
-      placedCells
-          .map((cell) => RuneBloomEngine.toCellIndex(cell.x, cell.y))
-          .toList(growable: false),
+    shuffleCharges.value--;
+    await _shuffleIntoPlayableState(
+      status:
+          'The hive was shuffled. The bar stays live, so look for a new contiguous color run.',
     );
-    lastClearedCells.assignAll(resolution.clearedCells);
-    currentChain.value = resolution.highestChain;
+  }
 
-    scoreController.registerTurn(
-      placementPoints: piece.cellCount * 2,
-      cascadePoints: resolution.cascadeScore,
-      chainDepth: resolution.highestChain,
-    );
+  bool get _canInteract => !isGameOver.value && !isResolving.value;
 
-    activePieces[pieceIndex] = null;
-    activePieces.refresh();
+  DragEvaluation get _currentEvaluation {
+    final colors = dragPath
+        .map((coord) => board[coord.row][coord.column])
+        .toList(growable: false);
+    return HexPuzzleLogic.evaluatePath(colors, colorBar);
+  }
 
-    Future.delayed(const Duration(milliseconds: 300), () {
-      lastPlacedCells.clear();
-    });
+  void _updateDragFeedback() {
+    final evaluation = _currentEvaluation;
+    dragStatus.value = evaluation.status;
+    highlightedWindow.value = evaluation.window;
 
-    Future.delayed(const Duration(milliseconds: 800), () {
-      lastClearedCells.clear();
-    });
-
-    if (activePieces.every((piece) => piece == null)) {
-      generateNewPieces();
-    }
-
-    saveGameState();
-
-    if (!_canPlaceAnyActivePiece()) {
-      Future.delayed(const Duration(milliseconds: 450), () {
-        if (!_canPlaceAnyActivePiece() && !isGameOver.value) {
-          gameOver();
+    switch (evaluation.status) {
+      case DragPathStatus.idle:
+        statusText.value =
+            'Start on any tile. You can use any contiguous run in the bar, not just slot 1.';
+        break;
+      case DragPathStatus.building:
+        final nextLength = dragPath.length;
+        if (nextLength < HexPuzzleLogic.minimumPathLength) {
+          statusText.value =
+              'Good start. Keep dragging until the path reaches at least 3 tiles.';
+        } else {
+          statusText.value =
+              'This path is still a valid prefix. Release now or extend for a longer match.';
         }
-      });
+        break;
+      case DragPathStatus.exact:
+        statusText.value =
+            'Release to score, clear the path, and earn bonus time.';
+        break;
+      case DragPathStatus.invalid:
+        statusText.value =
+            'The color order broke the bar sequence. Backtrack or release to cancel.';
+        break;
     }
   }
 
-  Future<void> restartGame() async {
-    await _checkTrackingPermission();
-    resetGame();
-  }
+  Future<void> _resolveCurrentMatch(BarWindowMatch window) async {
+    isResolving.value = true;
+    highlightedWindow.value = window;
 
-  Future<ContinueResult> continueAfterRewardAd() async {
-    if (hasUsedContinueThisGame.value) {
-      return ContinueResult.alreadyUsed;
-    }
+    final matchedPath = List<HexCoord>.from(dragPath);
+    dragPath.clear();
+    lastMatchedPath.assignAll(matchedPath);
 
-    final rescueWindow =
-        RuneBloomEngine.findBestRescueWindow(board, activePieces);
-    if (rescueWindow == null) {
-      return ContinueResult.noValidPulse;
-    }
+    final combo = _nextComboDepth();
+    final gainedScore = HexPuzzleLogic.scoreForPath(matchedPath.length, combo);
+    final gainedTime = HexPuzzleLogic.timeBonusForPath(matchedPath.length);
 
-    final adService = Get.find<AdService>();
-    final completer = Completer<ContinueResult>();
-    bool rewardEarned = false;
-
-    final didShowAd = adService.showRewardedAd(
-      onUserEarnedReward: () {
-        rewardEarned = true;
-      },
-      onAdDismissed: () {
-        if (rewardEarned) {
-          _clearRescueWindow(rescueWindow);
-          if (!completer.isCompleted) {
-            completer.complete(ContinueResult.success);
-          }
-          return;
-        }
-
-        if (!completer.isCompleted) {
-          completer.complete(ContinueResult.adNotCompleted);
-        }
-      },
-      onAdUnavailable: () {
-        if (!completer.isCompleted) {
-          completer.complete(ContinueResult.adUnavailable);
-        }
-      },
+    score.value += gainedScore;
+    timeLeft.value = min(
+      HexPuzzleLogic.maximumTimeSeconds,
+      timeLeft.value + gainedTime,
     );
+    matchesMade.value++;
 
-    if (!didShowAd) {
-      return ContinueResult.adUnavailable;
-    }
-
-    return completer.future;
-  }
-
-  void gameOver() {
-    isGameOver.value = true;
-    scoreController.checkHighScore();
-    scoreController.uploadHighScoreToServer();
-    clearSavedGame();
+    scoreController.registerPuzzleMatch(
+      points: gainedScore,
+      comboDepth: combo,
+    );
 
     if (settingsService.isHapticsOn.value) {
-      HapticFeedback.vibrate();
+      HapticFeedback.mediumImpact();
     }
 
-    final adService = Get.find<AdService>();
-    final canContinue = adService.hasRewardedAdConfigured &&
-        !hasUsedContinueThisGame.value &&
-        RuneBloomEngine.findBestRescueWindow(board, activePieces) != null;
+    statusText.value =
+        '+$gainedScore points and +$gainedTime sec. The matched run was removed from the bar.';
 
-    Get.dialog(
-      GameOverDialog(
-        onRestart: () {
-          Get.back();
-          restartGame();
-        },
-        onContinue: canContinue ? continueAfterRewardAd : null,
-      ),
-      barrierDismissible: false,
-      barrierColor: Colors.transparent,
-      useSafeArea: false,
+    await Future<void>.delayed(const Duration(milliseconds: 180));
+
+    final nextBoard = HexPuzzleLogic.removePathAndRefill(
+      board,
+      matchedPath,
+      _random,
     );
-  }
-
-  bool _canPlaceAnyActivePiece() {
-    return _hasAnyPlaceablePiece(activePieces);
-  }
-
-  bool _hasAnyPlaceablePiece(Iterable<RunePiece?> pieces) {
-    for (final piece in pieces) {
-      if (piece == null) continue;
-      if (RuneBloomEngine.canPlacePieceAnywhere(board, piece)) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  RunePiece _createRandomPiece() {
-    return RunePiece(
-      id: _pieceId(),
-      type: RuneType.values[_random.nextInt(RuneType.values.length)],
-      shape: runePieceTemplates[_random.nextInt(runePieceTemplates.length)],
+    final nextColorBar = HexPuzzleLogic.consumeColorBarWindow(
+      colorBar,
+      window,
+      _random,
     );
+
+    board.assignAll(nextBoard);
+    colorBar.assignAll(nextColorBar);
+
+    await Future<void>.delayed(const Duration(milliseconds: 120));
+    lastMatchedPath.clear();
+    dragStatus.value = DragPathStatus.idle;
+    highlightedWindow.value = null;
+    isResolving.value = false;
+
+    await _ensurePlayableAfterTurn();
   }
 
-  String _pieceId() {
-    return '${DateTime.now().microsecondsSinceEpoch}_${_random.nextInt(99999)}';
-  }
-
-  void _clearRescueWindow(RescueWindow window) {
-    final updatedBoard = RuneBloomEngine.cloneBoard(board);
-    final cleared = <int>[];
-
-    for (int row = window.startRow; row < window.startRow + 3; row++) {
-      for (int column = window.startColumn;
-          column < window.startColumn + 3;
-          column++) {
-        if (updatedBoard[row][column] == null) continue;
-        updatedBoard[row][column] = null;
-        cleared.add(RuneBloomEngine.toCellIndex(row, column));
-      }
+  int _nextComboDepth() {
+    final now = DateTime.now();
+    if (_lastMatchAt != null &&
+        now.difference(_lastMatchAt!) <= const Duration(seconds: 3)) {
+      comboDepth.value += 1;
+    } else {
+      comboDepth.value = 1;
     }
 
-    board.assignAll(updatedBoard);
-    lastClearedCells.assignAll(cleared);
-    isGameOver.value = false;
-    currentChain.value = 0;
-    hasUsedContinueThisGame.value = true;
+    _lastMatchAt = now;
+    return comboDepth.value;
+  }
 
-    Future.delayed(const Duration(milliseconds: 800), () {
-      lastClearedCells.clear();
+  void _buildPlayableState() {
+    for (var attempt = 0; attempt < 160; attempt++) {
+      final nextBoard = HexPuzzleLogic.randomBoard(_random);
+      final nextColorBar = HexPuzzleLogic.randomColorBar(_random);
+
+      if (!HexPuzzleLogic.hasAnyValidMove(nextBoard, nextColorBar)) {
+        continue;
+      }
+
+      board.assignAll(nextBoard);
+      colorBar.assignAll(nextColorBar);
+      return;
+    }
+
+    _assignGuaranteedMoveState();
+  }
+
+  Future<void> _ensurePlayableAfterTurn() async {
+    if (timeLeft.value <= 0) {
+      await _finishGame('Time is up.');
+      return;
+    }
+
+    if (HexPuzzleLogic.hasAnyValidMove(board, colorBar)) {
+      return;
+    }
+
+    if (shuffleCharges.value > 0) {
+      shuffleCharges.value--;
+      await _shuffleIntoPlayableState(
+        status:
+            'No valid path remained, so the prototype used your one emergency shuffle.',
+      );
+      return;
+    }
+
+    await _finishGame('No valid paths of length 3 or more remain.');
+  }
+
+  Future<void> _shuffleIntoPlayableState({required String status}) async {
+    isResolving.value = true;
+    _clearDragState();
+
+    for (var attempt = 0; attempt < 120; attempt++) {
+      final nextBoard = attempt.isEven
+          ? HexPuzzleLogic.shuffledBoard(board, _random)
+          : HexPuzzleLogic.randomBoard(_random);
+      final nextBar = attempt.isEven
+          ? HexPuzzleLogic.shuffledColorBar(colorBar, _random)
+          : HexPuzzleLogic.randomColorBar(_random);
+
+      if (!HexPuzzleLogic.hasAnyValidMove(nextBoard, nextBar)) {
+        continue;
+      }
+
+      board.assignAll(nextBoard);
+      colorBar.assignAll(nextBar);
+      statusText.value = status;
+      isResolving.value = false;
+      return;
+    }
+
+    _assignGuaranteedMoveState();
+    statusText.value = status;
+    isResolving.value = false;
+  }
+
+  void _startTimer() {
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) async {
+      if (isGameOver.value || isResolving.value) return;
+
+      timeLeft.value--;
+      if (timeLeft.value <= 0) {
+        await _finishGame('Time is up.');
+      }
     });
-
-    saveGameState();
   }
 
-  Future<void> _checkTrackingPermission() async {
-    try {
-      final status = await AppTrackingTransparency.trackingAuthorizationStatus;
-      if (status == TrackingStatus.notDetermined) {
-        await Future.delayed(const Duration(milliseconds: 500));
-        await AppTrackingTransparency.requestTrackingAuthorization();
-      }
-    } catch (error) {
-      debugPrint('Error requesting tracking transparency: $error');
+  Future<void> _finishGame(String reason) async {
+    if (isGameOver.value) return;
+
+    _countdownTimer?.cancel();
+    isGameOver.value = true;
+    gameOverReason.value = reason;
+    _clearDragState();
+    scoreController.checkHighScore();
+    await scoreController.uploadHighScoreToServer();
+  }
+
+  void _clearDragState() {
+    dragPath.clear();
+    dragStatus.value = DragPathStatus.idle;
+    highlightedWindow.value = null;
+  }
+
+  void _assignGuaranteedMoveState() {
+    final seededBoard = HexPuzzleLogic.randomBoard(_random);
+    final seededBar = <HexTileColor>[
+      HexTileColor.coral,
+      HexTileColor.amber,
+      HexTileColor.lime,
+      HexPuzzleLogic.randomColor(_random),
+      HexPuzzleLogic.randomColor(_random),
+    ];
+
+    const guaranteedPath = [
+      HexCoord(3, 2),
+      HexCoord(3, 3),
+      HexCoord(3, 4),
+    ];
+    for (var index = 0; index < guaranteedPath.length; index++) {
+      final coord = guaranteedPath[index];
+      seededBoard[coord.row][coord.column] = seededBar[index];
     }
+
+    board.assignAll(seededBoard);
+    colorBar.assignAll(seededBar);
+  }
+
+  String describePathColor(HexCoord coord) {
+    return board[coord.row][coord.column].label;
   }
 }

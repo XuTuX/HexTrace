@@ -153,22 +153,19 @@ class ScoreController extends GetxController {
 
   // --- Scoring Logic ---
 
-  void registerTurn({
-    required int placementPoints,
-    required int cascadePoints,
-    required int chainDepth,
+  void registerPuzzleMatch({
+    required int points,
+    required int comboDepth,
   }) {
-    final totalGain = placementPoints + cascadePoints;
+    placementScore.value += points;
+    cascadeScore.value = 0;
+    score.value += points;
+    combo.value = comboDepth;
 
-    placementScore.value += placementPoints;
-    cascadeScore.value += cascadePoints;
-    score.value += totalGain;
-    combo.value = chainDepth;
+    lastIncrement.value = points;
+    showIncrement.value = points > 0;
 
-    lastIncrement.value = totalGain;
-    showIncrement.value = totalGain > 0;
-
-    if (totalGain > 0) {
+    if (points > 0) {
       Future.delayed(const Duration(seconds: 1), () {
         showIncrement.value = false;
       });
@@ -182,6 +179,8 @@ class ScoreController extends GetxController {
     placementScore.value = 0;
     cascadeScore.value = 0;
     combo.value = 0;
+    lastIncrement.value = 0;
+    showIncrement.value = false;
     hasNewHighScoreThisGame.value = false;
   }
 

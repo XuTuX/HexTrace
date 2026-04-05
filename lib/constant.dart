@@ -5,8 +5,8 @@ String get supabaseUrl => dotenv.env['SUPABASE_URL'] ?? '';
 String get supabaseAnonKey => dotenv.env['SUPABASE_ANON_KEY'] ?? '';
 
 const String appName = 'Hexor';
-const String gameTitle = 'Rune Bloom';
-const String gameId = 'rune_bloom';
+const String gameTitle = 'Hexor';
+const String gameId = 'hexor';
 
 const Color charcoalBlack = Color(0xFF1A1A1A);
 final Color charcoalBlack87 = charcoalBlack.withValues(alpha: 0.87);

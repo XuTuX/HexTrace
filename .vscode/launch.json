@@ -5,18 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Fill Your Area",
+            "name": "Hexor",
             "request": "launch",
             "type": "dart"
         },
         {
-            "name": "Fill Your Area (profile mode)",
+            "name": "Hexor (profile mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "profile"
         },
         {
-            "name": "Fill Your Area (release mode)",
+            "name": "Hexor (release mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "release"

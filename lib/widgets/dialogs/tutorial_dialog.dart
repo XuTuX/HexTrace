@@ -17,29 +17,29 @@ class _TutorialDialogState extends State<TutorialDialog> {
 
   final List<Map<String, dynamic>> _steps = [
     {
-      'title': 'Place Rune Clusters',
+      'title': 'Read The Color Bar',
       'description':
-          'Drag one of the 3 rune clusters onto the board. Every tile you place adds a little score.',
+          'The top bar shows a sequence of colors. You may use any contiguous run from that bar, not only the first slots.',
     },
     {
-      'title': 'Merge Matching Runes',
+      'title': 'Drag Adjacent Hexes',
       'description':
-          'Connect 5 or more orthogonally touching runes of the same type and level to merge them into a stronger rune.',
+          'Start from any hex tile and drag only through adjacent hexes. The same tile cannot be used twice in one route.',
     },
     {
-      'title': 'Trigger Cascades',
+      'title': 'Match A Contiguous Run',
       'description':
-          'Merged runes can immediately create new groups. Every extra chain in the same turn multiplies your payoff.',
+          'Your dragged tile colors must exactly match one contiguous subsequence from the bar, and every valid path must be at least 3 tiles long.',
     },
     {
-      'title': 'Bloom Level 4 Runes',
+      'title': 'Clear, Refill, Score',
       'description':
-          'When a level 4 rune merges again, it blooms and clears the surrounding area. Use blooms to rescue crowded boards.',
+          'A valid release removes the path, collapses and refills the board, consumes that run from the bar, adds score, and grants bonus time.',
     },
     {
-      'title': 'Stay Alive',
+      'title': 'Beat The Clock',
       'description':
-          'Once none of the clusters in your current hand fit, the run ends. Plan ahead so the board keeps breathing.',
+          'The round ends when the timer reaches zero or when no valid path of length 3 or more remains after your shuffle is gone.',
     },
   ];
 

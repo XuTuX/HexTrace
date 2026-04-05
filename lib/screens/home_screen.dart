@@ -1,6 +1,5 @@
 import 'package:hexor/constant.dart';
 import 'package:hexor/theme/app_typography.dart';
-import 'package:hexor/controllers/game_controller.dart';
 import 'package:hexor/controllers/score_controller.dart';
 import 'package:hexor/screens/game_screen.dart';
 import 'package:hexor/services/auth_service.dart';
@@ -82,7 +81,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final ScoreController scoreController = Get.put(ScoreController());
-    final GameController gameController = Get.put(GameController());
     final AuthService authService = Get.find<AuthService>();
 
     return Scaffold(
@@ -133,23 +131,31 @@ class _HomeScreenState extends State<HomeScreen> {
                             const HomeLogo(),
                             const SizedBox(height: 32),
                             Text(
-                              'RUNE',
+                              'HEX',
                               style: AppTypography.headline.copyWith(
                                 color: charcoalBlack87,
                               ),
                             ),
                             Text(
-                              'BLOOM',
+                              'TRACE',
                               style: AppTypography.display.copyWith(
                                 height: 0.9,
                                 shadows: [
                                   Shadow(
                                     color:
-                                        regionColors[0].withValues(alpha: 0.3),
+                                        regionColors[4].withValues(alpha: 0.3),
                                     offset: const Offset(4, 4),
                                     blurRadius: 0,
                                   ),
                                 ],
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              'Real-time hex drag puzzle',
+                              style: AppTypography.body.copyWith(
+                                color: charcoalBlack54,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
                           ],
@@ -168,51 +174,22 @@ class _HomeScreenState extends State<HomeScreen> {
                       const Spacer(flex: 2),
 
                       // Action Buttons
-                      Obx(() {
-                        bool hasSavedGame = gameController.hasSavedGame.value;
-                        return Column(
-                          children: [
-                            PrimaryButton(
-                              label: hasSavedGame ? 'CONTINUE' : 'PLAY',
-                              onPressed: () {
-                                Get.to(() =>
-                                    GameScreen(shouldRestore: hasSavedGame));
-                              },
-                            ),
-                            const SizedBox(height: 16),
-                            if (hasSavedGame)
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: SecondaryButton(
-                                      label: 'NEW GAME',
-                                      onPressed: () {
-                                        Get.to(() => const GameScreen(
-                                            shouldRestore: false));
-                                      },
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: SecondaryButton(
-                                      label: 'RANKING',
-                                      icon: Icons.emoji_events_outlined,
-                                      onPressed: () =>
-                                          _handleRankingPress(authService),
-                                    ),
-                                  ),
-                                ],
-                              )
-                            else
-                              SecondaryButton(
-                                label: 'RANKING',
-                                icon: Icons.emoji_events_outlined,
-                                onPressed: () =>
-                                    _handleRankingPress(authService),
-                              ),
-                          ],
-                        );
-                      }),
+                      Column(
+                        children: [
+                          PrimaryButton(
+                            label: 'PLAY',
+                            onPressed: () {
+                              Get.to(() => const GameScreen());
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          SecondaryButton(
+                            label: 'RANKING',
+                            icon: Icons.emoji_events_outlined,
+                            onPressed: () => _handleRankingPress(authService),
+                          ),
+                        ],
+                      ),
 
                       const SizedBox(height: 32),
                     ],
