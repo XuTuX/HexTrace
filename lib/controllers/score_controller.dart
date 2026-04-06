@@ -21,22 +21,16 @@ class ScoreController extends GetxController {
   var showIncrement = false.obs;
 
   /// Current logged-in user ID (null = guest)
-  String? _currentUserId;
+  String? get _currentUserId => Get.find<AuthService>().user.value?.id;
 
   @override
   void onInit() {
     super.onInit();
 
-    // Check initial auth state
-    final authService = Get.find<AuthService>();
-    final currentUser = authService.user.value;
-    if (currentUser != null) {
-      _currentUserId = currentUser.id;
-    }
-
     _loadHighScore();
 
-    // Watch auth state changes immediately (removed debounce for better UX)
+    // Watch auth state changes
+    final authService = Get.find<AuthService>();
     ever(authService.user, (user) {
       if (user != null) {
         _onUserLogin(user.id);
@@ -50,8 +44,9 @@ class ScoreController extends GetxController {
 
   /// Returns the SharedPreferences key for the current user's high score
   String get _scoreKey {
-    if (_currentUserId != null) {
-      return 'high_score_$_currentUserId';
+    final userId = _currentUserId;
+    if (userId != null) {
+      return 'high_score_$userId';
     }
     return 'high_score_guest';
   }
@@ -61,7 +56,6 @@ class ScoreController extends GetxController {
   Future<void> _onUserLogin(String userId) async {
     isSyncing.value = true;
     hasNewHighScoreThisGame.value = false;
-    _currentUserId = userId;
 
     final prefs = await SharedPreferences.getInstance();
 
@@ -109,7 +103,6 @@ class ScoreController extends GetxController {
   Future<void> _onUserLogout() async {
     isSyncing.value = true;
     hasNewHighScoreThisGame.value = false;
-    _currentUserId = null;
 
     final prefs = await SharedPreferences.getInstance();
     final guestScore = prefs.getInt('high_score_guest') ?? 0;

@@ -17,11 +17,35 @@ class RankingScreen extends StatefulWidget {
 
 class _RankingScreenState extends State<RankingScreen> {
   late Future<List<dynamic>> _rankingFuture;
+  late final Worker _authWorker;
+  late final Worker _syncWorker;
 
   @override
   void initState() {
     super.initState();
     _rankingFuture = _loadRankingData();
+
+    final authService = Get.find<AuthService>();
+    final scoreController = Get.find<ScoreController>();
+
+    // Reload ranking data when user logs in/out
+    _authWorker = ever(authService.user, (_) {
+      if (mounted) _reloadRanking();
+    });
+
+    // Reload ranking data when score sync completes
+    _syncWorker = ever(scoreController.isSyncing, (isSyncing) {
+      if (!isSyncing && mounted) {
+        _reloadRanking();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _authWorker.dispose();
+    _syncWorker.dispose();
+    super.dispose();
   }
 
   /// Syncs local score with server first, then fetches ranking data.
@@ -38,6 +62,7 @@ class _RankingScreenState extends State<RankingScreen> {
   }
 
   void _reloadRanking() {
+    if (!mounted) return;
     setState(() {
       _rankingFuture = _loadRankingData();
     });
@@ -45,9 +70,6 @@ class _RankingScreenState extends State<RankingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final AuthService authService = Get.find<AuthService>();
-    final String? myId = authService.user.value?.id;
-
     return Container(
       constraints: BoxConstraints(
         maxHeight: Get.height * 0.9,
@@ -105,6 +127,9 @@ class _RankingScreenState extends State<RankingScreen> {
                   constraints: const BoxConstraints(maxWidth: 600),
                   child: Obx(() {
                     final scoreController = Get.find<ScoreController>();
+                    final AuthService authService = Get.find<AuthService>();
+                    final String? myId = authService.user.value?.id;
+
                     if (scoreController.isSyncing.value) {
                       return Center(
                         child: Column(
@@ -132,6 +157,7 @@ class _RankingScreenState extends State<RankingScreen> {
                     }
 
                     return FutureBuilder<List<dynamic>>(
+                      key: ValueKey('${authService.user.value?.id}_${scoreController.isSyncing.value}'), // Ensure rebuild on auth/sync change
                       future: _rankingFuture,
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
