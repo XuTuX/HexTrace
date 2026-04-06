@@ -31,16 +31,6 @@ class GameHud extends StatelessWidget {
                       : const Color(0xFF2563EB), // Blue
                 ),
               ),
-              if (controller.combo > 1) ...[
-                const SizedBox(width: 10),
-                Expanded(
-                  child: StatCard(
-                    label: '콤보',
-                    value: 'x${controller.combo}',
-                    accent: const Color(0xFF16A34A), // Green
-                  ),
-                ),
-              ],
             ],
           ),
           const SizedBox(height: 16),

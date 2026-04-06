@@ -7,6 +7,7 @@ import '../constant.dart';
 import '../controllers/score_controller.dart';
 import '../game/hex_board_view.dart';
 import '../game/hex_game_controller.dart';
+import '../utils/browser_back_blocker.dart';
 import '../widgets/game/game_hud.dart';
 import '../widgets/game/game_over_overlay.dart';
 import '../widgets/home_screen/background_painter.dart';
@@ -23,6 +24,7 @@ class GameScreen extends StatefulWidget {
 class _GameScreenState extends State<GameScreen> {
   late final HexGameController _controller;
   late final ScoreController _scoreController;
+  final BrowserBackBlocker _browserBackBlocker = BrowserBackBlocker();
   int _lastSyncedScore = 0;
   bool _didReportGameOver = false;
 
@@ -38,10 +40,12 @@ class _GameScreenState extends State<GameScreen> {
     _scoreController.resetScore();
     _controller = HexGameController();
     _controller.addListener(_handleControllerChanged);
+    _browserBackBlocker.attach();
   }
 
   @override
   void dispose() {
+    _browserBackBlocker.detach();
     _controller.removeListener(_handleControllerChanged);
     _controller.dispose();
     super.dispose();
@@ -63,57 +67,59 @@ class _GameScreenState extends State<GameScreen> {
                     painter: GridPatternPainter(),
                   ),
                 ),
-              SafeArea(
-                child: Stack(
-                  children: [
-                    Column(
-                      children: [
-                        const Spacer(flex: 1),
-                        GameHud(controller: _controller),
-                        const SizedBox(height: 16),
-                        Expanded(
-                          flex: 12,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 4),
-                            child: Stack(
-                              children: [
-                                Positioned.fill(
-                                  child: HexBoardView(controller: _controller),
-                                ),
-                                Positioned.fill(
-                                  child: IgnorePointer(
-                                    child: _FloatingStatusView(
-                                        controller: _controller),
+                SafeArea(
+                  child: Stack(
+                    children: [
+                      Column(
+                        children: [
+                          const Spacer(flex: 1),
+                          GameHud(controller: _controller),
+                          const SizedBox(height: 16),
+                          Expanded(
+                            flex: 12,
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 4),
+                              child: Stack(
+                                children: [
+                                  Positioned.fill(
+                                    child:
+                                        HexBoardView(controller: _controller),
                                   ),
-                                ),
-                              ],
+                                  Positioned.fill(
+                                    child: IgnorePointer(
+                                      child: _FloatingStatusView(
+                                          controller: _controller),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                    if (_controller.isGameOver)
-                      Positioned.fill(
-                        child: GameOverOverlay(
-                          score: _controller.score,
-                          bestScore: _scoreController.highscore.value,
-                          isNewHighScore:
-                              _scoreController.hasNewHighScoreThisGame.value,
-                          onRestart: _restartGame,
-                          onHome: () => Get.offAll(() => const HomeScreen()),
-                          onRanking: _openRanking,
-                        ),
+                        ],
                       ),
-                  ],
+                      if (_controller.isGameOver)
+                        Positioned.fill(
+                          child: GameOverOverlay(
+                            score: _controller.score,
+                            bestScore: _scoreController.highscore.value,
+                            isNewHighScore:
+                                _scoreController.hasNewHighScoreThisGame.value,
+                            onRestart: _restartGame,
+                            onHome: () => Get.offAll(() => const HomeScreen()),
+                            onRanking: _openRanking,
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      );
-    },
-  );
-}
+        );
+      },
+    );
+  }
 
   void _handleControllerChanged() {
     if (_controller.score < _lastSyncedScore) {
@@ -278,8 +284,8 @@ class _FloatingStatusViewState extends State<_FloatingStatusView>
                               color:
                                   isCombo ? Colors.amberAccent : Colors.white,
                               borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                  color: charcoalBlack, width: 3.0),
+                              border:
+                                  Border.all(color: charcoalBlack, width: 3.0),
                               boxShadow: const [
                                 BoxShadow(
                                   color: charcoalBlack,
@@ -298,9 +304,8 @@ class _FloatingStatusViewState extends State<_FloatingStatusView>
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     color: charcoalBlack,
-                                    fontSize: isComboLine
-                                        ? 14
-                                        : (isCombo ? 20 : 18),
+                                    fontSize:
+                                        isComboLine ? 14 : (isCombo ? 20 : 18),
                                     fontWeight: FontWeight.w900,
                                     letterSpacing: 1.0,
                                     height: 1.1,
