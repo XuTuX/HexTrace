@@ -16,27 +16,22 @@ class RankingScreen extends StatefulWidget {
 }
 
 class _RankingScreenState extends State<RankingScreen> {
-  late Future<List<dynamic>> _rankingFuture;
+  bool _isLoading = true;
+  String? _error;
+  int? _myRank;
+  int? _myScore;
+  List<Map<String, dynamic>> _scores = [];
   late final Worker _authWorker;
-  late final Worker _syncWorker;
 
   @override
   void initState() {
     super.initState();
-    _rankingFuture = _loadRankingData();
+    _loadRankingData();
 
     final authService = Get.find<AuthService>();
-    final scoreController = Get.find<ScoreController>();
-
-    // Reload ranking data when user logs in/out
     _authWorker = ever(authService.user, (_) {
-      if (mounted) _reloadRanking();
-    });
-
-    // Reload ranking data when score sync completes
-    _syncWorker = ever(scoreController.isSyncing, (isSyncing) {
-      if (!isSyncing && mounted) {
-        _reloadRanking();
+      if (mounted) {
+        _loadRankingData();
       }
     });
   }
@@ -44,32 +39,82 @@ class _RankingScreenState extends State<RankingScreen> {
   @override
   void dispose() {
     _authWorker.dispose();
-    _syncWorker.dispose();
     super.dispose();
   }
 
-  /// Syncs local score with server first, then fetches ranking data.
-  Future<List<dynamic>> _loadRankingData() async {
-    final scoreController = Get.find<ScoreController>();
-    await scoreController.syncScoreForRanking();
-
-    final dbService = Get.find<DatabaseService>();
-    return Future.wait([
-      dbService.getMyRank(gameId),
-      dbService.getMyBestScore(gameId),
-      dbService.getLeaderboard(gameId),
-    ]);
-  }
-
-  void _reloadRanking() {
+  /// The single, definitive data-loading method.
+  /// 1. Waits for ScoreController login sync to finish (if running).
+  /// 2. Uploads the current local high score to the server.
+  /// 3. Fetches rank, best score, and leaderboard from server.
+  Future<void> _loadRankingData() async {
     if (!mounted) return;
     setState(() {
-      _rankingFuture = _loadRankingData();
+      _isLoading = true;
+      _error = null;
     });
+
+    try {
+      final scoreController = Get.find<ScoreController>();
+      final authService = Get.find<AuthService>();
+      final isLoggedIn = authService.user.value != null;
+
+      // 로그인 사용자는 로그인 직후 점수 병합/동기화가 끝난 뒤 개인 랭킹을 조회한다.
+      if (isLoggedIn) {
+        await scoreController.waitForLoginSync();
+        if (!mounted) return;
+        await scoreController.syncScoreForRanking();
+      }
+
+      if (!mounted) return;
+
+      // 리더보드는 게스트도 볼 수 있어야 한다.
+      final dbService = Get.find<DatabaseService>();
+
+      final results = await Future.wait([
+        isLoggedIn
+            ? dbService.getMyRank(gameId).catchError((e) {
+                debugPrint('🔴 [RankingScreen] getMyRank error: $e');
+                return null;
+              })
+            : Future<int?>.value(null),
+        isLoggedIn
+            ? dbService.getMyBestScore(gameId).catchError((e) {
+                debugPrint('🔴 [RankingScreen] getMyBestScore error: $e');
+                return null;
+              })
+            : Future<int?>.value(null),
+        dbService.getLeaderboard(gameId).catchError((e) {
+          debugPrint('🔴 [RankingScreen] getLeaderboard error: $e');
+          return <Map<String, dynamic>>[];
+        }),
+      ]);
+
+      if (!mounted) return;
+
+      setState(() {
+        _myRank = results[0] as int?;
+        _myScore = results[1] as int?;
+        _scores = List<Map<String, dynamic>>.from(results[2] as List? ?? []);
+        _isLoading = false;
+      });
+
+      debugPrint(
+          '🟢 [RankingScreen] Data loaded — rank: $_myRank, score: $_myScore, leaderboard: ${_scores.length} entries');
+    } catch (e) {
+      debugPrint('🔴 [RankingScreen] _loadRankingData failed: $e');
+      if (!mounted) return;
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final AuthService authService = Get.find<AuthService>();
+    final String? myId = authService.user.value?.id;
+
     return Container(
       constraints: BoxConstraints(
         maxHeight: Get.height * 0.9,
@@ -84,7 +129,6 @@ class _RankingScreenState extends State<RankingScreen> {
       child: SafeArea(
         child: Column(
           children: [
-            // Handle bar
             Center(
               child: Padding(
                 padding: const EdgeInsets.only(top: 12),
@@ -99,8 +143,6 @@ class _RankingScreenState extends State<RankingScreen> {
               ),
             ),
             const SizedBox(height: 20),
-
-            // Title
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -119,134 +161,11 @@ class _RankingScreenState extends State<RankingScreen> {
               ],
             ),
             const SizedBox(height: 16),
-
-            // Content
             Expanded(
               child: Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 600),
-                  child: Obx(() {
-                    final scoreController = Get.find<ScoreController>();
-                    final AuthService authService = Get.find<AuthService>();
-                    final String? myId = authService.user.value?.id;
-
-                    if (scoreController.isSyncing.value) {
-                      return Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(
-                                color: charcoalBlack,
-                                strokeWidth: 2,
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'UPDATING RECORDS...',
-                              style: AppTypography.label.copyWith(
-                                color: charcoalBlack.withValues(alpha: 0.5),
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }
-
-                    return FutureBuilder<List<dynamic>>(
-                      key: ValueKey('${authService.user.value?.id}_${scoreController.isSyncing.value}'), // Ensure rebuild on auth/sync change
-                      future: _rankingFuture,
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return Center(
-                            child: SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(
-                                color: charcoalBlack.withValues(alpha: 0.2),
-                                strokeWidth: 2,
-                              ),
-                            ),
-                          );
-                        }
-
-                        if (snapshot.hasError) {
-                          return RankingErrorState(onRetry: _reloadRanking);
-                        }
-
-                        final data = snapshot.data;
-                        final int? myRank = data?[0] as int?;
-                        final int? myScore = data?[1] as int?;
-                        final List<Map<String, dynamic>> scores =
-                            List<Map<String, dynamic>>.from(data?[2] ?? []);
-
-                        if (scores.isEmpty) {
-                          return const EmptyRankingState();
-                        }
-
-                        return Column(
-                          children: [
-                            const SizedBox(height: 16),
-                            // MY RANK
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 24),
-                              child: MyRankCard(rank: myRank, score: myScore),
-                            ),
-                            const SizedBox(height: 24),
-
-                            // RANKING SECTION LABEL
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 28),
-                              child: Row(
-                                children: [
-                                  Text(
-                                    'TOP PLAYERS',
-                                    style: AppTypography.label.copyWith(
-                                      fontSize: 11,
-                                      letterSpacing: 2.0,
-                                      color:
-                                          charcoalBlack.withValues(alpha: 0.3),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Container(
-                                      height: 0.5,
-                                      color:
-                                          charcoalBlack.withValues(alpha: 0.06),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-
-                            // LIST
-                            Expanded(
-                              child: ListView.builder(
-                                padding:
-                                    const EdgeInsets.fromLTRB(24, 0, 24, 20),
-                                itemCount: scores.length,
-                                itemBuilder: (context, index) {
-                                  return RankListItem(
-                                    scoreData: scores[index],
-                                    index: index,
-                                    myId: myId,
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  }),
+                  child: _buildContent(myId),
                 ),
               ),
             ),
@@ -255,13 +174,106 @@ class _RankingScreenState extends State<RankingScreen> {
       ),
     );
   }
+
+  Widget _buildContent(String? myId) {
+    if (_isLoading) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                color: charcoalBlack,
+                strokeWidth: 2,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'LOADING...',
+              style: AppTypography.label.copyWith(
+                color: charcoalBlack.withValues(alpha: 0.5),
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_error != null) {
+      return RankingErrorState(onRetry: _loadRankingData);
+    }
+
+    if (_scores.isEmpty) {
+      return const EmptyRankingState();
+    }
+
+    return Column(
+      children: [
+        const SizedBox(height: 16),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: MyRankCard(
+            rank: _myRank,
+            score: _myScore,
+            isLoggedIn: myId != null,
+          ),
+        ),
+        const SizedBox(height: 24),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 28),
+          child: Row(
+            children: [
+              Text(
+                'TOP PLAYERS',
+                style: AppTypography.label.copyWith(
+                  fontSize: 11,
+                  letterSpacing: 2.0,
+                  color: charcoalBlack.withValues(alpha: 0.3),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Container(
+                  height: 0.5,
+                  color: charcoalBlack.withValues(alpha: 0.06),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
+            itemCount: _scores.length,
+            itemBuilder: (context, index) {
+              return RankListItem(
+                scoreData: _scores[index],
+                index: index,
+                myId: myId,
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 class MyRankCard extends StatelessWidget {
   final int? rank;
   final int? score;
+  final bool isLoggedIn;
 
-  const MyRankCard({super.key, this.rank, this.score});
+  const MyRankCard({
+    super.key,
+    this.rank,
+    this.score,
+    required this.isLoggedIn,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -276,7 +288,7 @@ class MyRankCard extends StatelessWidget {
         ),
         child: Center(
           child: Text(
-            'PLAY TO RANK UP',
+            isLoggedIn ? 'PLAY TO RANK UP' : 'LOG IN TO JOIN THE RANKING',
             style: AppTypography.label.copyWith(
               fontSize: 11,
               color: charcoalBlack.withValues(alpha: 0.3),

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import '../constant.dart';
@@ -20,6 +21,10 @@ class ScoreController extends GetxController {
   var lastIncrement = 0.obs;
   var showIncrement = false.obs;
 
+  /// Completer that resolves when the current login sync is done.
+  /// External code (e.g. RankingScreen) can await this.
+  Completer<void>? _loginSyncCompleter;
+
   /// Current logged-in user ID (null = guest)
   String? get _currentUserId => Get.find<AuthService>().user.value?.id;
 
@@ -33,11 +38,22 @@ class ScoreController extends GetxController {
     final authService = Get.find<AuthService>();
     ever(authService.user, (user) {
       if (user != null) {
+        // Create a new completer so callers can await this sync round
+        _loginSyncCompleter = Completer<void>();
         _onUserLogin(user.id);
       } else {
         _onUserLogout();
       }
     });
+  }
+
+  /// Waits for any in-progress login sync to complete.
+  /// Returns immediately if no sync is running.
+  Future<void> waitForLoginSync() async {
+    final completer = _loginSyncCompleter;
+    if (completer != null && !completer.isCompleted) {
+      await completer.future;
+    }
   }
 
   // --- Score Key Management ---
@@ -57,45 +73,51 @@ class ScoreController extends GetxController {
     isSyncing.value = true;
     hasNewHighScoreThisGame.value = false;
 
-    final prefs = await SharedPreferences.getInstance();
+    try {
+      final prefs = await SharedPreferences.getInstance();
 
-    // Load this user's existing local score (from previous sessions)
-    final userLocalScore = prefs.getInt('high_score_$userId') ?? 0;
+      // Load this user's existing local score (from previous sessions)
+      final userLocalScore = prefs.getInt('high_score_$userId') ?? 0;
 
-    // --- Legacy Migration (v1.0 'high_score' → user-specific key) ---
-    final legacyScore = prefs.getInt('high_score') ?? 0;
+      // --- Legacy Migration (v1.0 'high_score' → user-specific key) ---
+      final legacyScore = prefs.getInt('high_score') ?? 0;
 
-    // Check if guest score should be merged (one-time per user)
-    final guestMerged = prefs.getBool('guest_merged_$userId') ?? false;
-    final guestScore = prefs.getInt('high_score_guest') ?? 0;
+      // Always check if there is a guest score to merge
+      final guestScore = prefs.getInt('high_score_guest') ?? 0;
 
-    int bestLocalScore = max(userLocalScore, legacyScore);
+      int bestLocalScore = max(userLocalScore, legacyScore);
 
-    if (!guestMerged && guestScore > 0) {
-      // First login on this device: take the higher of guest vs user local vs legacy
-      bestLocalScore = max(bestLocalScore, guestScore);
-      debugPrint(
-          '🔵 [ScoreController] Merging guest score ($guestScore) with user score ($userLocalScore) / legacy ($legacyScore) → $bestLocalScore');
+      if (guestScore > 0) {
+        bestLocalScore = max(bestLocalScore, guestScore);
+        debugPrint(
+            '🔵 [ScoreController] Merging guest score ($guestScore) with user score ($userLocalScore) / legacy ($legacyScore) → $bestLocalScore');
 
-      // Mark merge complete & clear guest score
-      await prefs.setBool('guest_merged_$userId', true);
-      await prefs.setInt('high_score_guest', 0);
+        // Clear guest score after merging
+        await prefs.setInt('high_score_guest', 0);
+      }
+
+      // Clear legacy key after migration to avoid re-processing
+      if (legacyScore > 0) {
+        await prefs.remove('high_score');
+        debugPrint(
+            '🔵 [ScoreController] Legacy score ($legacyScore) migrated and cleared.');
+      }
+
+      // Save user-specific local score
+      highscore.value = bestLocalScore;
+      await prefs.setInt('high_score_$userId', bestLocalScore);
+
+      // Sync with server
+      await _syncWithOnlineScore(bestLocalScore);
+    } catch (e) {
+      debugPrint('🔴 [ScoreController] _onUserLogin failed: $e');
+    } finally {
+      isSyncing.value = false;
+      // Signal that login sync is complete
+      if (_loginSyncCompleter != null && !_loginSyncCompleter!.isCompleted) {
+        _loginSyncCompleter!.complete();
+      }
     }
-
-    // Clear legacy key after migration to avoid re-processing
-    if (legacyScore > 0) {
-      await prefs.remove('high_score');
-      debugPrint(
-          '🔵 [ScoreController] Legacy score ($legacyScore) migrated and cleared.');
-    }
-
-    // Save user-specific local score
-    highscore.value = bestLocalScore;
-    await prefs.setInt('high_score_$userId', bestLocalScore);
-
-    // Sync with server
-    await _syncWithOnlineScore(bestLocalScore);
-    isSyncing.value = false;
   }
 
   /// Called when a user logs out.
@@ -122,7 +144,14 @@ class ScoreController extends GetxController {
       debugPrint('🔵 [ScoreController] Starting score sync...');
 
       final dbService = Get.find<DatabaseService>();
-      final onlineBest = await dbService.getMyBestScore(gameId);
+
+      int? onlineBest;
+      try {
+        onlineBest = await dbService.getMyBestScore(gameId);
+      } catch (e) {
+        debugPrint(
+            '🟡 [ScoreController] Could not fetch online best score (might be empty/error). Proceeding to upload local anyway: $e');
+      }
 
       if (onlineBest != null && onlineBest > localScore) {
         // Server score is higher → update local
@@ -132,15 +161,16 @@ class ScoreController extends GetxController {
             '🟢 [ScoreController] Synced: server ($onlineBest) > local ($localScore). Updated local.');
       } else if (localScore > (onlineBest ?? 0)) {
         // Local score is higher → upload to server
-        await dbService.saveScore(gameId, localScore);
-        await _saveHighScore(localScore);
+        final bestScore = await dbService.saveScore(gameId, localScore);
+        highscore.value = bestScore;
+        await _saveHighScore(bestScore);
         debugPrint(
-            '🟢 [ScoreController] Synced: local ($localScore) > server (${onlineBest ?? 0}). Uploaded.');
+            '🟢 [ScoreController] Synced: local ($localScore) > server (${onlineBest ?? 0}). Uploaded best=$bestScore.');
       } else {
         debugPrint('🟢 [ScoreController] Scores already in sync ($localScore)');
       }
     } catch (e) {
-      debugPrint('🔴 [ScoreController] Online score sync failed: $e');
+      debugPrint('🔴 [ScoreController] Online score sync overall failed: $e');
     }
   }
 
@@ -191,7 +221,9 @@ class ScoreController extends GetxController {
     if (_currentUserId == null) return; // Guest — skip
     try {
       final dbService = Get.find<DatabaseService>();
-      await dbService.saveScore(gameId, highscore.value);
+      final bestScore = await dbService.saveScore(gameId, highscore.value);
+      highscore.value = bestScore;
+      await _saveHighScore(bestScore);
       debugPrint(
           '🟢 [ScoreController] High score uploaded: ${highscore.value}');
     } catch (e) {

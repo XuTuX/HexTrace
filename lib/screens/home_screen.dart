@@ -226,8 +226,9 @@ class _HomeScreenState extends State<HomeScreen> {
           return await authService.signInWithApple();
         },
         onLoginSuccess: () async {
-          // Give a tiny moment for state to settle/propagate
-          await Future.delayed(const Duration(milliseconds: 100));
+          // Give ScoreController._onUserLogin time to start (it's triggered
+          // by a reactive ever() listener, so it runs asynchronously).
+          await Future.delayed(const Duration(milliseconds: 500));
 
           if (isRankingAction) {
             _showRankingSheet();

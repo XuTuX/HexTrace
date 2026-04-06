@@ -26,23 +26,29 @@ class DatabaseService extends GetxService {
   }
 
   // 점수 저장 (최고 점수 갱신 로직)
-  Future<void> saveScore(String gameId, int newScore) async {
+  Future<int> saveScore(String gameId, int newScore) async {
     final userId = _supabase.auth.currentUser?.id;
-    if (userId == null) return;
-
-    try {
-      await _supabase.rpc(
-        'submit_score',
-        params: {
-          'p_game_id': gameId,
-          'p_score': newScore,
-        },
-      );
-
-      debugPrint('🟢 Score upserted: $newScore');
-    } catch (e) {
-      debugPrint('🔴 Error saving score: $e');
+    if (userId == null) {
+      throw StateError('로그인이 필요합니다.');
     }
+
+    final response = await _supabase.rpc(
+      'submit_score',
+      params: {
+        'p_game_id': gameId,
+        'p_score': newScore,
+      },
+    );
+
+    final bestScore = _coerceInt(response);
+    if (bestScore == null) {
+      throw StateError('submit_score 응답이 비정상적입니다.');
+    }
+
+    debugPrint(
+      '🟢 [DatabaseService] Score upserted: gameId=$gameId userId=$userId submitted=$newScore best=$bestScore',
+    );
+    return bestScore;
   }
 
   // 나의 순위 가져오기
