@@ -1,5 +1,3 @@
-import 'package:hexor/constant.dart';
-import 'package:hexor/theme/app_typography.dart';
 import 'package:hexor/controllers/score_controller.dart';
 import 'package:hexor/screens/game_screen.dart';
 import 'package:hexor/services/auth_service.dart';
@@ -55,17 +53,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _checkNicknameRequirement() async {
     final authService = Get.find<AuthService>();
 
-    // Only proceed if:
-    // 1. User is logged in
-    // 2. Profile has finished loading
-    // 3. Nickname is still null
-    // 4. No nickname dialog is currently active
     if (authService.user.value != null &&
         authService.isProfileLoaded.value &&
         !authService.hasProfileLoadError.value &&
         authService.userNickname.value == null) {
       if (_isNicknameDialogActive) return;
-      // Also check general dialog status just in case
       if (Get.isDialogOpen == true) return;
 
       debugPrint('Force showing nickname dialog due to missing nickname');
@@ -84,95 +76,146 @@ class _HomeScreenState extends State<HomeScreen> {
     final AuthService authService = Get.find<AuthService>();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA), // Soft off-white
-      bottomNavigationBar: null,
+      backgroundColor: const Color(0xFFF8F9FA),
       body: Stack(
         children: [
-          // 1. Dynamic Background
+          // 1. Grid Background
           Positioned.fill(
             child: CustomPaint(
               painter: GridPatternPainter(),
             ),
           ),
 
-          // 2. Main Content
+          // 2. Main Scrollable Content
           SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 600),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Top Row: Profile
-                      Padding(
-                        padding: const EdgeInsets.only(top: 16.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 600),
+                child: CustomScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  slivers: [
+                    // ─── Top padding ───
+                    const SliverToBoxAdapter(
+                      child: SizedBox(height: 16),
+                    ),
+
+                    // ─── SECTION 1: Logo + Hex Cluster ───
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Column(
                           children: [
-                            ProfileButton(
-                              authService: authService,
-                              onProfileTap: () =>
-                                  _showSettingsSheet(authService),
-                              onLoginTap: () => _showLoginSheet(authService),
+                            // Logo with decorative hexagons
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                const HomeLogo(width: 200),
+                                const SizedBox(width: 4),
+                                const HexCluster(size: 30),
+                              ],
                             ),
                           ],
                         ),
                       ),
+                    ),
 
-                      const Spacer(flex: 1),
+                    const SliverToBoxAdapter(child: SizedBox(height: 20)),
 
-                      // Title Area
-                      Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
+                    // ─── SECTION 2: Info Cards (Score + Timer) ───
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: InfoCardsRow(
+                          scoreController: scoreController,
+                          authService: authService,
+                        ),
+                      ),
+                    ),
+
+                    const SliverToBoxAdapter(child: SizedBox(height: 16)),
+
+                    // ─── SECTION 3: Color Bar Preview ───
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: const ColorBarPreview(),
+                      ),
+                    ),
+
+                    const SliverToBoxAdapter(child: SizedBox(height: 24)),
+
+                    // ─── SECTION 4: Action Buttons ───
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Row(
                           children: [
-                            const HomeLogo(width: 260),
-                            const SizedBox(height: 20),
-                            Text(
-                              'Real-time hex drag puzzle',
-                              style: AppTypography.body.copyWith(
-                                color: charcoalBlack54,
-                                fontWeight: FontWeight.w700,
+                            // Start Game — larger
+                            Expanded(
+                              flex: 3,
+                              child: PrimaryButton(
+                                label: '게임 시작',
+                                icon: Icons.play_arrow_rounded,
+                                onPressed: () {
+                                  Get.to(() => const GameScreen());
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            // Ranking — smaller
+                            Expanded(
+                              flex: 2,
+                              child: RankingButton(
+                                onPressed: () =>
+                                    _handleRankingPress(authService),
                               ),
                             ),
                           ],
                         ),
                       ),
+                    ),
 
-                      const SizedBox(height: 40),
+                    const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
-                      // Best Score Card
-                      Center(
-                          child: HighScoreCard(
-                        scoreController: scoreController,
-                        authService: authService,
-                      )),
-
-                      const Spacer(flex: 2),
-
-                      // Action Buttons
-                      Column(
-                        children: [
-                          PrimaryButton(
-                            label: 'PLAY',
-                            onPressed: () {
-                              Get.to(() => const GameScreen());
-                            },
-                          ),
-                          const SizedBox(height: 16),
-                          SecondaryButton(
-                            label: 'RANKING',
-                            icon: Icons.emoji_events_outlined,
-                            onPressed: () => _handleRankingPress(authService),
-                          ),
-                        ],
+                    // ─── SECTION 5: Weekly Ranking Preview ───
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: WeeklyRankingPreview(
+                          onViewAll: () => _handleRankingPress(authService),
+                        ),
                       ),
+                    ),
 
-                      const SizedBox(height: 32),
-                    ],
-                  ),
+                    const SliverToBoxAdapter(child: SizedBox(height: 20)),
+
+                    // ─── SECTION 6: Settings + Gameplay Tip ───
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SettingsButton(
+                              onPressed: () {
+                                if (authService.user.value != null) {
+                                  _showSettingsSheet(authService);
+                                } else {
+                                  _showLoginSheet(authService);
+                                }
+                              },
+                            ),
+                            const SizedBox(width: 12),
+                            const Expanded(child: GameplayTip()),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    // ─── Bottom safe padding ───
+                    const SliverToBoxAdapter(child: SizedBox(height: 32)),
+                  ],
                 ),
               ),
             ),
@@ -205,10 +248,7 @@ class _HomeScreenState extends State<HomeScreen> {
           return await authService.signInWithApple();
         },
         onLoginSuccess: () async {
-          // Give ScoreController._onUserLogin time to start (it's triggered
-          // by a reactive ever() listener, so it runs asynchronously).
           await Future.delayed(const Duration(milliseconds: 500));
-
           if (isRankingAction) {
             _showRankingSheet();
           }
