@@ -1,7 +1,7 @@
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:get/get.dart';
+import 'package:hexor/config/app_config.dart';
 
 class AdService extends GetxService {
   RewardedAd? _rewardedAd;
@@ -18,12 +18,17 @@ class AdService extends GetxService {
   final String _testIosRewardedId = 'ca-app-pub-3940256099942544/1712485313';
 
   String? get _rewardedAdUnitId {
+    if (!AppConfig.supportsAds) {
+      return null;
+    }
+
     if (kReleaseMode) {
-      final adUnitId = Platform.isAndroid ? _androidRewardedId : _iosRewardedId;
+      final adUnitId =
+          AppConfig.isAndroid ? _androidRewardedId : _iosRewardedId;
       return adUnitId.isEmpty ? null : adUnitId;
     }
 
-    return Platform.isAndroid ? _testAndroidRewardedId : _testIosRewardedId;
+    return AppConfig.isAndroid ? _testAndroidRewardedId : _testIosRewardedId;
   }
 
   bool get hasRewardedAdConfigured => _rewardedAdUnitId != null;

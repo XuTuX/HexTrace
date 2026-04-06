@@ -5,21 +5,24 @@ import 'package:get/get.dart';
 class DatabaseService extends GetxService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
+  int? _coerceInt(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.tryParse(value.toString());
+  }
+
   // 특정 게임의 내 최고 점수 가져오기
   Future<int?> getMyBestScore(String gameId) async {
     final userId = _supabase.auth.currentUser?.id;
     if (userId == null) return null;
 
-    final response = await _supabase
-        .from('scores')
-        .select('score')
-        .eq('user_id', userId)
-        .eq('game_id', gameId)
-        .order('score', ascending: false)
-        .limit(1)
-        .maybeSingle();
+    final response = await _supabase.rpc(
+      'get_my_best_score',
+      params: {'p_game_id': gameId},
+    );
 
-    return response?['score'] as int?;
+    return _coerceInt(response);
   }
 
   // 점수 저장 (최고 점수 갱신 로직)
@@ -28,24 +31,13 @@ class DatabaseService extends GetxService {
     if (userId == null) return;
 
     try {
-      // Upsert: Insert or Update based on (user_id, game_id) constraint.
-      // This is atomic and faster. requires unique constraint on (user_id, game_id).
-      // However, we only want to update if the new score is higher.
-      // Supabase upsert updates by default. To only update if higher, we might need a stored procedure or keep the check.
-      // BUT, the user explicitly asked to use upsert.
-      // If we use upsert blindly, we might overwrite a high score with a lower one if logic elsewhere is flawed?
-      // No, `saveScore` is usually called when we believe it's a high score?
-      // Actually, checking `GameController.dart`: `scoreController.checkHighScore()` calls `saveScore`.
-      // `checkHighScore` compares `score.value > currentHighScore.value`.
-      // So the client side already checks if it is a high score.
-      // So upsert is safe here assuming client logic is correct.
-
-      await _supabase.from('scores').upsert({
-        'user_id': userId,
-        'game_id': gameId,
-        'score': newScore,
-        'updated_at': DateTime.now().toIso8601String(),
-      }, onConflict: 'user_id, game_id'); // Ensure DB has this constraint
+      await _supabase.rpc(
+        'submit_score',
+        params: {
+          'p_game_id': gameId,
+          'p_score': newScore,
+        },
+      );
 
       debugPrint('🟢 Score upserted: $newScore');
     } catch (e) {
@@ -58,52 +50,50 @@ class DatabaseService extends GetxService {
     final userId = _supabase.auth.currentUser?.id;
     if (userId == null) return null;
 
-    // 1. 내 최고 점수 가져오기
-    final myBest = await getMyBestScore(gameId);
-    if (myBest == null) return null;
+    final response = await _supabase.rpc(
+      'get_my_rank',
+      params: {'p_game_id': gameId},
+    );
 
-    // 2. 나보다 높은 점수 개수 세기 (count)
-    final count = await _supabase
-        .from('scores')
-        .count(CountOption.exact)
-        .gt('score', myBest)
-        .eq('game_id', gameId);
+    if (response == null) {
+      return null;
+    }
 
-    // 3. 순위 = (나보다 높은 사람 수) + 1
-    return count + 1;
+    if (response is int) {
+      return response;
+    }
+
+    return _coerceInt(response);
   }
 
   // 리더보드 가져오기 (클라이언트 사이드 중복 제거 포함)
   Future<List<Map<String, dynamic>>> getLeaderboard(String gameId) async {
     try {
-      // 1. 중복을 감안하여 넉넉하게 데이터 가져오기 (상위 100개)
-      final response = await _supabase
-          .from('scores')
-          .select('user_id, score, profiles(nickname, avatar_url)')
-          .eq('game_id', gameId)
-          .order('score', ascending: false)
-          .limit(100);
+      final response = await _supabase.rpc(
+        'get_leaderboard',
+        params: {
+          'p_game_id': gameId,
+          'p_limit': 50,
+        },
+      );
 
-      final List<Map<String, dynamic>> rawList =
-          List<Map<String, dynamic>>.from(response);
-
-      // 2. user_id 기준으로 중복 제거 (이미 정렬되어 있으므로 첫 번째가 최고점) and FILTER null nicknames
-      final Map<String, Map<String, dynamic>> uniqueScores = {};
-      for (var item in rawList) {
-        final userId = item['user_id'] as String?;
-        final profile = item['profiles'];
-        final nickname = profile != null ? profile['nickname'] : null;
-
-        // Skip if user has no nickname
-        if (nickname == null) continue;
-
-        if (userId != null && !uniqueScores.containsKey(userId)) {
-          uniqueScores[userId] = item;
-        }
-      }
-
-      // 3. 상위 50개만 반환
-      return uniqueScores.values.take(50).toList();
+      final rows = List<Map<String, dynamic>>.from(response as List);
+      return rows
+          .map(
+            (row) => {
+              'user_id': row['user_id'],
+              'score': _coerceInt(row['score']) ?? 0,
+              'rank': _coerceInt(row['rank']) ?? 0,
+              'profiles': {
+                'nickname':
+                    (row['nickname'] as String?)?.trim().isNotEmpty == true
+                        ? row['nickname']
+                        : 'Player',
+                'avatar_url': row['avatar_url'],
+              },
+            },
+          )
+          .toList();
     } catch (e) {
       debugPrint('🔴 Error fetching leaderboard: $e');
       return [];
@@ -135,18 +125,17 @@ class DatabaseService extends GetxService {
   /// Check if a nickname is available (not taken by another user)
   Future<bool> checkNicknameAvailable(String nickname) async {
     try {
-      final response = await _supabase
-          .from('profiles')
-          .select('id')
-          .eq('nickname', nickname)
-          .maybeSingle();
+      final response = await _supabase.rpc(
+        'is_nickname_available',
+        params: {'p_nickname': nickname},
+      );
 
-      // If response is null, no user with this nickname exists -> Available
-      return response == null;
+      if (response is bool) {
+        return response;
+      }
+
+      return response?.toString() == 'true';
     } catch (e) {
-      // On error, assume unavailable to be safe, or available?
-      // Let's assume unavailable to prevent potential conflicts if DB acts up.
-      // actually, let's just return false to act safe.
       return false;
     }
   }
@@ -163,13 +152,11 @@ class DatabaseService extends GetxService {
         .maybeSingle();
   }
 
-  // 회원 탈퇴 시 내 데이터 모두 삭제
+  // Hexor 게임 데이터 삭제
   Future<void> deleteMyData() async {
     final userId = _supabase.auth.currentUser?.id;
     if (userId == null) return;
 
-    // 순서 중요: scores 먼저 삭제 (profiles에 FK 참조할 수 있으므로)
-    await _supabase.from('scores').delete().eq('user_id', userId);
-    await _supabase.from('profiles').delete().eq('id', userId);
+    await _supabase.rpc('delete_my_account_data');
   }
 }

@@ -30,6 +30,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  cupertino_icons: ^1.0.8
   get: ^4.6.6
 
   shared_preferences: ^2.3.2
@@ -40,7 +41,6 @@ dependencies:
   sign_in_with_apple: ^6.1.1
   crypto: ^3.0.6
   url_launcher: ^6.3.2
-  flutter_dotenv: ^6.0.0
   google_mobile_ads: ^5.2.0
 dev_dependencies:
   flutter_test:
@@ -66,8 +66,8 @@ flutter_launcher_icons:
   web:
     generate: true
     image_path: "assets/icons/logo.png"
-    background_color: "#hexcode"
-    theme_color: "#hexcode"
+    background_color: "#F8F9FA"
+    theme_color: "#1A1A1A"
   windows:
     generate: true
     image_path: "assets/icons/logo.png"
@@ -88,7 +88,6 @@ flutter:
 
   assets:
     - assets/icons/
-    - .env
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

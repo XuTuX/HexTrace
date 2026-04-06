@@ -11,13 +11,17 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 }
 
-def requestedTasks = gradle.startParameter.taskNames.collect { it.toLowerCase() }
-def isReleaseBuildRequested = requestedTasks.any {
-    it.contains("release") || it.contains("bundle") || it.contains("publish")
+def readSecret = { String key ->
+    def envValue = System.getenv(key)
+    if (envValue != null && !envValue.trim().isEmpty()) {
+        return envValue.trim()
+    }
+    return keystoreProperties[key]
 }
+
 def requiredSigningKeys = ["storeFile", "storePassword", "keyAlias", "keyPassword"]
-def missingSigningKeys = requiredSigningKeys.findAll { !keystoreProperties[it] }
-def releaseStoreFilePath = keystoreProperties['storeFile']
+def missingSigningKeys = requiredSigningKeys.findAll { !readSecret(it) }
+def releaseStoreFilePath = readSecret('storeFile')
 def releaseStoreFile = releaseStoreFilePath ? rootProject.file(releaseStoreFilePath) : null
 def hasReleaseSigning = missingSigningKeys.isEmpty() && releaseStoreFile?.exists()
 
@@ -50,10 +54,10 @@ android {
     signingConfigs {
         if (hasReleaseSigning) {
             release {
-                keyAlias = keystoreProperties['keyAlias']
-                keyPassword = keystoreProperties['keyPassword']
+                keyPassword = readSecret('keyPassword')
                 storeFile = releaseStoreFile
-                storePassword = keystoreProperties['storePassword']
+                storePassword = readSecret('storePassword')
+                keyAlias = readSecret('keyAlias')
             }
         }
     }
@@ -76,22 +80,6 @@ flutter {
     source = "../.."
 }
 
-if (isReleaseBuildRequested && !hasReleaseSigning) {
-    def problems = []
-
-    if (!keystorePropertiesFile.exists()) {
-        problems << "android/key.properties file is missing"
-    }
-    if (!missingSigningKeys.isEmpty()) {
-        problems << "missing keys: ${missingSigningKeys.join(', ')}"
-    }
-    if (releaseStoreFilePath && !releaseStoreFile?.exists()) {
-        problems << "keystore file not found at: ${releaseStoreFilePath}"
-    }
-
-    throw new GradleException(
-        "Release signing is not configured correctly. " +
-        "${problems.join('; ')}. " +
-        "Update android/key.properties with a valid keystore path and credentials."
-    )
+if (!hasReleaseSigning) {
+    logger.lifecycle("Release signing is not configured. Release artifacts will be generated unsigned unless signing secrets are provided.")
 }

@@ -3,9 +3,9 @@
     "short_name": "Hexor",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#hexcode",
-    "theme_color": "#hexcode",
-    "description": "A new Flutter project.",
+    "background_color": "#F8F9FA",
+    "theme_color": "#1A1A1A",
+    "description": "Real-time hex drag puzzle game with synced scores and ranking.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

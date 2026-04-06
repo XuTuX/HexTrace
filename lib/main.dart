@@ -1,4 +1,5 @@
 import 'package:hexor/constant.dart';
+import 'package:hexor/config/app_config.dart';
 import 'package:hexor/screens/home_screen.dart';
 import 'package:hexor/services/auth_service.dart';
 import 'package:hexor/services/database_service.dart';
@@ -6,25 +7,36 @@ import 'package:hexor/services/settings_service.dart';
 import 'package:hexor/services/ad_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await MobileAds.instance.initialize();
-
-  await dotenv.load(fileName: ".env");
-
-  await Supabase.initialize(
-    url: supabaseUrl,
-    anonKey: supabaseAnonKey,
-  );
-
   final settingsService = await SettingsService().init();
+  try {
+    AppConfig.validateRequired();
 
-  runApp(RuneBloomApp(settingsService: settingsService));
+    if (AppConfig.supportsAds) {
+      await MobileAds.instance.initialize();
+    }
+
+    await Supabase.initialize(
+      url: AppConfig.supabaseUrl,
+      anonKey: AppConfig.supabaseAnonKey,
+    );
+
+    runApp(HexorApp(settingsService: settingsService));
+  } catch (error, stackTrace) {
+    debugPrint('Failed to initialize app: $error');
+    debugPrintStack(stackTrace: stackTrace);
+    runApp(
+      ConfigurationErrorApp(
+        message: error is StateError
+            ? error.message
+            : error.toString(),
+      ),
+    );
+  }
 }
 
 class AppBinding extends Bindings {
@@ -36,15 +48,17 @@ class AppBinding extends Bindings {
   void dependencies() {
     Get.put(AuthService(), permanent: true);
     Get.put(DatabaseService(), permanent: true);
-    Get.put(AdService(), permanent: true);
+    if (AppConfig.supportsAds) {
+      Get.put(AdService(), permanent: true);
+    }
     Get.put<SettingsService>(settingsService, permanent: true);
   }
 }
 
-class RuneBloomApp extends StatelessWidget {
+class HexorApp extends StatelessWidget {
   final SettingsService settingsService;
 
-  const RuneBloomApp({super.key, required this.settingsService});
+  const HexorApp({super.key, required this.settingsService});
 
   @override
   Widget build(BuildContext context) {
@@ -54,6 +68,83 @@ class RuneBloomApp extends StatelessWidget {
       initialBinding: AppBinding(settingsService: settingsService),
       navigatorKey: Get.key, // GetX 글로벌 키 설정
       home: const HomeScreen(),
+    );
+  }
+}
+
+class ConfigurationErrorApp extends StatelessWidget {
+  final String message;
+
+  const ConfigurationErrorApp({super.key, required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        backgroundColor: const Color(0xFFF8F9FA),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: charcoalBlack, width: 2.5),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: charcoalBlack,
+                      offset: Offset(4, 4),
+                      blurRadius: 0,
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.warning_amber_rounded,
+                      size: 40,
+                      color: charcoalBlack,
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'APP CONFIGURATION NEEDED',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      message,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        height: 1.5,
+                        color: Colors.black54,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Run the app with --dart-define values for Supabase and Google login.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        height: 1.5,
+                        color: Colors.black54,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

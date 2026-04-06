@@ -1,4 +1,5 @@
 import 'package:hexor/constant.dart';
+import 'package:hexor/screens/home_screen.dart';
 import 'package:hexor/theme/app_typography.dart';
 import 'package:hexor/widgets/home_screen/background_painter.dart';
 import 'package:hexor/widgets/home_screen/login_sheet.dart';
@@ -178,7 +179,7 @@ class SettingsScreen extends StatelessWidget {
                                     _divider(),
                                     _tapRow(
                                       icon: Icons.delete_outline_rounded,
-                                      title: '회원 탈퇴',
+                                      title: 'Hexor 기록 삭제',
                                       onTap: () =>
                                           _showDeleteAccountDialog(authService),
                                     ),
@@ -446,7 +447,7 @@ class SettingsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
                 const Text(
-                  '정말 탈퇴하시겠습니까?',
+                  'Hexor 기록을 삭제할까요?',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w900,
@@ -455,7 +456,7 @@ class SettingsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  '탈퇴하시면 앱 내 프로필, 게임 기록,\n랭킹 데이터가 삭제됩니다.\n이 작업은 취소할 수 없습니다.',
+                  'Hexor 게임 기록과 랭킹 데이터만 삭제되고 로그아웃됩니다.\n같은 Supabase를 쓰는 다른 게임 데이터는 건드리지 않습니다.',
                   textAlign: TextAlign.center,
                   style: AppTypography.bodySmall.copyWith(
                     color: Colors.grey[500],
@@ -493,11 +494,12 @@ class SettingsScreen extends StatelessWidget {
                           onPressed: () async {
                             Get.back();
                             Get.back();
-                            final error = await authService.deleteAccount();
+                            final error =
+                                await authService.deleteAccountData();
                             if (error != null) {
-                              debugPrint("Failed to delete account: $error");
+                              debugPrint('Failed to delete account data: $error');
                             } else {
-                              Get.offAllNamed('/');
+                              Get.offAll(() => const HomeScreen());
                             }
                           },
                           style: ElevatedButton.styleFrom(

@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
@@ -189,11 +188,11 @@ class AuthService extends GetxController {
       isLoading.value = true;
       debugPrint('🔵 [AuthService] Google Sign In process started');
 
-      final webClientId = AppConfig.googleWebClientId;
-      final iosClientId = AppConfig.googleIosClientId;
+      const webClientId = AppConfig.googleWebClientId;
+      const iosClientId = AppConfig.googleIosClientId;
 
       final GoogleSignIn googleSignIn = GoogleSignIn(
-        clientId: Platform.isIOS ? iosClientId : null,
+        clientId: AppConfig.isIos ? iosClientId : null,
         serverClientId: webClientId,
       );
 
@@ -303,23 +302,22 @@ class AuthService extends GetxController {
   /// Delete the user's account permanently.
   /// Deletes all user data from the database, then signs out.
   /// Returns null on success, or error message on failure.
-  Future<String?> deleteAccount() async {
+  Future<String?> deleteAccountData() async {
     try {
       isLoading.value = true;
-      debugPrint('🔵 [AuthService] Account deletion started');
+      debugPrint('🔵 [AuthService] Hexor data deletion started');
       final deletingUserId = _supabase.auth.currentUser?.id;
 
-      // 1. Delete user data from DB while still authenticated (RLS requires auth)
+      // Delete app-owned data while still authenticated.
       try {
         final dbService = Get.find<DatabaseService>();
         await dbService.deleteMyData();
         debugPrint('🟢 [AuthService] User data deleted from DB');
       } catch (e) {
         debugPrint('🔴 [AuthService] DB data deletion failed: $e');
-        // Continue with sign out even if DB deletion fails
+        return 'Hexor 기록 삭제 중 오류가 발생했습니다. 다시 시도해주세요.';
       }
 
-      // 1.5 Clear local score keys for this user
       if (deletingUserId != null) {
         try {
           final prefs = await SharedPreferences.getInstance();
@@ -334,16 +332,15 @@ class AuthService extends GetxController {
         await googleSignIn.signOut();
       } catch (_) {}
 
-      // 3. Sign out the Supabase session
       await _supabase.auth.signOut();
       user.value = null;
       userNickname.value = null;
 
-      debugPrint('🟢 [AuthService] Account deletion completed');
+      debugPrint('🟢 [AuthService] Hexor data deletion completed');
       return null;
     } catch (e) {
-      debugPrint('🔴 [AuthService] Account deletion failed: $e');
-      return '계정 삭제 중 오류가 발생했습니다. 다시 시도해주세요.';
+      debugPrint('🔴 [AuthService] Hexor data deletion failed: $e');
+      return 'Hexor 기록 삭제 중 오류가 발생했습니다. 다시 시도해주세요.';
     } finally {
       isLoading.value = false;
     }

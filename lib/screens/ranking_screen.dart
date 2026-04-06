@@ -352,7 +352,13 @@ class RankListItem extends StatelessWidget {
     final scoreVal = scoreData['score'];
     final userId = scoreData['user_id'];
     final bool isMe = userId != null && userId == myId;
-    final rank = index + 1;
+    final rankValue = scoreData['rank'];
+    final rank = switch (rankValue) {
+      int value => value,
+      num value => value.toInt(),
+      String value => int.tryParse(value) ?? (index + 1),
+      _ => index + 1,
+    };
 
     final bool isTopThree = rank <= 3;
 
