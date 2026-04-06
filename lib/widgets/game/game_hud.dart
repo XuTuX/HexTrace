@@ -140,16 +140,8 @@ class ColorBarPanel extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              const Text(
-                '색 흐름',
-                style: TextStyle(
-                  fontWeight: FontWeight.w900,
-                  fontSize: 18,
-                  color: charcoalBlack,
-                ),
-              ),
-              const Spacer(),
               Text(
                 '사용한 구간만 사라져요',
                 style: TextStyle(
