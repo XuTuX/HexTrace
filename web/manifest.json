@@ -1,6 +1,6 @@
 {
-    "name": "Hexor",
-    "short_name": "Hexor",
+    "name": "Hexor Trace",
+    "short_name": "Hexor Trace",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#F8F9FA",

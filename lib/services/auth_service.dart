@@ -308,7 +308,7 @@ class AuthService extends GetxController {
         debugPrint('🟢 [AuthService] User data deleted from DB');
       } catch (e) {
         debugPrint('🔴 [AuthService] DB data deletion failed: $e');
-        return 'Hexor 기록 삭제 중 오류가 발생했습니다. 다시 시도해주세요.';
+        return 'Hexor Trace 기록 삭제 중 오류가 발생했습니다. 다시 시도해주세요.';
       }
 
       if (deletingUserId != null) {
@@ -328,7 +328,7 @@ class AuthService extends GetxController {
       return null;
     } catch (e) {
       debugPrint('🔴 [AuthService] Hexor data deletion failed: $e');
-      return 'Hexor 기록 삭제 중 오류가 발생했습니다. 다시 시도해주세요.';
+      return 'Hexor Trace 기록 삭제 중 오류가 발생했습니다. 다시 시도해주세요.';
     } finally {
       isLoading.value = false;
     }
