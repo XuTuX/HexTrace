@@ -128,29 +128,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const HomeLogo(),
-                            const SizedBox(height: 32),
-                            Text(
-                              'HEX',
-                              style: AppTypography.headline.copyWith(
-                                color: charcoalBlack87,
-                              ),
-                            ),
-                            Text(
-                              'TRACE',
-                              style: AppTypography.display.copyWith(
-                                height: 0.9,
-                                shadows: [
-                                  Shadow(
-                                    color:
-                                        regionColors[4].withValues(alpha: 0.3),
-                                    offset: const Offset(4, 4),
-                                    blurRadius: 0,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 10),
+                            const HomeLogo(width: 260),
+                            const SizedBox(height: 20),
                             Text(
                               'Real-time hex drag puzzle',
                               style: AppTypography.body.copyWith(

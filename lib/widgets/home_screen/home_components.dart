@@ -9,56 +9,20 @@ import 'package:google_fonts/google_fonts.dart';
 // --- Home Logo Components ---
 
 class HomeLogo extends StatelessWidget {
-  const HomeLogo({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 100,
-      height: 100,
-      child: Stack(
-        children: [
-          Positioned(
-            left: 20,
-            top: 20,
-            child: LogoBlock(color: regionColors[4], size: 60), // Blue
-          ),
-          Positioned(
-            left: 10,
-            top: 10,
-            child: LogoBlock(color: regionColors[1], size: 60), // Orange
-          ),
-          Positioned(
-            left: 0,
-            top: 0,
-            child: LogoBlock(color: regionColors[0], size: 60), // Red
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class LogoBlock extends StatelessWidget {
-  final Color color;
-  final double size;
-
-  const LogoBlock({
+  const HomeLogo({
     super.key,
-    required this.color,
-    required this.size,
+    this.width = 240,
   });
 
+  final double width;
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: charcoalBlack, width: 3),
-      ),
+    return Image.asset(
+      'assets/icons/logo.png',
+      width: width,
+      fit: BoxFit.contain,
+      filterQuality: FilterQuality.high,
     );
   }
 }
