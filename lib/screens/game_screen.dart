@@ -68,49 +68,54 @@ class _GameScreenState extends State<GameScreen> {
                   ),
                 ),
                 SafeArea(
-                  child: Stack(
-                    children: [
-                      Column(
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 600),
+                      child: Stack(
                         children: [
-                          const Spacer(flex: 1),
-                          GameHud(controller: _controller),
-                          const SizedBox(height: 16),
-                          Expanded(
-                            flex: 12,
-                            child: Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 4),
-                              child: Stack(
-                                children: [
-                                  Positioned.fill(
-                                    child:
-                                        HexBoardView(controller: _controller),
+                          Column(
+                            children: [
+                              const Spacer(flex: 1),
+                              GameHud(controller: _controller),
+                              const SizedBox(height: 16),
+                              Expanded(
+                                flex: 12,
+                                child: Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(horizontal: 4),
+                                  child: Stack(
+                                    children: [
+                                      Positioned.fill(
+                                        child:
+                                            HexBoardView(controller: _controller),
+                                      ),
+                                      Positioned.fill(
+                                        child: IgnorePointer(
+                                          child: _FloatingStatusView(
+                                              controller: _controller),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  Positioned.fill(
-                                    child: IgnorePointer(
-                                      child: _FloatingStatusView(
-                                          controller: _controller),
-                                    ),
-                                  ),
-                                ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (_controller.isGameOver)
+                            Positioned.fill(
+                              child: GameOverOverlay(
+                                score: _controller.score,
+                                bestScore: _scoreController.highscore.value,
+                                isNewHighScore:
+                                    _scoreController.hasNewHighScoreThisGame.value,
+                                onRestart: _restartGame,
+                                onHome: () => Get.offAll(() => const HomeScreen()),
+                                onRanking: _openRanking,
                               ),
                             ),
-                          ),
                         ],
                       ),
-                      if (_controller.isGameOver)
-                        Positioned.fill(
-                          child: GameOverOverlay(
-                            score: _controller.score,
-                            bestScore: _scoreController.highscore.value,
-                            isNewHighScore:
-                                _scoreController.hasNewHighScoreThisGame.value,
-                            onRestart: _restartGame,
-                            onHome: () => Get.offAll(() => const HomeScreen()),
-                            onRanking: _openRanking,
-                          ),
-                        ),
-                    ],
+                    ),
                   ),
                 ),
               ],

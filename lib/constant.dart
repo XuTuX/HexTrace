@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 const String appName = 'Hexor Trace';
 const String gameTitle = 'Hexor Trace';
-const String gameId = 'hexor_trace';
+const String gameId = 'hexor';
 
 const Color charcoalBlack = Color(0xFF1A1A1A);
 final Color charcoalBlack87 = charcoalBlack.withValues(alpha: 0.87);
