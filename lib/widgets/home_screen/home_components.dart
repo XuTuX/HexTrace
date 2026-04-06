@@ -37,70 +37,115 @@ BoxDecoration _cardDecoration({
     );
 
 // ──────────────────────────────────────────────────────────────────────
-//  1. LOGO + HEX CLUSTER
+//  TOP ICON BUTTON (settings gear, etc.)
 // ──────────────────────────────────────────────────────────────────────
 
-class HomeLogo extends StatelessWidget {
-  const HomeLogo({super.key, this.width = 240});
-  final double width;
+class TopIconButton extends StatelessWidget {
+  const TopIconButton({super.key, required this.icon, required this.onTap});
+  final IconData icon;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.baseline,
-      textBaseline: TextBaseline.alphabetic,
-      children: [
-        Text(
-          'HEX',
-          style: GoogleFonts.blackHanSans(
-            fontSize: 44,
-            color: charcoalBlack,
-            height: 1.0,
-            letterSpacing: 2.0,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: charcoalBlack.withValues(alpha: 0.12),
+            width: 1.5,
           ),
         ),
-        const SizedBox(width: 8),
-        Text(
-          'TRACE',
-          style: GoogleFonts.blackHanSans(
-            fontSize: 44,
-            color: const Color(0xFF0095FF),
-            height: 1.0,
-            letterSpacing: 2.0,
-          ),
+        child: Icon(
+          icon,
+          color: charcoalBlack.withValues(alpha: 0.5),
+          size: 22,
+        ),
+      ),
+    );
+  }
+}
+
+// ──────────────────────────────────────────────────────────────────────
+//  1. LOGO (HEX TRACE text)
+// ──────────────────────────────────────────────────────────────────────
+
+class HomeLogo extends StatelessWidget {
+  const HomeLogo({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        // Small hex decoration row
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _MiniHex(color: GamePalette.colorFor(GameColor.coral)),
+            const SizedBox(width: 6),
+            _MiniHex(color: GamePalette.colorFor(GameColor.azure)),
+            const SizedBox(width: 6),
+            _MiniHex(color: GamePalette.colorFor(GameColor.mint)),
+            const SizedBox(width: 6),
+            _MiniHex(color: GamePalette.colorFor(GameColor.amber)),
+            const SizedBox(width: 6),
+            _MiniHex(color: GamePalette.colorFor(GameColor.violet)),
+          ],
+        ),
+        const SizedBox(height: 14),
+        // Title
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          children: [
+            Text(
+              'HEX',
+              style: GoogleFonts.blackHanSans(
+                fontSize: 48,
+                color: charcoalBlack,
+                height: 1.0,
+                letterSpacing: 3.0,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Text(
+              'TRACE',
+              style: GoogleFonts.blackHanSans(
+                fontSize: 48,
+                color: const Color(0xFF0095FF),
+                height: 1.0,
+                letterSpacing: 3.0,
+              ),
+            ),
+          ],
         ),
       ],
     );
   }
 }
 
-class _HexTile extends StatelessWidget {
-  const _HexTile({required this.color, this.tileSize = 28});
+class _MiniHex extends StatelessWidget {
+  const _MiniHex({required this.color});
   final Color color;
-  final double tileSize;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: tileSize,
-      height: tileSize,
-      child: CustomPaint(
-        painter: _HexPainter(color),
-        child: Center(
-          child: Container(
-            width: tileSize * 0.22,
-            height: tileSize * 0.22,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.45),
-              shape: BoxShape.circle,
-            ),
-          ),
-        ),
-      ),
+      width: 18,
+      height: 18,
+      child: CustomPaint(painter: _HexPainter(color)),
     );
   }
 }
+
+// ──────────────────────────────────────────────────────────────────────
+//  HEX PAINTER (shared)
+// ──────────────────────────────────────────────────────────────────────
 
 class _HexPainter extends CustomPainter {
   _HexPainter(this.color);
@@ -120,7 +165,7 @@ class _HexPainter extends CustomPainter {
       Paint()
         ..color = charcoalBlack
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.0
+        ..strokeWidth = 1.5
         ..strokeJoin = StrokeJoin.round,
     );
   }
@@ -149,14 +194,14 @@ class _HexPainter extends CustomPainter {
 }
 
 // ──────────────────────────────────────────────────────────────────────
-//  2. INFO CARDS (Best Score  ·  Timer)
+//  2. SCORE DISPLAY (centered, clean)
 // ──────────────────────────────────────────────────────────────────────
 
-class InfoCardsRow extends StatelessWidget {
+class ScoreDisplay extends StatelessWidget {
   final ScoreController scoreController;
   final AuthService authService;
 
-  const InfoCardsRow({
+  const ScoreDisplay({
     super.key,
     required this.scoreController,
     required this.authService,
@@ -164,197 +209,90 @@ class InfoCardsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _InfoCard(
-      icon: Icons.emoji_events_rounded,
-      iconColor: const Color(0xFFFFB300),
-      label: '최고 점수',
-      child: Obx(() {
-        final isLoading =
-            authService.isLoading.value || scoreController.isSyncing.value;
-        if (isLoading) {
-          return const SizedBox(
-            height: 32,
-            child: Center(
-              child: SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  color: charcoalBlack,
-                  strokeWidth: 2.5,
-                ),
-              ),
-            ),
-          );
-        }
-        return Text(
-          '${scoreController.highscore.value}',
-          style: const TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.w900,
-            color: charcoalBlack,
-            height: 1.0,
-          ),
-        );
-      }),
-    );
-  }
-}
-
-class _InfoCard extends StatelessWidget {
-  const _InfoCard({
-    required this.icon,
-    required this.iconColor,
-    required this.label,
-    required this.child,
-  });
-
-  final IconData icon;
-  final Color iconColor;
-  final String label;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 22),
       decoration: _cardDecoration(),
-      child: Row(
-        children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: iconColor, size: 22),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: charcoalBlack.withValues(alpha: 0.5),
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                child,
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ──────────────────────────────────────────────────────────────────────
-//  3. COLOR BAR PREVIEW
-// ──────────────────────────────────────────────────────────────────────
-
-class ColorBarPreview extends StatelessWidget {
-  const ColorBarPreview({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    // Static preview of the color bar, using the game palette colors
-    final sampleColors = [
-      GamePalette.colorFor(GameColor.mint),
-      GamePalette.colorFor(GameColor.amber),
-      GamePalette.colorFor(GameColor.violet),
-      GamePalette.colorFor(GameColor.azure),
-      GamePalette.colorFor(GameColor.coral),
-      GamePalette.colorFor(GameColor.mint),
-      GamePalette.colorFor(GameColor.violet),
-      GamePalette.colorFor(GameColor.amber),
-      GamePalette.colorFor(GameColor.azure),
-      GamePalette.colorFor(GameColor.coral),
-      GamePalette.colorFor(GameColor.mint),
-      GamePalette.colorFor(GameColor.azure),
-    ];
-
-    return Container(
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
-      decoration: _cardDecoration(radius: 24),
       child: Column(
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFB300).withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.emoji_events_rounded,
+                  color: Color(0xFFFFB300),
+                  size: 16,
+                ),
+              ),
+              const SizedBox(width: 8),
               Text(
-                '사용한 구간만 사라져요',
+                'BEST SCORE',
                 style: TextStyle(
-                  color: charcoalBlack.withValues(alpha: 0.55),
                   fontSize: 12,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w800,
+                  color: charcoalBlack.withValues(alpha: 0.4),
+                  letterSpacing: 1.5,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              const gap = 4.0;
-              final slotW =
-                  (constraints.maxWidth - gap * (sampleColors.length - 1)) /
-                      sampleColors.length;
-              final slotH = slotW * 1.5;
-
-              return SizedBox(
-                height: slotH,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: sampleColors.map((c) {
-                    return Expanded(
-                      child: Padding(
-                        padding: EdgeInsets.only(
-                            right: c == sampleColors.last ? 0 : gap),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: c,
-                            borderRadius: BorderRadius.circular(7),
-                            border:
-                                Border.all(color: charcoalBlack, width: 2.0),
-                            boxShadow: const [
-                              BoxShadow(
-                                color: charcoalBlack,
-                                offset: Offset(1.5, 1.5),
-                                blurRadius: 0,
-                              ),
-                            ],
-                          ),
-                          child: Center(
-                            child: Container(
-                              width: 5,
-                              height: 5,
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.3),
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
+          const SizedBox(height: 8),
+          Obx(() {
+            final isLoading =
+                authService.isLoading.value || scoreController.isSyncing.value;
+            if (isLoading) {
+              return const SizedBox(
+                height: 44,
+                child: Center(
+                  child: SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(
+                      color: charcoalBlack,
+                      strokeWidth: 2.5,
+                    ),
+                  ),
                 ),
               );
-            },
-          ),
+            }
+            return Text(
+              _formatScore(scoreController.highscore.value),
+              style: GoogleFonts.blackHanSans(
+                fontSize: 42,
+                color: charcoalBlack,
+                height: 1.0,
+                letterSpacing: 2.0,
+              ),
+            );
+          }),
         ],
       ),
     );
   }
+
+  String _formatScore(int score) {
+    if (score >= 1000) {
+      final s = score.toString();
+      final buf = StringBuffer();
+      for (var i = 0; i < s.length; i++) {
+        if (i > 0 && (s.length - i) % 3 == 0) buf.write(',');
+        buf.write(s[i]);
+      }
+      return buf.toString();
+    }
+    return score.toString();
+  }
 }
 
 // ──────────────────────────────────────────────────────────────────────
-//  4. PRIMARY ACTION BUTTONS
+//  3. PRIMARY ACTION BUTTONS
 // ──────────────────────────────────────────────────────────────────────
 
 class PrimaryButton extends StatelessWidget {
@@ -388,7 +326,7 @@ class PrimaryButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF0095FF), // Azure blue
+          backgroundColor: const Color(0xFF0095FF),
           foregroundColor: Colors.white,
           elevation: 0,
           side: const BorderSide(color: charcoalBlack, width: _borderWidth),
@@ -431,14 +369,14 @@ class RankingButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      height: 62,
+      height: 56,
       decoration: BoxDecoration(
         color: charcoalBlack,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(18),
         boxShadow: const [
           BoxShadow(
             color: charcoalBlack,
-            offset: Offset(4, 4),
+            offset: Offset(3, 3),
             blurRadius: 0,
           ),
         ],
@@ -451,27 +389,14 @@ class RankingButton extends StatelessWidget {
           elevation: 0,
           side: const BorderSide(color: charcoalBlack, width: _borderWidth),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(18),
           ),
           padding: EdgeInsets.zero,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              width: 28,
-              height: 28,
-              decoration: BoxDecoration(
-                color: charcoalBlack.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Center(
-                child: Text(
-                  '🏆',
-                  style: TextStyle(fontSize: 15),
-                ),
-              ),
-            ),
+            const Text('🏆', style: TextStyle(fontSize: 18)),
             const SizedBox(width: 10),
             Text(
               '랭킹',
@@ -484,10 +409,360 @@ class RankingButton extends StatelessWidget {
             Icon(
               Icons.chevron_right_rounded,
               size: 22,
-              color: charcoalBlack.withValues(alpha: 0.5),
+              color: charcoalBlack.withValues(alpha: 0.4),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ──────────────────────────────────────────────────────────────────────
+//  4. WEEKLY RANKING PREVIEW (compact)
+// ──────────────────────────────────────────────────────────────────────
+
+class WeeklyRankingPreview extends StatefulWidget {
+  final VoidCallback onViewAll;
+
+  const WeeklyRankingPreview({
+    super.key,
+    required this.onViewAll,
+  });
+
+  @override
+  State<WeeklyRankingPreview> createState() => _WeeklyRankingPreviewState();
+}
+
+class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
+  bool _isLoading = true;
+  List<Map<String, dynamic>> _topScores = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTopScores();
+  }
+
+  Future<void> _loadTopScores() async {
+    try {
+      final dbService = Get.find<DatabaseService>();
+      final scores = await dbService.getLeaderboard(gameId).catchError((e) {
+        debugPrint('🔴 [WeeklyRankingPreview] Error: $e');
+        return <Map<String, dynamic>>[];
+      });
+      if (!mounted) return;
+      setState(() {
+        _topScores = List<Map<String, dynamic>>.from(scores.take(3));
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: charcoalBlack.withValues(alpha: 0.1),
+          width: 1.5,
+        ),
+      ),
+      child: Column(
+        children: [
+          // Header
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 12, 0),
+            child: Row(
+              children: [
+                Text(
+                  '🏆',
+                  style: const TextStyle(fontSize: 16),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  '주간 랭킹',
+                  style: GoogleFonts.blackHanSans(
+                    fontSize: 14,
+                    color: charcoalBlack,
+                  ),
+                ),
+                const Spacer(),
+                GestureDetector(
+                  onTap: widget.onViewAll,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '전체 보기',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: charcoalBlack.withValues(alpha: 0.4),
+                        ),
+                      ),
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        size: 16,
+                        color: charcoalBlack.withValues(alpha: 0.3),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Content
+          if (_isLoading)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 18),
+              child: SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                  color: charcoalBlack.withValues(alpha: 0.2),
+                  strokeWidth: 2,
+                ),
+              ),
+            )
+          else if (_topScores.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 18),
+              child: Text(
+                'NO DATA',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: charcoalBlack.withValues(alpha: 0.15),
+                  letterSpacing: 1.5,
+                ),
+              ),
+            )
+          else ...[
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              child: Divider(
+                color: charcoalBlack.withValues(alpha: 0.06),
+                height: 16,
+              ),
+            ),
+            ...List.generate(_topScores.length, (i) {
+              return _RankRow(
+                rank: i + 1,
+                data: _topScores[i],
+                isLast: i == _topScores.length - 1,
+              );
+            }),
+          ],
+
+          const SizedBox(height: 6),
+        ],
+      ),
+    );
+  }
+}
+
+class _RankRow extends StatelessWidget {
+  const _RankRow({
+    required this.rank,
+    required this.data,
+    this.isLast = false,
+  });
+
+  final int rank;
+  final Map<String, dynamic> data;
+  final bool isLast;
+
+  @override
+  Widget build(BuildContext context) {
+    final profileData = data['profiles'];
+    Map<String, dynamic> profiles = {};
+    if (profileData is Map<String, dynamic>) {
+      profiles = profileData;
+    } else if (profileData is List && profileData.isNotEmpty) {
+      profiles = profileData[0] as Map<String, dynamic>;
+    }
+    final nickname = profiles['nickname'] ?? 'Player';
+    final score = data['score'] ?? 0;
+
+    final Color rankBg;
+    final Color rankFg;
+    switch (rank) {
+      case 1:
+        rankBg = const Color(0xFFFFB300);
+        rankFg = Colors.white;
+        break;
+      case 2:
+        rankBg = const Color(0xFFB0BEC5);
+        rankFg = Colors.white;
+        break;
+      case 3:
+        rankBg = const Color(0xFFBF8040);
+        rankFg = Colors.white;
+        break;
+      default:
+        rankBg = charcoalBlack.withValues(alpha: 0.08);
+        rankFg = charcoalBlack;
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+      child: Row(
+        children: [
+          // Rank badge
+          Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              color: rankBg,
+              borderRadius: BorderRadius.circular(7),
+            ),
+            child: Center(
+              child: Text(
+                '$rank',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w900,
+                  color: rankFg,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+
+          // Name
+          Expanded(
+            child: Text(
+              nickname.toString(),
+              style: GoogleFonts.notoSans(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: charcoalBlack.withValues(alpha: 0.8),
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+
+          // Score
+          Text(
+            _formatScore(score),
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w900,
+              color: charcoalBlack.withValues(alpha: 0.7),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatScore(dynamic score) {
+    final n = score is int ? score : int.tryParse(score.toString()) ?? 0;
+    if (n >= 1000) {
+      final s = n.toString();
+      final buf = StringBuffer();
+      for (var i = 0; i < s.length; i++) {
+        if (i > 0 && (s.length - i) % 3 == 0) buf.write(',');
+        buf.write(s[i]);
+      }
+      return buf.toString();
+    }
+    return n.toString();
+  }
+}
+
+// ──────────────────────────────────────────────────────────────────────
+//  LEGACY WIDGETS (kept for backward compatibility)
+// ──────────────────────────────────────────────────────────────────────
+
+class SettingsButton extends StatelessWidget {
+  final VoidCallback onPressed;
+
+  const SettingsButton({super.key, required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        height: 52,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        decoration: _cardDecoration(radius: 16),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.settings_rounded,
+              color: charcoalBlack.withValues(alpha: 0.65),
+              size: 20,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              '설정',
+              style: GoogleFonts.blackHanSans(
+                fontSize: 15,
+                color: charcoalBlack.withValues(alpha: 0.8),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class GameplayTip extends StatelessWidget {
+  const GameplayTip({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF3F0FF),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: charcoalBlack.withValues(alpha: 0.08),
+          width: 1.5,
+        ),
+      ),
+      child: Row(
+        children: [
+          const Text('💡', style: TextStyle(fontSize: 18)),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '게임 방법',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
+                    color: charcoalBlack.withValues(alpha: 0.8),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '같은 색 육각형을 연결하여\n선을 만들면 사용한 구간이 사라집니다.',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: charcoalBlack.withValues(alpha: 0.5),
+                    height: 1.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -549,371 +824,6 @@ class SecondaryButton extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-// ──────────────────────────────────────────────────────────────────────
-//  5. WEEKLY RANKING PREVIEW
-// ──────────────────────────────────────────────────────────────────────
-
-class WeeklyRankingPreview extends StatefulWidget {
-  final VoidCallback onViewAll;
-
-  const WeeklyRankingPreview({
-    super.key,
-    required this.onViewAll,
-  });
-
-  @override
-  State<WeeklyRankingPreview> createState() => _WeeklyRankingPreviewState();
-}
-
-class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
-  bool _isLoading = true;
-  List<Map<String, dynamic>> _topScores = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _loadTopScores();
-  }
-
-  Future<void> _loadTopScores() async {
-    try {
-      final dbService = Get.find<DatabaseService>();
-      final scores = await dbService.getLeaderboard(gameId).catchError((e) {
-        debugPrint('🔴 [WeeklyRankingPreview] Error: $e');
-        return <Map<String, dynamic>>[];
-      });
-      if (!mounted) return;
-      setState(() {
-        _topScores = List<Map<String, dynamic>>.from(scores.take(3));
-        _isLoading = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _isLoading = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: _cardDecoration(),
-      child: Column(
-        children: [
-          // Header
-          Padding(
-            padding: const EdgeInsets.fromLTRB(18, 16, 12, 0),
-            child: Row(
-              children: [
-                const Text('🏆', style: TextStyle(fontSize: 18)),
-                const SizedBox(width: 8),
-                Text(
-                  '주간 랭킹',
-                  style: GoogleFonts.blackHanSans(
-                    fontSize: 16,
-                    color: charcoalBlack,
-                  ),
-                ),
-                const Spacer(),
-                TextButton(
-                  onPressed: widget.onViewAll,
-                  style: TextButton.styleFrom(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      side: BorderSide(
-                        color: charcoalBlack.withValues(alpha: 0.12),
-                        width: 1.5,
-                      ),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        '전체 보기',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w800,
-                          color: charcoalBlack.withValues(alpha: 0.6),
-                        ),
-                      ),
-                      const SizedBox(width: 2),
-                      Icon(
-                        Icons.chevron_right_rounded,
-                        size: 16,
-                        color: charcoalBlack.withValues(alpha: 0.4),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Divider
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Divider(
-              color: charcoalBlack.withValues(alpha: 0.08),
-              height: 20,
-            ),
-          ),
-
-          // Ranking List
-          if (_isLoading)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 24),
-              child: SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  color: charcoalBlack.withValues(alpha: 0.3),
-                  strokeWidth: 2,
-                ),
-              ),
-            )
-          else if (_topScores.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 24),
-              child: Text(
-                'NO DATA',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: charcoalBlack.withValues(alpha: 0.2),
-                  letterSpacing: 1.5,
-                ),
-              ),
-            )
-          else
-            ...List.generate(_topScores.length, (i) {
-              return _RankRow(
-                rank: i + 1,
-                data: _topScores[i],
-                isLast: i == _topScores.length - 1,
-              );
-            }),
-
-          const SizedBox(height: 8),
-        ],
-      ),
-    );
-  }
-}
-
-class _RankRow extends StatelessWidget {
-  const _RankRow({
-    required this.rank,
-    required this.data,
-    this.isLast = false,
-  });
-
-  final int rank;
-  final Map<String, dynamic> data;
-  final bool isLast;
-
-  @override
-  Widget build(BuildContext context) {
-    final profileData = data['profiles'];
-    Map<String, dynamic> profiles = {};
-    if (profileData is Map<String, dynamic>) {
-      profiles = profileData;
-    } else if (profileData is List && profileData.isNotEmpty) {
-      profiles = profileData[0] as Map<String, dynamic>;
-    }
-    final nickname = profiles['nickname'] ?? 'Player';
-    final score = data['score'] ?? 0;
-
-    final Color rankBg;
-    final Color rankFg;
-    switch (rank) {
-      case 1:
-        rankBg = const Color(0xFFFFB300);
-        rankFg = Colors.white;
-        break;
-      case 2:
-        rankBg = const Color(0xFFB0BEC5);
-        rankFg = Colors.white;
-        break;
-      case 3:
-        rankBg = const Color(0xFFBF8040);
-        rankFg = Colors.white;
-        break;
-      default:
-        rankBg = charcoalBlack.withValues(alpha: 0.08);
-        rankFg = charcoalBlack;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-      decoration: BoxDecoration(
-        border: isLast
-            ? null
-            : Border(
-                bottom: BorderSide(
-                  color: charcoalBlack.withValues(alpha: 0.05),
-                  width: 1,
-                ),
-              ),
-      ),
-      child: Row(
-        children: [
-          // Rank badge
-          Container(
-            width: 28,
-            height: 28,
-            decoration: BoxDecoration(
-              color: rankBg,
-              borderRadius: BorderRadius.circular(9),
-            ),
-            child: Center(
-              child: Text(
-                '$rank',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w900,
-                  color: rankFg,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 14),
-
-          // Name
-          Expanded(
-            child: Text(
-              nickname.toString().toUpperCase(),
-              style: GoogleFonts.notoSans(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: charcoalBlack,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-
-          // Score
-          Text(
-            _formatScore(score),
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w900,
-              color: charcoalBlack,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _formatScore(dynamic score) {
-    final n = score is int ? score : int.tryParse(score.toString()) ?? 0;
-    if (n >= 1000) {
-      final s = n.toString();
-      final buf = StringBuffer();
-      for (var i = 0; i < s.length; i++) {
-        if (i > 0 && (s.length - i) % 3 == 0) buf.write(',');
-        buf.write(s[i]);
-      }
-      return buf.toString();
-    }
-    return n.toString();
-  }
-}
-
-// ──────────────────────────────────────────────────────────────────────
-//  6. SETTINGS BUTTON  &  GAMEPLAY TIP
-// ──────────────────────────────────────────────────────────────────────
-
-class SettingsButton extends StatelessWidget {
-  final VoidCallback onPressed;
-
-  const SettingsButton({super.key, required this.onPressed});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        height: 52,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        decoration: _cardDecoration(radius: 16),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.settings_rounded,
-              color: charcoalBlack.withValues(alpha: 0.65),
-              size: 20,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              '설정',
-              style: GoogleFonts.blackHanSans(
-                fontSize: 15,
-                color: charcoalBlack.withValues(alpha: 0.8),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class GameplayTip extends StatelessWidget {
-  const GameplayTip({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF3F0FF), // Soft violet tint
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: charcoalBlack.withValues(alpha: 0.08),
-          width: 1.5,
-        ),
-      ),
-      child: Row(
-        children: [
-          const Text('💡', style: TextStyle(fontSize: 18)),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '게임 방법',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w900,
-                    color: charcoalBlack.withValues(alpha: 0.8),
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  '같은 색 육각형을 연결하여\n선을 만들면 사용한 구간이 사라집니다.',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: charcoalBlack.withValues(alpha: 0.5),
-                    height: 1.5,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -1199,5 +1109,37 @@ class HighScoreCard extends StatelessWidget {
         ],
       );
     });
+  }
+}
+
+// ──────────────────────────────────────────────────────────────────────
+//  INFO CARDS ROW (legacy — kept for backwards compat)
+// ──────────────────────────────────────────────────────────────────────
+
+class InfoCardsRow extends StatelessWidget {
+  final ScoreController scoreController;
+  final AuthService authService;
+
+  const InfoCardsRow({
+    super.key,
+    required this.scoreController,
+    required this.authService,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ScoreDisplay(
+      scoreController: scoreController,
+      authService: authService,
+    );
+  }
+}
+
+class ColorBarPreview extends StatelessWidget {
+  const ColorBarPreview({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox.shrink();
   }
 }

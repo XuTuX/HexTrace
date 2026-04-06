@@ -86,124 +86,75 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          // 2. Main Scrollable Content
+          // 2. Main Content
           SafeArea(
             child: Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 600),
-                child: CustomScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  slivers: [
-                    // ─── Top padding ───
-                    const SliverToBoxAdapter(
-                      child: SizedBox(height: 16),
-                    ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 12),
 
-                    // ─── SECTION 1: Logo + Hex Cluster ───
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: Column(
-                          children: [
-                            // Logo with decorative hexagons
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                const HomeLogo(width: 200),
-                              ],
-                            ),
-                          ],
-                        ),
+                      // ─── Top Row: Settings gear ───
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TopIconButton(
+                            icon: Icons.settings_rounded,
+                            onTap: () {
+                              if (authService.user.value != null) {
+                                _showSettingsSheet(authService);
+                              } else {
+                                _showLoginSheet(authService);
+                              }
+                            },
+                          ),
+                        ],
                       ),
-                    ),
 
-                    const SliverToBoxAdapter(child: SizedBox(height: 20)),
+                      // ─── Spacer to push content to center ───
+                      const Spacer(flex: 2),
 
-                    // ─── SECTION 2: Info Cards (Score + Timer) ───
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: InfoCardsRow(
-                          scoreController: scoreController,
-                          authService: authService,
-                        ),
+                      // ─── HERO: Logo + Score ───
+                      const HomeLogo(),
+                      const SizedBox(height: 28),
+
+                      // Score Display
+                      ScoreDisplay(
+                        scoreController: scoreController,
+                        authService: authService,
                       ),
-                    ),
 
-                    const SliverToBoxAdapter(child: SizedBox(height: 24)),
+                      const SizedBox(height: 36),
 
-                    // ─── SECTION 4: Action Buttons ───
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: Row(
-                          children: [
-                            // Start Game — larger
-                            Expanded(
-                              flex: 3,
-                              child: PrimaryButton(
-                                label: '게임 시작',
-                                icon: Icons.play_arrow_rounded,
-                                onPressed: () {
-                                  Get.to(() => const GameScreen());
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            // Ranking — smaller
-                            Expanded(
-                              flex: 2,
-                              child: RankingButton(
-                                onPressed: () =>
-                                    _handleRankingPress(authService),
-                              ),
-                            ),
-                          ],
-                        ),
+                      // ─── Start Game Button ───
+                      PrimaryButton(
+                        label: '게임 시작',
+                        icon: Icons.play_arrow_rounded,
+                        onPressed: () {
+                          Get.to(() => const GameScreen());
+                        },
                       ),
-                    ),
 
-                    const SliverToBoxAdapter(child: SizedBox(height: 24)),
+                      const SizedBox(height: 14),
 
-                    // ─── SECTION 5: Weekly Ranking Preview ───
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: WeeklyRankingPreview(
-                          onViewAll: () => _handleRankingPress(authService),
-                        ),
+                      // ─── Ranking Button ───
+                      RankingButton(
+                        onPressed: () => _handleRankingPress(authService),
                       ),
-                    ),
 
-                    const SliverToBoxAdapter(child: SizedBox(height: 20)),
+                      const Spacer(flex: 3),
 
-                    // ─── SECTION 6: Settings + Gameplay Tip ───
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SettingsButton(
-                              onPressed: () {
-                                if (authService.user.value != null) {
-                                  _showSettingsSheet(authService);
-                                } else {
-                                  _showLoginSheet(authService);
-                                }
-                              },
-                            ),
-                            const SizedBox(width: 12),
-                            const Expanded(child: GameplayTip()),
-                          ],
-                        ),
+                      // ─── Bottom: Weekly Ranking Preview ───
+                      WeeklyRankingPreview(
+                        onViewAll: () => _handleRankingPress(authService),
                       ),
-                    ),
 
-                    // ─── Bottom safe padding ───
-                    const SliverToBoxAdapter(child: SizedBox(height: 32)),
-                  ],
+                      const SizedBox(height: 20),
+                    ],
+                  ),
                 ),
               ),
             ),
