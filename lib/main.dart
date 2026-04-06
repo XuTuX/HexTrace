@@ -131,7 +131,7 @@ class ConfigurationErrorApp extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
                     const Text(
-                      'Run the app with --dart-define values for Supabase and Google login.',
+                      'Run the app with --dart-define values for Supabase.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         height: 1.5,

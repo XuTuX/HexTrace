@@ -7,10 +7,6 @@ class AppConfig {
       String.fromEnvironment('SUPABASE_URL', defaultValue: '');
   static const String supabaseAnonKey =
       String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: '');
-  static const String googleWebClientId =
-      String.fromEnvironment('GOOGLE_WEB_CLIENT_ID', defaultValue: '');
-  static const String googleIosClientId =
-      String.fromEnvironment('GOOGLE_IOS_CLIENT_ID', defaultValue: '');
 
   static const String termsOfServiceUrl = 'https://www.neoreo.org/terms';
   static const String privacyPolicyUrl =
@@ -27,8 +23,6 @@ class AppConfig {
     final missing = <String>[
       if (supabaseUrl.isEmpty) 'SUPABASE_URL',
       if (supabaseAnonKey.isEmpty) 'SUPABASE_ANON_KEY',
-      if (googleWebClientId.isEmpty) 'GOOGLE_WEB_CLIENT_ID',
-      if (googleIosClientId.isEmpty) 'GOOGLE_IOS_CLIENT_ID',
     ];
 
     if (missing.isNotEmpty) {

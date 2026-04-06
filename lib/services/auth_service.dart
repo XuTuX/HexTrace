@@ -6,7 +6,6 @@ import 'package:get/get.dart';
 import 'package:crypto/crypto.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:hexor/config/app_config.dart';
 import 'package:hexor/services/database_service.dart';
 import 'package:hexor/utils/random_nickname_generator.dart';
 
@@ -188,13 +187,7 @@ class AuthService extends GetxController {
       isLoading.value = true;
       debugPrint('🔵 [AuthService] Google Sign In process started');
 
-      const webClientId = AppConfig.googleWebClientId;
-      const iosClientId = AppConfig.googleIosClientId;
-
-      final GoogleSignIn googleSignIn = GoogleSignIn(
-        clientId: AppConfig.isIos ? iosClientId : null,
-        serverClientId: webClientId,
-      );
+      final GoogleSignIn googleSignIn = GoogleSignIn();
 
       debugPrint('🔵 [AuthService] Requesting Google Sign In...');
       final googleUser = await googleSignIn.signIn();
@@ -295,23 +288,23 @@ class AuthService extends GetxController {
   }
 
   Future<void> signOut() async {
+    await _signOutSocialProviders();
     await _supabase.auth.signOut();
     userNickname.value = null; // Clear nickname
   }
 
-  /// Delete the user's account permanently.
-  /// Deletes all user data from the database, then signs out.
+  /// Deletes Hexor-owned data for the current user, then signs out.
   /// Returns null on success, or error message on failure.
-  Future<String?> deleteAccountData() async {
+  Future<String?> deleteHexorData() async {
     try {
       isLoading.value = true;
       debugPrint('🔵 [AuthService] Hexor data deletion started');
       final deletingUserId = _supabase.auth.currentUser?.id;
 
-      // Delete app-owned data while still authenticated.
+      // Delete Hexor-owned data while still authenticated.
       try {
         final dbService = Get.find<DatabaseService>();
-        await dbService.deleteMyData();
+        await dbService.deleteMyHexorData();
         debugPrint('🟢 [AuthService] User data deleted from DB');
       } catch (e) {
         debugPrint('🔴 [AuthService] DB data deletion failed: $e');
@@ -326,12 +319,7 @@ class AuthService extends GetxController {
         } catch (_) {}
       }
 
-      // 2. Sign out from Google / Apple
-      try {
-        final googleSignIn = GoogleSignIn();
-        await googleSignIn.signOut();
-      } catch (_) {}
-
+      await _signOutSocialProviders();
       await _supabase.auth.signOut();
       user.value = null;
       userNickname.value = null;
@@ -344,5 +332,13 @@ class AuthService extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  Future<void> _signOutSocialProviders() async {
+    try {
+      final googleSignIn = GoogleSignIn();
+      await googleSignIn.signOut();
+      await googleSignIn.disconnect();
+    } catch (_) {}
   }
 }

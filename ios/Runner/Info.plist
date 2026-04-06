@@ -207,6 +207,10 @@
 			<string>3qcr597p9d.skadnetwork</string>
 		</dict>
 	</array>
+	<key>GIDClientID</key>
+	<string>205901272812-hgbcmb7fs0i6spqnbti38v2ji8qvucsn.apps.googleusercontent.com</string>
+	<key>GIDServerClientID</key>
+	<string>205901272812-raopsh8n9namon3vm97u4f0u7s7uco9e.apps.googleusercontent.com</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 	<dict>

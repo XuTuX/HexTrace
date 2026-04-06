@@ -10,18 +10,21 @@ Required values:
 
 - `SUPABASE_URL`
 - `SUPABASE_ANON_KEY`
-- `GOOGLE_WEB_CLIENT_ID`
-- `GOOGLE_IOS_CLIENT_ID`
 
 Example:
 
 ```bash
 flutter run \
   --dart-define=SUPABASE_URL=... \
-  --dart-define=SUPABASE_ANON_KEY=... \
-  --dart-define=GOOGLE_WEB_CLIENT_ID=... \
-  --dart-define=GOOGLE_IOS_CLIENT_ID=...
+  --dart-define=SUPABASE_ANON_KEY=...
 ```
+
+## Google Sign-In Configuration
+
+Google Sign-In client identifiers are configured natively:
+
+- Android: `android/app/src/main/res/values/strings.xml`
+- iOS: `ios/Runner/Info.plist`
 
 ## Android Signing
 

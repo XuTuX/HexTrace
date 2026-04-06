@@ -159,7 +159,7 @@ class DatabaseService extends GetxService {
   }
 
   // Hexor 게임 데이터 삭제
-  Future<void> deleteMyData() async {
+  Future<void> deleteMyHexorData() async {
     final userId = _supabase.auth.currentUser?.id;
     if (userId == null) return;
 

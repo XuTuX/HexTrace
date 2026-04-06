@@ -480,9 +480,9 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
             padding: const EdgeInsets.fromLTRB(16, 14, 12, 0),
             child: Row(
               children: [
-                Text(
+                const Text(
                   '🏆',
-                  style: const TextStyle(fontSize: 16),
+                  style: TextStyle(fontSize: 16),
                 ),
                 const SizedBox(width: 6),
                 Text(
