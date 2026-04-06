@@ -46,51 +46,31 @@ class HomeLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Image.asset(
-      'assets/icons/logo.png',
-      width: width,
-      fit: BoxFit.contain,
-      filterQuality: FilterQuality.high,
-    );
-  }
-}
-
-class HexCluster extends StatelessWidget {
-  const HexCluster({super.key, this.size = 36});
-  final double size;
-
-  @override
-  Widget build(BuildContext context) {
-    // 5 game colors arranged in a tight hex cluster
-    final colors = [
-      GamePalette.colorFor(GameColor.azure),
-      GamePalette.colorFor(GameColor.violet),
-      GamePalette.colorFor(GameColor.mint),
-      GamePalette.colorFor(GameColor.coral),
-      GamePalette.colorFor(GameColor.amber),
-    ];
-    final offsets = [
-      Offset(0, -size * 0.55),
-      Offset(size * 0.48, 0),
-      Offset(-size * 0.48, 0),
-      Offset(size * 0.48, -size * 0.55),
-      Offset(-size * 0.48, -size * 0.55),
-    ];
-
-    return SizedBox(
-      width: size * 2.2,
-      height: size * 1.8,
-      child: Stack(
-        clipBehavior: Clip.none,
-        alignment: Alignment.center,
-        children: List.generate(colors.length, (i) {
-          return Positioned(
-            left: size * 1.1 + offsets[i].dx - size * 0.38,
-            top: size * 0.9 + offsets[i].dy - size * 0.38,
-            child: _HexTile(color: colors[i], tileSize: size * 0.68),
-          );
-        }),
-      ),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      textBaseline: TextBaseline.alphabetic,
+      children: [
+        Text(
+          'HEX',
+          style: GoogleFonts.blackHanSans(
+            fontSize: 44,
+            color: charcoalBlack,
+            height: 1.0,
+            letterSpacing: 2.0,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          'TRACE',
+          style: GoogleFonts.blackHanSans(
+            fontSize: 44,
+            color: const Color(0xFF0095FF),
+            height: 1.0,
+            letterSpacing: 2.0,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -184,61 +164,38 @@ class InfoCardsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: _InfoCard(
-            icon: Icons.emoji_events_rounded,
-            iconColor: const Color(0xFFFFB300),
-            label: '점수',
-            child: Obx(() {
-              final isLoading = authService.isLoading.value ||
-                  scoreController.isSyncing.value;
-              if (isLoading) {
-                return const SizedBox(
-                  height: 32,
-                  child: Center(
-                    child: SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        color: charcoalBlack,
-                        strokeWidth: 2.5,
-                      ),
-                    ),
-                  ),
-                );
-              }
-              return Text(
-                '${scoreController.highscore.value}',
-                style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w900,
+    return _InfoCard(
+      icon: Icons.emoji_events_rounded,
+      iconColor: const Color(0xFFFFB300),
+      label: '최고 점수',
+      child: Obx(() {
+        final isLoading =
+            authService.isLoading.value || scoreController.isSyncing.value;
+        if (isLoading) {
+          return const SizedBox(
+            height: 32,
+            child: Center(
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
                   color: charcoalBlack,
-                  height: 1.0,
+                  strokeWidth: 2.5,
                 ),
-              );
-            }),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _InfoCard(
-            icon: Icons.schedule_rounded,
-            iconColor: const Color(0xFF0095FF),
-            label: '시간',
-            child: Text(
-              '59초',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.w900,
-                color: const Color(0xFF0095FF),
-                height: 1.0,
               ),
             ),
+          );
+        }
+        return Text(
+          '${scoreController.highscore.value}',
+          style: const TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.w900,
+            color: charcoalBlack,
+            height: 1.0,
           ),
-        ),
-      ],
+        );
+      }),
     );
   }
 }
@@ -344,9 +301,9 @@ class ColorBarPreview extends StatelessWidget {
           LayoutBuilder(
             builder: (context, constraints) {
               const gap = 4.0;
-              final slotW = (constraints.maxWidth -
-                      gap * (sampleColors.length - 1)) /
-                  sampleColors.length;
+              final slotW =
+                  (constraints.maxWidth - gap * (sampleColors.length - 1)) /
+                      sampleColors.length;
               final slotH = slotW * 1.5;
 
               return SizedBox(
@@ -356,14 +313,14 @@ class ColorBarPreview extends StatelessWidget {
                   children: sampleColors.map((c) {
                     return Expanded(
                       child: Padding(
-                        padding:
-                            EdgeInsets.only(right: c == sampleColors.last ? 0 : gap),
+                        padding: EdgeInsets.only(
+                            right: c == sampleColors.last ? 0 : gap),
                         child: Container(
                           decoration: BoxDecoration(
                             color: c,
                             borderRadius: BorderRadius.circular(7),
-                            border: Border.all(
-                                color: charcoalBlack, width: 2.0),
+                            border:
+                                Border.all(color: charcoalBlack, width: 2.0),
                             boxShadow: const [
                               BoxShadow(
                                 color: charcoalBlack,

@@ -111,8 +111,6 @@ class _HomeScreenState extends State<HomeScreen> {
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 const HomeLogo(width: 200),
-                                const SizedBox(width: 4),
-                                const HexCluster(size: 30),
                               ],
                             ),
                           ],
@@ -130,16 +128,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           scoreController: scoreController,
                           authService: authService,
                         ),
-                      ),
-                    ),
-
-                    const SliverToBoxAdapter(child: SizedBox(height: 16)),
-
-                    // ─── SECTION 3: Color Bar Preview ───
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: const ColorBarPreview(),
                       ),
                     ),
 
