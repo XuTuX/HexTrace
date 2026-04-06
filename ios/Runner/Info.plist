@@ -248,8 +248,6 @@
 	<string>This app needs access to your photo library to save and share your score images.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>This app needs access to your photo library to save your score images.</string>
-	<key>NSUserTrackingUsageDescription</key>
-	<string>서비스 품질 개선 및 안정적인 앱 운영을 위해 사용됩니다.</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>instagram</string>
