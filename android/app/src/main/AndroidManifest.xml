@@ -1,10 +1,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.neoreo.hexor">
 
     <!-- 인터넷 권한 -->
     <uses-permission android:name="android.permission.INTERNET"/>
     <!-- 네트워크 상태 확인 권한 -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    
+    <!-- 광고 ID 권한 강제 삭제 (Play Console 정책용) -->
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID" tools:node="remove" />
 
     <application
         android:label="Hexor Trace"
