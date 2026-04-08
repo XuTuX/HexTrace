@@ -33,9 +33,7 @@ void main() async {
     debugPrintStack(stackTrace: stackTrace);
     runApp(
       ConfigurationErrorApp(
-        message: error is StateError
-            ? error.message
-            : error.toString(),
+        message: error is StateError ? error.message : error.toString(),
       ),
     );
   }
