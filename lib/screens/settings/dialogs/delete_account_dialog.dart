@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'package:hexor/constant.dart';
-import 'package:hexor/screens/home_screen.dart';
 import 'package:hexor/services/auth_service.dart';
 import 'package:hexor/theme/app_typography.dart';
 
@@ -104,7 +103,7 @@ void showDeleteAccountDialog(AuthService authService) {
                               margin: const EdgeInsets.all(16),
                             );
                           } else {
-                            Get.offAll(() => const HomeScreen());
+                            Get.until((route) => route.isFirst);
                             Future.delayed(
                               const Duration(milliseconds: 300),
                               () {

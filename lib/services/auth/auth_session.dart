@@ -1,19 +1,28 @@
 part of 'package:hexor/services/auth_service.dart';
 
 void _bindAuthStateChanges(AuthService service) {
-  service._supabase.auth.onAuthStateChange.listen((data) {
-    service.user.value = data.session?.user;
+  service._authStateSubscription?.cancel();
+  service._authStateSubscription =
+      service._supabase.auth.onAuthStateChange.listen(
+    (data) {
+      service.user.value = data.session?.user;
+      service._invalidateProfileLoadRequests();
 
-    if (data.event == AuthChangeEvent.tokenRefreshed) {
-      debugPrint('🔵 [AuthService] Token refreshed successfully');
-    }
+      if (data.event == AuthChangeEvent.tokenRefreshed) {
+        debugPrint('🔵 [AuthService] Token refreshed successfully');
+      }
 
-    if (service.user.value != null) {
-      service.fetchUserProfile();
-    } else {
-      _resetProfileState(service);
-    }
-  });
+      if (service.user.value != null) {
+        unawaited(service.fetchUserProfile());
+      } else {
+        _resetProfileState(service);
+      }
+    },
+    onError: (Object error, StackTrace stackTrace) {
+      debugPrint('🔴 [AuthService] Auth state listener error: $error');
+      debugPrintStack(stackTrace: stackTrace);
+    },
+  );
 }
 
 void _resetProfileState(AuthService service) {
@@ -26,6 +35,7 @@ Future<void> _tryRecoverSession(AuthService service) async {
   try {
     final session = service._supabase.auth.currentSession;
     if (session == null) {
+      service._invalidateProfileLoadRequests();
       return;
     }
 
@@ -36,6 +46,7 @@ Future<void> _tryRecoverSession(AuthService service) async {
         debugPrint('🟢 [AuthService] Session refreshed successfully');
       } catch (e) {
         debugPrint('🔴 [AuthService] Session refresh failed, signing out: $e');
+        service._invalidateProfileLoadRequests();
         await service._supabase.auth.signOut();
         service.user.value = null;
       }

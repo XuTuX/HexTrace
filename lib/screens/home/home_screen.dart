@@ -17,6 +17,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   late final Worker _profileLoadedWorker;
   late final Worker _userWorker;
+  late final Worker _loadingWorker;
   bool _isNicknameDialogActive = false;
 
   @override
@@ -27,6 +28,8 @@ class _HomeScreenState extends State<HomeScreen> {
     _profileLoadedWorker =
         ever(authService.isProfileLoaded, (_) => _checkNicknameRequirement());
     _userWorker = ever(authService.user, (_) => _checkNicknameRequirement());
+    _loadingWorker =
+        ever(authService.isLoading, (_) => _checkNicknameRequirement());
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkNicknameRequirement();
@@ -37,12 +40,14 @@ class _HomeScreenState extends State<HomeScreen> {
   void dispose() {
     _profileLoadedWorker.dispose();
     _userWorker.dispose();
+    _loadingWorker.dispose();
     super.dispose();
   }
 
   Future<void> _checkNicknameRequirement() async {
     final authService = Get.find<AuthService>();
-    final needsNickname = authService.user.value != null &&
+    final needsNickname = !authService.isLoading.value &&
+        authService.user.value != null &&
         authService.isProfileLoaded.value &&
         !authService.hasProfileLoadError.value &&
         authService.userNickname.value == null;

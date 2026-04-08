@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
@@ -25,6 +26,8 @@ class AuthService extends GetxController {
   final userNickname = RxnString();
   final isProfileLoaded = false.obs;
   final hasProfileLoadError = false.obs;
+  StreamSubscription<AuthState>? _authStateSubscription;
+  int _profileLoadRequestId = 0;
 
   @override
   void onInit() {
@@ -51,4 +54,26 @@ class AuthService extends GetxController {
   Future<String?> deleteHexorData() => _deleteHexorData(this);
 
   Future<String?> deleteAccount() => _deleteAccount(this);
+
+  int _beginProfileLoadRequest() => ++_profileLoadRequestId;
+
+  void _invalidateProfileLoadRequests() {
+    _profileLoadRequestId++;
+  }
+
+  bool _canApplyProfileLoad({
+    required int requestId,
+    required String userId,
+  }) {
+    return !isClosed &&
+        requestId == _profileLoadRequestId &&
+        _supabase.auth.currentUser?.id == userId &&
+        user.value?.id == userId;
+  }
+
+  @override
+  void onClose() {
+    _authStateSubscription?.cancel();
+    super.onClose();
+  }
 }

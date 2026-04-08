@@ -2,7 +2,12 @@ part of 'package:hexor/controllers/score_controller.dart';
 
 void _bindScoreAuthState(ScoreController controller) {
   final authService = Get.find<AuthService>();
-  ever(authService.user, (user) {
+  controller._authWorker?.dispose();
+  controller._authWorker = ever(authService.user, (user) {
+    if (controller.isClosed) {
+      return;
+    }
+
     if (user != null) {
       controller._loginSyncCompleter = Completer<void>();
       _onUserLogin(controller, user.id);
@@ -13,6 +18,9 @@ void _bindScoreAuthState(ScoreController controller) {
 }
 
 Future<void> _onUserLogin(ScoreController controller, String userId) async {
+  if (controller.isClosed) {
+    return;
+  }
   controller.isSyncing.value = true;
   controller.hasNewHighScoreThisGame.value = false;
 
@@ -39,13 +47,18 @@ Future<void> _onUserLogin(ScoreController controller, String userId) async {
       );
     }
 
+    if (controller.isClosed) {
+      return;
+    }
     controller.highscore.value = bestLocalScore;
     await prefs.setInt('high_score_$userId', bestLocalScore);
     await _syncWithOnlineScore(controller, bestLocalScore);
   } catch (e) {
     debugPrint('🔴 [ScoreController] _onUserLogin failed: $e');
   } finally {
-    controller.isSyncing.value = false;
+    if (!controller.isClosed) {
+      controller.isSyncing.value = false;
+    }
     if (controller._loginSyncCompleter != null &&
         !controller._loginSyncCompleter!.isCompleted) {
       controller._loginSyncCompleter!.complete();
@@ -54,15 +67,23 @@ Future<void> _onUserLogin(ScoreController controller, String userId) async {
 }
 
 Future<void> _onUserLogout(ScoreController controller) async {
+  if (controller.isClosed) {
+    return;
+  }
   controller.isSyncing.value = true;
   controller.hasNewHighScoreThisGame.value = false;
 
   final prefs = await SharedPreferences.getInstance();
   final guestScore = prefs.getInt('high_score_guest') ?? 0;
+  if (controller.isClosed) {
+    return;
+  }
   controller.highscore.value = guestScore;
 
   debugPrint(
     '🔵 [ScoreController] Switched to guest mode. Guest score: $guestScore',
   );
-  controller.isSyncing.value = false;
+  if (!controller.isClosed) {
+    controller.isSyncing.value = false;
+  }
 }

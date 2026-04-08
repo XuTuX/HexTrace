@@ -1,9 +1,10 @@
 part of 'package:hexor/services/auth_service.dart';
 
 Future<void> _signOut(AuthService service) async {
+  service._invalidateProfileLoadRequests();
   await _signOutSocialProviders(service);
   await service._supabase.auth.signOut();
-  service.userNickname.value = null;
+  _resetProfileState(service);
 }
 
 Future<String?> _deleteHexorData(AuthService service) async {
@@ -36,13 +37,17 @@ Future<String?> _deleteHexorData(AuthService service) async {
     debugPrint('🔴 [AuthService] Hexor data deletion failed: $e');
     return 'Hexor Trace 기록 삭제 중 오류가 발생했습니다. 다시 시도해주세요.';
   } finally {
-    service.isLoading.value = false;
+    if (!service.isClosed) {
+      service.isLoading.value = false;
+    }
   }
 }
 
 Future<String?> _deleteAccount(AuthService service) async {
+  service.isLoading.value = true;
+  service._invalidateProfileLoadRequests();
+
   try {
-    service.isLoading.value = true;
     debugPrint('🔵 [AuthService] NEOREO GAMES account deletion started');
     final deletingUserId = service._supabase.auth.currentUser?.id;
 
@@ -56,27 +61,43 @@ Future<String?> _deleteAccount(AuthService service) async {
     }
 
     if (deletingUserId != null) {
-      await _clearLocalUserCache(deletingUserId);
+      try {
+        await _clearLocalUserCache(deletingUserId);
+      } catch (e, stackTrace) {
+        debugPrint('🟡 [AuthService] Local cache clear failed: $e');
+        debugPrintStack(stackTrace: stackTrace);
+      }
     }
 
     try {
       await _signOutSocialProviders(service);
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint('🟡 [AuthService] Not crucial if social sign out fails: $e');
+      debugPrintStack(stackTrace: stackTrace);
     }
 
     try {
       await service._supabase.auth.signOut(scope: SignOutScope.local);
       debugPrint('🟢 [AuthService] Local sign out successful');
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint('🟡 [AuthService] Local sign out failed, ignoring: $e');
+      debugPrintStack(stackTrace: stackTrace);
     }
+
+    service.user.value = null;
+    _resetProfileState(service);
+    service._invalidateProfileLoadRequests();
 
     debugPrint('🟢 [AuthService] NEOREO GAMES account deletion completed');
     return null;
-  } catch (e) {
+  } catch (e, stackTrace) {
     debugPrint('🔴 [AuthService] Account deletion failed: $e');
+    debugPrintStack(stackTrace: stackTrace);
     return '계정 삭제 중 오류가 발생했습니다. 다시 시도해주세요.';
+  } finally {
+    if (!service.isClosed) {
+      service.isLoading.value = false;
+    }
   }
 }
 

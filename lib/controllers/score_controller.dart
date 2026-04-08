@@ -28,6 +28,7 @@ class ScoreController extends GetxController {
   final showIncrement = false.obs;
 
   Completer<void>? _loginSyncCompleter;
+  Worker? _authWorker;
 
   String? get _currentUserId => Get.find<AuthService>().user.value?.id;
   String get _scoreKey => _scoreStorageKeyFor(this);
@@ -37,6 +38,12 @@ class ScoreController extends GetxController {
     super.onInit();
     _loadHighScore(this);
     _bindScoreAuthState(this);
+  }
+
+  @override
+  void onClose() {
+    _authWorker?.dispose();
+    super.onClose();
   }
 
   Future<void> waitForLoginSync() async {

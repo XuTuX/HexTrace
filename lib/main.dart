@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:hexor/constant.dart';
 import 'package:hexor/config/app_config.dart';
 import 'package:hexor/screens/home_screen.dart';
@@ -13,6 +15,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  _installGlobalErrorHandlers();
   final settingsService = await SettingsService().init();
   try {
     await dotenv.load(fileName: '.env');
@@ -37,6 +40,20 @@ void main() async {
       ),
     );
   }
+}
+
+void _installGlobalErrorHandlers() {
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    debugPrint('🔴 [FlutterError] ${details.exception}');
+    debugPrintStack(stackTrace: details.stack);
+  };
+
+  PlatformDispatcher.instance.onError = (error, stackTrace) {
+    debugPrint('🔴 [PlatformDispatcher] $error');
+    debugPrintStack(stackTrace: stackTrace);
+    return true;
+  };
 }
 
 class AppBinding extends Bindings {
