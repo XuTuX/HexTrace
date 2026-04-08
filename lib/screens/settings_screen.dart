@@ -506,15 +506,18 @@ class SettingsScreen extends StatelessWidget {
                                 margin: const EdgeInsets.all(16),
                               );
                             } else {
-                              Get.snackbar(
-                                '삭제 완료',
-                                'NEOREO GAMES 계정이 삭제되었습니다.',
-                                snackPosition: SnackPosition.BOTTOM,
-                                backgroundColor: charcoalBlack,
-                                colorText: Colors.white,
-                                margin: const EdgeInsets.all(16),
-                              );
                               Get.offAll(() => const HomeScreen());
+                              // 화면 이동이 완전히 끝난 후 스낵바를 띄워 Overlay 에러를 방지합니다.
+                              Future.delayed(const Duration(milliseconds: 300), () {
+                                Get.snackbar(
+                                  '삭제 완료',
+                                  'NEOREO GAMES 계정이 삭제되었습니다.',
+                                  snackPosition: SnackPosition.BOTTOM,
+                                  backgroundColor: charcoalBlack,
+                                  colorText: Colors.white,
+                                  margin: const EdgeInsets.all(16),
+                                );
+                              });
                             }
                           },
                           style: ElevatedButton.styleFrom(

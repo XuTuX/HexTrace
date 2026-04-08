@@ -97,10 +97,47 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       const SizedBox(height: 12),
 
-                      // ─── Top Row: Settings gear ───
+                      // ─── Top Row: Nickname & Settings ───
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
+                          Obx(() {
+                            final nickname = authService.userNickname.value;
+                            if (nickname != null && nickname.isNotEmpty) {
+                              return GestureDetector(
+                                onTap: () => _showSettingsSheet(authService),
+                                child: Container(
+                                  height: 44,
+                                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(14),
+                                    border: Border.all(
+                                      color: const Color(0xFF1E1E1E).withValues(alpha: 0.12), // charcoalBlack
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Text('👋', style: TextStyle(fontSize: 14)),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        nickname,
+                                        style: const TextStyle(
+                                          fontFamily: 'NotoSans',
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w800,
+                                          color: Color(0xFF1E1E1E),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }
+                            return const SizedBox.shrink();
+                          }),
                           TopIconButton(
                             icon: Icons.settings_rounded,
                             onTap: () {
