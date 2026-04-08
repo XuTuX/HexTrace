@@ -334,6 +334,54 @@ class AuthService extends GetxController {
     }
   }
 
+  /// NEOREO GAMES 계정 완전 삭제.
+  /// 모든 게임 데이터 + 프로필 + auth 계정을 삭제합니다.
+  /// Returns null on success, or error message on failure.
+  Future<String?> deleteAccount() async {
+    try {
+      isLoading.value = true;
+      debugPrint('🔵 [AuthService] NEOREO GAMES account deletion started');
+      final deletingUserId = _supabase.auth.currentUser?.id;
+
+      // 서버에서 모든 데이터 + auth 계정 삭제
+      try {
+        final dbService = Get.find<DatabaseService>();
+        await dbService.deleteMyAccount();
+        debugPrint('🟢 [AuthService] Account completely deleted from server');
+      } catch (e) {
+        debugPrint('🔴 [AuthService] Account deletion failed: $e');
+        return '계정 삭제 중 오류가 발생했습니다. 다시 시도해주세요.';
+      }
+
+      // 로컬 데이터 정리
+      if (deletingUserId != null) {
+        try {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.remove('high_score_$deletingUserId');
+          await prefs.remove('guest_merged_$deletingUserId');
+        } catch (_) {}
+      }
+
+      await _signOutSocialProviders();
+
+      // auth user가 서버에서 이미 삭제되었으므로 로컬 세션만 정리
+      try {
+        await _supabase.auth.signOut();
+      } catch (_) {}
+
+      user.value = null;
+      userNickname.value = null;
+
+      debugPrint('🟢 [AuthService] NEOREO GAMES account deletion completed');
+      return null;
+    } catch (e) {
+      debugPrint('🔴 [AuthService] Account deletion failed: $e');
+      return '계정 삭제 중 오류가 발생했습니다. 다시 시도해주세요.';
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   Future<void> _signOutSocialProviders() async {
     try {
       final googleSignIn = GoogleSignIn();

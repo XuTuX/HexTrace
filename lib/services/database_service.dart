@@ -165,4 +165,12 @@ class DatabaseService extends GetxService {
 
     await _supabase.rpc('delete_my_account_data');
   }
+
+  // NEOREO GAMES 계정 완전 삭제 (모든 게임 데이터 + 프로필 + auth 계정)
+  Future<void> deleteMyAccount() async {
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) return;
+
+    await _supabase.rpc('delete_my_account_completely');
+  }
 }

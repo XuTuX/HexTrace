@@ -179,7 +179,7 @@ class SettingsScreen extends StatelessWidget {
                                     _divider(),
                                     _tapRow(
                                       icon: Icons.delete_outline_rounded,
-                                      title: 'Hexor Trace 데이터 삭제',
+                                      title: '계정 삭제',
                                       onTap: () =>
                                           _showDeleteAccountDialog(authService),
                                     ),
@@ -447,7 +447,8 @@ class SettingsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
                 const Text(
-                  'Hexor Trace 데이터만 삭제할까요?',
+                  'NEOREO GAMES 계정을\n삭제할까요?',
+                  textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w900,
@@ -456,7 +457,7 @@ class SettingsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Hexor Trace 게임 기록과 랭킹 데이터만 삭제되고 로그아웃됩니다.\n계정 자체는 유지되며, 같은 Supabase를 쓰는 다른 게임 데이터는 건드리지 않습니다.',
+                  'NEOREO GAMES와 관련된 계정인\nOverlap, Fill Your Area, Hexor Trace 등의\n게임 데이터가 모두 삭제됩니다.\n\n이 작업은 되돌릴 수 없습니다.',
                   textAlign: TextAlign.center,
                   style: AppTypography.bodySmall.copyWith(
                     color: Colors.grey[500],
@@ -494,7 +495,7 @@ class SettingsScreen extends StatelessWidget {
                           onPressed: () async {
                             Get.back();
                             final error =
-                                await authService.deleteHexorData();
+                                await authService.deleteAccount();
                             if (error != null) {
                               Get.snackbar(
                                 '삭제 실패',
@@ -507,7 +508,7 @@ class SettingsScreen extends StatelessWidget {
                             } else {
                               Get.snackbar(
                                 '삭제 완료',
-                                'Hexor Trace 데이터가 삭제되었습니다.',
+                                'NEOREO GAMES 계정이 삭제되었습니다.',
                                 snackPosition: SnackPosition.BOTTOM,
                                 backgroundColor: charcoalBlack,
                                 colorText: Colors.white,
