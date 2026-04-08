@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import 'package:hexor/constant.dart';
 import 'package:hexor/controllers/score_controller.dart';
 import 'package:hexor/services/auth_service.dart';
 import 'package:hexor/services/database_service.dart';
-import 'package:hexor/theme/app_typography.dart';
 
+import 'ranking_data_loader.dart';
 import 'widgets/my_rank_card.dart';
+import 'widgets/ranking_chrome.dart';
 import 'widgets/rank_list_item.dart';
 import 'widgets/ranking_states.dart';
 
@@ -58,48 +58,21 @@ class _RankingScreenState extends State<RankingScreen> {
     try {
       final scoreController = Get.find<ScoreController>();
       final authService = Get.find<AuthService>();
-      final isLoggedIn = authService.user.value != null;
-
-      if (isLoggedIn) {
-        await scoreController.waitForLoginSync();
-        if (!mounted) {
-          return;
-        }
-        await scoreController.syncScoreForRanking();
-      }
-
-      if (!mounted) {
-        return;
-      }
-
       final dbService = Get.find<DatabaseService>();
-      final results = await Future.wait([
-        isLoggedIn
-            ? dbService.getMyRank(gameId).catchError((e) {
-                debugPrint('🔴 [RankingScreen] getMyRank error: $e');
-                return null;
-              })
-            : Future<int?>.value(null),
-        isLoggedIn
-            ? dbService.getMyBestScore(gameId).catchError((e) {
-                debugPrint('🔴 [RankingScreen] getMyBestScore error: $e');
-                return null;
-              })
-            : Future<int?>.value(null),
-        dbService.getLeaderboard(gameId).catchError((e) {
-          debugPrint('🔴 [RankingScreen] getLeaderboard error: $e');
-          return <Map<String, dynamic>>[];
-        }),
-      ]);
+      final snapshot = await loadRankingSnapshot(
+        scoreController: scoreController,
+        authService: authService,
+        dbService: dbService,
+      );
 
       if (!mounted) {
         return;
       }
 
       setState(() {
-        _myRank = results[0] as int?;
-        _myScore = results[1] as int?;
-        _scores = List<Map<String, dynamic>>.from(results[2] as List? ?? []);
+        _myRank = snapshot.myRank;
+        _myScore = snapshot.myScore;
+        _scores = snapshot.scores;
         _isLoading = false;
       });
 
@@ -136,9 +109,9 @@ class _RankingScreenState extends State<RankingScreen> {
       child: SafeArea(
         child: Column(
           children: [
-            const _RankingSheetHandle(),
+            const RankingSheetHandle(),
             const SizedBox(height: 20),
-            _RankingHeader(),
+            const RankingHeader(),
             const SizedBox(height: 16),
             Expanded(
               child: Center(
@@ -181,7 +154,7 @@ class _RankingScreenState extends State<RankingScreen> {
         const SizedBox(height: 24),
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 28),
-          child: _TopPlayersLabel(),
+          child: TopPlayersLabel(),
         ),
         const SizedBox(height: 8),
         Expanded(
@@ -195,80 +168,6 @@ class _RankingScreenState extends State<RankingScreen> {
                 myId: myId,
               );
             },
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _RankingSheetHandle extends StatelessWidget {
-  const _RankingSheetHandle();
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.only(top: 12),
-        child: Container(
-          width: 36,
-          height: 4,
-          decoration: BoxDecoration(
-            color: Colors.grey[300],
-            borderRadius: BorderRadius.circular(2),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _RankingHeader extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const Icon(
-          Icons.emoji_events_outlined,
-          color: charcoalBlack,
-          size: 24,
-        ),
-        const SizedBox(width: 8),
-        Text(
-          'RANKING',
-          style: AppTypography.title.copyWith(
-            fontSize: 20,
-            letterSpacing: 4.0,
-            color: charcoalBlack,
-            fontWeight: FontWeight.w900,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _TopPlayersLabel extends StatelessWidget {
-  const _TopPlayersLabel();
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Text(
-          'TOP PLAYERS',
-          style: AppTypography.label.copyWith(
-            fontSize: 11,
-            letterSpacing: 2.0,
-            color: charcoalBlack.withValues(alpha: 0.3),
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Container(
-            height: 0.5,
-            color: charcoalBlack.withValues(alpha: 0.06),
           ),
         ),
       ],

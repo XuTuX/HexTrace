@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import 'package:hexor/constant.dart';
-import '../../game/game_palette.dart';
-import '../../game/hex_game_controller.dart';
+import 'package:hexor/game/game_palette.dart';
+import 'package:hexor/game/hex_game_controller.dart';
+
+part 'color_stream/animated_color_stream_view.dart';
 
 class AnimatedColorStream extends StatefulWidget {
   const AnimatedColorStream({
@@ -20,7 +22,6 @@ class AnimatedColorStream extends StatefulWidget {
 
 class _AnimatedColorStreamState extends State<AnimatedColorStream> {
   static const Duration _moveDuration = Duration(milliseconds: 260);
-  static const double _slotGap = 5;
 
   final Map<int, _VisualBarEntry> _visualEntries = <int, _VisualBarEntry>{};
 
@@ -119,140 +120,11 @@ class _AnimatedColorStreamState extends State<AnimatedColorStream> {
 
   @override
   Widget build(BuildContext context) {
-    final highlightedIds = widget.highlightedWindows.expand((window) sync* {
-      for (var index = window.start; index <= window.end; index++) {
-        if (index >= 0 && index < widget.entries.length) {
-          yield widget.entries[index].id;
-        }
-      }
-    }).toSet();
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final slotWidth =
-            (constraints.maxWidth - (_slotGap * (widget.entries.length - 1))) /
-                widget.entries.length;
-
-        final slotHeight = slotWidth * 1.6;
-
-        return SizedBox(
-          height: slotHeight + 8,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: _visualEntries.values.map((visual) {
-              final isFirst = visual.index <= 0.1;
-              final isLast = visual.index >= widget.entries.length - 1 - 0.1;
-
-              return AnimatedPositioned(
-                key: ValueKey<int>(visual.entry.id),
-                duration: _moveDuration,
-                curve: Curves.easeInOutCubic,
-                left: visual.index * (slotWidth + _slotGap),
-                top: 0,
-                width: slotWidth,
-                height: slotHeight,
-                child: AnimatedOpacity(
-                  duration: _moveDuration,
-                  curve: Curves.easeOutCubic,
-                  opacity: visual.opacity,
-                  child: AnimatedScale(
-                    duration: _moveDuration,
-                    curve: Curves.easeOutBack,
-                    scale: visual.scale,
-                    child: _ColorStreamSlot(
-                      color: visual.entry.color,
-                      highlighted: !visual.removing &&
-                          highlightedIds.contains(visual.entry.id),
-                      isFirst: isFirst,
-                      isLast: isLast,
-                    ),
-                  ),
-                ),
-              );
-            }).toList(growable: false),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _VisualBarEntry {
-  _VisualBarEntry({
-    required this.entry,
-    required this.index,
-    this.opacity = 1,
-    this.scale = 1,
-  });
-
-  ColorBarEntry entry;
-  double index;
-  double opacity;
-  double scale;
-  bool removing = false;
-}
-
-class _ColorStreamSlot extends StatelessWidget {
-  const _ColorStreamSlot({
-    required this.color,
-    required this.highlighted,
-    required this.isFirst,
-    required this.isLast,
-  });
-
-  final GameColor color;
-  final bool highlighted;
-  final bool isFirst;
-  final bool isLast;
-
-  @override
-  Widget build(BuildContext context) {
-    final fill = GamePalette.colorFor(color);
-
-    final double topMargin = highlighted ? 1.5 : 0;
-    final double leftMargin = highlighted ? 1.5 : 0;
-    final double bottomMargin = highlighted ? 0 : 1.5;
-    final double rightMargin = highlighted ? 0 : 1.5;
-    final double shadowDepth = highlighted ? 0 : 1.5;
-
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 120),
-      margin:
-          EdgeInsets.fromLTRB(leftMargin, topMargin, rightMargin, bottomMargin),
-      decoration: BoxDecoration(
-        color: fill,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: charcoalBlack,
-          width: 2.0,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: charcoalBlack,
-            offset: Offset(shadowDepth, shadowDepth),
-            blurRadius: 0,
-          ),
-        ],
-      ),
-      child: Center(
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 120),
-          width: highlighted ? 10 : 6,
-          height: highlighted ? 10 : 6,
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: highlighted ? 0.8 : 0.25),
-            shape: BoxShape.circle,
-            boxShadow: highlighted
-                ? [
-                    BoxShadow(
-                        color: Colors.white.withValues(alpha: 0.4),
-                        blurRadius: 4,
-                        spreadRadius: 1)
-                  ]
-                : null,
-          ),
-        ),
-      ),
+    return _AnimatedColorStreamView(
+      entries: widget.entries,
+      highlightedWindows: widget.highlightedWindows,
+      visualEntries: _visualEntries.values.toList(growable: false),
+      moveDuration: _moveDuration,
     );
   }
 }

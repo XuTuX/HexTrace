@@ -1,0 +1,112 @@
+part of 'package:hexor/services/auth_service.dart';
+
+Future<void> _signOut(AuthService service) async {
+  await _signOutSocialProviders(service);
+  await service._supabase.auth.signOut();
+  service.userNickname.value = null;
+}
+
+Future<String?> _deleteHexorData(AuthService service) async {
+  try {
+    service.isLoading.value = true;
+    debugPrint('🔵 [AuthService] Hexor data deletion started');
+    final deletingUserId = service._supabase.auth.currentUser?.id;
+
+    try {
+      final dbService = Get.find<DatabaseService>();
+      await dbService.deleteMyHexorData();
+      debugPrint('🟢 [AuthService] User data deleted from DB');
+    } catch (e) {
+      debugPrint('🔴 [AuthService] DB data deletion failed: $e');
+      return 'Hexor Trace 기록 삭제 중 오류가 발생했습니다. 다시 시도해주세요.';
+    }
+
+    if (deletingUserId != null) {
+      await _clearLocalUserCache(deletingUserId);
+    }
+
+    await _signOutSocialProviders(service);
+    await service._supabase.auth.signOut();
+    service.user.value = null;
+    service.userNickname.value = null;
+
+    debugPrint('🟢 [AuthService] Hexor data deletion completed');
+    return null;
+  } catch (e) {
+    debugPrint('🔴 [AuthService] Hexor data deletion failed: $e');
+    return 'Hexor Trace 기록 삭제 중 오류가 발생했습니다. 다시 시도해주세요.';
+  } finally {
+    service.isLoading.value = false;
+  }
+}
+
+Future<String?> _deleteAccount(AuthService service) async {
+  try {
+    service.isLoading.value = true;
+    debugPrint('🔵 [AuthService] NEOREO GAMES account deletion started');
+    final deletingUserId = service._supabase.auth.currentUser?.id;
+
+    try {
+      final dbService = Get.find<DatabaseService>();
+      await dbService.deleteMyAccount();
+      debugPrint('🟢 [AuthService] Account completely deleted from server');
+    } catch (e) {
+      debugPrint('🔴 [AuthService] Account deletion failed: $e');
+      return '계정 삭제 중 오류가 발생했습니다. 다시 시도해주세요.';
+    }
+
+    if (deletingUserId != null) {
+      await _clearLocalUserCache(deletingUserId);
+    }
+
+    try {
+      await _signOutSocialProviders(service);
+    } catch (e) {
+      debugPrint('🟡 [AuthService] Not crucial if social sign out fails: $e');
+    }
+
+    try {
+      await service._supabase.auth.signOut(scope: SignOutScope.local);
+      debugPrint('🟢 [AuthService] Local sign out successful');
+    } catch (e) {
+      debugPrint('🟡 [AuthService] Local sign out failed, ignoring: $e');
+    }
+
+    debugPrint('🟢 [AuthService] NEOREO GAMES account deletion completed');
+    return null;
+  } catch (e) {
+    debugPrint('🔴 [AuthService] Account deletion failed: $e');
+    return '계정 삭제 중 오류가 발생했습니다. 다시 시도해주세요.';
+  }
+}
+
+Future<void> _clearLocalUserCache(String userId) async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('high_score_$userId');
+    await prefs.remove('guest_merged_$userId');
+  } catch (_) {}
+}
+
+Future<void> _signOutSocialProviders(AuthService service) async {
+  final provider = _currentAuthProvider(service);
+  if (provider != 'google') {
+    debugPrint(
+      '🔵 [AuthService] Social sign out skipped. Current provider: ${provider ?? 'unknown'}',
+    );
+    return;
+  }
+
+  try {
+    final googleSignIn = GoogleSignIn();
+    await googleSignIn.signOut().timeout(const Duration(seconds: 2));
+  } catch (_) {
+    debugPrint('🟡 [AuthService] Social sign out timeout or error ignored.');
+  }
+}
+
+String? _currentAuthProvider(AuthService service) {
+  final currentUser = service._supabase.auth.currentUser;
+  final provider = currentUser?.appMetadata['provider'];
+  return provider is String ? provider : null;
+}
