@@ -9,11 +9,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final settingsService = await SettingsService().init();
   try {
+    await dotenv.load(fileName: '.env');
     AppConfig.validateRequired();
 
     if (AppConfig.supportsAds) {
