@@ -362,12 +362,19 @@ class AuthService extends GetxController {
         } catch (_) {}
       }
 
-      await _signOutSocialProviders();
+      try {
+        await _signOutSocialProviders();
+      } catch (e) {
+        debugPrint('🟡 [AuthService] Not crucial if social sign out fails: $e');
+      }
 
       // auth user가 서버에서 이미 삭제되었으므로 로컬 세션만 정리
       try {
-        await _supabase.auth.signOut();
-      } catch (_) {}
+        await _supabase.auth.signOut(scope: SignOutScope.local);
+        debugPrint('🟢 [AuthService] Local sign out successful');
+      } catch (e) {
+        debugPrint('🟡 [AuthService] Local sign out failed, ignoring: $e');
+      }
 
       user.value = null;
       userNickname.value = null;
@@ -385,8 +392,10 @@ class AuthService extends GetxController {
   Future<void> _signOutSocialProviders() async {
     try {
       final googleSignIn = GoogleSignIn();
-      await googleSignIn.signOut();
-      await googleSignIn.disconnect();
-    } catch (_) {}
+      await googleSignIn.signOut().timeout(const Duration(seconds: 2));
+      await googleSignIn.disconnect().timeout(const Duration(seconds: 2));
+    } catch (_) {
+      debugPrint('🟡 [AuthService] Social sign out timeout or error ignored.');
+    }
   }
 }

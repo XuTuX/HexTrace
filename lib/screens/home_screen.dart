@@ -74,6 +74,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final ScoreController scoreController = Get.put(ScoreController());
     final AuthService authService = Get.find<AuthService>();
+    final mediaSize = MediaQuery.sizeOf(context);
+    final isTablet = mediaSize.shortestSide >= 600;
+    final horizontalPadding = isTablet ? 32.0 : 24.0;
+    final contentMaxWidth = isTablet ? 720.0 : 680.0;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
@@ -90,54 +94,17 @@ class _HomeScreenState extends State<HomeScreen> {
           SafeArea(
             child: Center(
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 600),
+                constraints: BoxConstraints(maxWidth: contentMaxWidth),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
                   child: Column(
                     children: [
-                      const SizedBox(height: 12),
+                      SizedBox(height: isTablet ? 20 : 12),
 
-                      // ─── Top Row: Nickname & Settings ───
+                      // ─── Top Row: Settings ───
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Obx(() {
-                            final nickname = authService.userNickname.value;
-                            if (nickname != null && nickname.isNotEmpty) {
-                              return GestureDetector(
-                                onTap: () => _showSettingsSheet(authService),
-                                child: Container(
-                                  height: 44,
-                                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(14),
-                                    border: Border.all(
-                                      color: const Color(0xFF1E1E1E).withValues(alpha: 0.12), // charcoalBlack
-                                      width: 1.5,
-                                    ),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Text('👋', style: TextStyle(fontSize: 14)),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        nickname,
-                                        style: const TextStyle(
-                                          fontFamily: 'NotoSans',
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w800,
-                                          color: Color(0xFF1E1E1E),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            }
-                            return const SizedBox.shrink();
-                          }),
+                          const Spacer(),
                           TopIconButton(
                             icon: Icons.settings_rounded,
                             onTap: () {
@@ -156,7 +123,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                       // ─── HERO: Logo + Score ───
                       const HomeLogo(),
-                      const SizedBox(height: 28),
+                      SizedBox(height: isTablet ? 32 : 28),
 
                       // Score Display
                       ScoreDisplay(
@@ -164,7 +131,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         authService: authService,
                       ),
 
-                      const SizedBox(height: 36),
+                      SizedBox(height: isTablet ? 40 : 36),
 
                       // ─── Start Game Button ───
                       PrimaryButton(
@@ -175,7 +142,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         },
                       ),
 
-                      const SizedBox(height: 14),
+                      SizedBox(height: isTablet ? 16 : 14),
 
                       // ─── Ranking Button ───
                       RankingButton(
@@ -189,7 +156,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         onViewAll: () => _handleRankingPress(authService),
                       ),
 
-                      const SizedBox(height: 20),
+                      SizedBox(height: isTablet ? 28 : 20),
                     ],
                   ),
                 ),

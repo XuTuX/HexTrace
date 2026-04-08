@@ -10,6 +10,7 @@ import 'package:get/get.dart';
 import 'package:hexor/services/auth_service.dart';
 import 'package:hexor/services/database_service.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hexor/widgets/home_screen/nickname_sticker_card.dart';
 
 // ──────────────────────────────────────────────────────────────────────
 //  DESIGN TOKENS (shared across all home screen widgets)
@@ -209,85 +210,16 @@ class ScoreDisplay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 22),
-      decoration: _cardDecoration(),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 28,
-                height: 28,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFB300).withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(
-                  Icons.emoji_events_rounded,
-                  color: Color(0xFFFFB300),
-                  size: 16,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'BEST SCORE',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                  color: charcoalBlack.withValues(alpha: 0.4),
-                  letterSpacing: 1.5,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Obx(() {
-            final isLoading =
-                authService.isLoading.value || scoreController.isSyncing.value;
-            if (isLoading) {
-              return const SizedBox(
-                height: 44,
-                child: Center(
-                  child: SizedBox(
-                    width: 22,
-                    height: 22,
-                    child: CircularProgressIndicator(
-                      color: charcoalBlack,
-                      strokeWidth: 2.5,
-                    ),
-                  ),
-                ),
-              );
-            }
-            return Text(
-              _formatScore(scoreController.highscore.value),
-              style: GoogleFonts.blackHanSans(
-                fontSize: 42,
-                color: charcoalBlack,
-                height: 1.0,
-                letterSpacing: 2.0,
-              ),
-            );
-          }),
-        ],
-      ),
-    );
-  }
+    return Obx(() {
+      final isLoading =
+          authService.isLoading.value || scoreController.isSyncing.value;
 
-  String _formatScore(int score) {
-    if (score >= 1000) {
-      final s = score.toString();
-      final buf = StringBuffer();
-      for (var i = 0; i < s.length; i++) {
-        if (i > 0 && (s.length - i) % 3 == 0) buf.write(',');
-        buf.write(s[i]);
-      }
-      return buf.toString();
-    }
-    return score.toString();
+      return NicknameStickerCard(
+        nickname: authService.userNickname.value,
+        score: scoreController.highscore.value,
+        isLoading: isLoading,
+      );
+    });
   }
 }
 
@@ -998,117 +930,10 @@ class HighScoreCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() {
-      final nickname = authService.userNickname.value;
-
-      return Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
-            decoration: _cardDecoration(),
-            child: Column(
-              children: [
-                const Text(
-                  'BEST SCORE',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.grey,
-                    letterSpacing: 1.5,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Obx(() {
-                  final isLoading = authService.isLoading.value ||
-                      scoreController.isSyncing.value;
-                  if (isLoading) {
-                    return const SizedBox(
-                      height: 48,
-                      child: Center(
-                        child: SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            color: charcoalBlack,
-                            strokeWidth: 3,
-                          ),
-                        ),
-                      ),
-                    );
-                  }
-                  return Text(
-                    '${scoreController.highscore.value}',
-                    style: AppTypography.scoreDisplay,
-                  );
-                }),
-              ],
-            ),
-          ),
-          if (nickname != null)
-            Positioned(
-              top: -14,
-              left: 16,
-              child: TweenAnimationBuilder<double>(
-                tween: Tween(begin: 0.0, end: 1.0),
-                duration: const Duration(milliseconds: 600),
-                curve: Curves.elasticOut,
-                builder: (context, value, child) {
-                  return Transform.scale(
-                    scale: value,
-                    child: Transform.rotate(
-                      angle: -0.05,
-                      child: child,
-                    ),
-                  );
-                },
-                child: Container(
-                  constraints: BoxConstraints(
-                    maxWidth: MediaQuery.of(context).size.width * 0.7,
-                  ),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: regionColors[2],
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: charcoalBlack, width: 2.5),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: charcoalBlack,
-                        offset: Offset(3, 3),
-                        blurRadius: 0,
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.person_rounded,
-                        color: charcoalBlack,
-                        size: 18,
-                      ),
-                      const SizedBox(width: 8),
-                      Flexible(
-                        child: Text(
-                          nickname,
-                          overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.blackHanSans(
-                            fontSize: 16,
-                            color: charcoalBlack,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-        ],
-      );
-    });
+    return ScoreDisplay(
+      scoreController: scoreController,
+      authService: authService,
+    );
   }
 }
 
