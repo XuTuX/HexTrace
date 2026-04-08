@@ -390,12 +390,24 @@ class AuthService extends GetxController {
   }
 
   Future<void> _signOutSocialProviders() async {
+    final provider = _currentAuthProvider();
+    if (provider != 'google') {
+      debugPrint(
+          '🔵 [AuthService] Social sign out skipped. Current provider: ${provider ?? 'unknown'}');
+      return;
+    }
+
     try {
       final googleSignIn = GoogleSignIn();
       await googleSignIn.signOut().timeout(const Duration(seconds: 2));
-      await googleSignIn.disconnect().timeout(const Duration(seconds: 2));
     } catch (_) {
       debugPrint('🟡 [AuthService] Social sign out timeout or error ignored.');
     }
+  }
+
+  String? _currentAuthProvider() {
+    final currentUser = _supabase.auth.currentUser;
+    final provider = currentUser?.appMetadata['provider'];
+    return provider is String ? provider : null;
   }
 }
