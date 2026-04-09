@@ -131,17 +131,17 @@ class HexGameController extends ChangeNotifier {
         dragPath = [...dragPath, step];
         _notify();
         unawaited(AppHaptics.selection());
-        await Future<void>.delayed(const Duration(milliseconds: 140));
+        await Future<void>.delayed(const Duration(milliseconds: 100));
       }
       
-      // Pause briefly after the full path is shown (1.0s)
-      await Future<void>.delayed(const Duration(milliseconds: 1000));
+      // Pause briefly after the full path is shown (0.5s)
+      await Future<void>.delayed(const Duration(milliseconds: 500));
       
       combo = moveData.combo; // Inject the original combo count
       await _resolveCurrentMatch(this);
       
-      // Gap between moves (0.6s)
-      await Future<void>.delayed(const Duration(milliseconds: 600));
+      // Gap between moves (0.4s)
+      await Future<void>.delayed(const Duration(milliseconds: 400));
     }
 
     statusText = '리플레이가 끝났습니다.';
@@ -154,6 +154,13 @@ class HexGameController extends ChangeNotifier {
     isReplaying = false;
     _endGame(this, '리플레이가 완료되었습니다.');
     _notify();
+  }
+
+  void stopReplay() {
+    if (isReplaying) {
+      isGameOver = true;
+      _notify();
+    }
   }
 
   void beginDrag(HexCoord? coord) {
