@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import 'package:hexor/screens/game_screen.dart';
-import 'package:hexor/screens/ranking_screen.dart';
-import 'package:hexor/screens/settings_screen.dart';
-import 'package:hexor/services/auth_service.dart';
-import 'package:hexor/services/database_service.dart';
-import 'package:hexor/widgets/dialogs/edit_nickname_dialog.dart';
-import 'package:hexor/widgets/home_screen/login_sheet.dart';
+import 'package:linkagon/screens/game_screen.dart';
+import 'package:linkagon/screens/ranking_screen.dart';
+import 'package:linkagon/screens/settings_screen.dart';
+import 'package:linkagon/services/auth_service.dart';
+import 'package:linkagon/services/database_service.dart';
+import 'package:linkagon/widgets/dialogs/edit_nickname_dialog.dart';
+import 'package:linkagon/widgets/home_screen/login_sheet.dart';
 
 void handleRankingPress(AuthService authService) {
   if (authService.user.value != null) {

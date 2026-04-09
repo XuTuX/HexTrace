@@ -316,13 +316,13 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
 
                 await SharePlus.instance.share(
                   ShareParams(
-                    title: 'Hexor Trace 리플레이',
-                    subject: 'Hexor Trace 리플레이',
+                    title: 'Linkagon 리플레이',
+                    subject: 'Linkagon 리플레이',
                     text: shareText,
                     files: shareImage == null ? null : [shareImage],
                     fileNameOverrides: shareImage == null
                         ? null
-                        : const ['hexor-trace-replay.png'],
+                        : const ['linkagon-trace-replay.png'],
                     sharePositionOrigin: shareOrigin,
                   ),
                 );

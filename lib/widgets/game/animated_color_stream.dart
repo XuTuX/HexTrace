@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'package:hexor/constant.dart';
-import 'package:hexor/game/game_palette.dart';
-import 'package:hexor/game/hex_game_controller.dart';
+import 'package:linkagon/constant.dart';
+import 'package:linkagon/game/game_palette.dart';
+import 'package:linkagon/game/hex_game_controller.dart';
 
 part 'color_stream/animated_color_stream_view.dart';
 

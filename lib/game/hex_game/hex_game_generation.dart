@@ -1,4 +1,4 @@
-part of 'package:hexor/game/hex_game_controller.dart';
+part of 'package:linkagon/game/hex_game_controller.dart';
 
 void _randomizeBoardUntilPlayable(HexGameController controller) {
   for (var attempt = 0; attempt < 200; attempt++) {

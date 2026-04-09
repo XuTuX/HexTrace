@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import 'package:hexor/constant.dart';
-import 'package:hexor/services/auth_service.dart';
-import 'package:hexor/theme/app_typography.dart';
+import 'package:linkagon/constant.dart';
+import 'package:linkagon/services/auth_service.dart';
+import 'package:linkagon/theme/app_typography.dart';
 
 void showDeleteAccountDialog(AuthService authService) {
   Get.dialog(
@@ -57,7 +57,7 @@ void showDeleteAccountDialog(AuthService authService) {
               ),
               const SizedBox(height: 12),
               Text(
-                'NEOREO GAMES와 관련된 계정인\nOverlap, Fill Your Area, Hexor Trace 등의\n게임 데이터가 모두 삭제됩니다.\n\n이 작업은 되돌릴 수 없습니다.',
+                'NEOREO GAMES와 관련된 계정인\nOverlap, Fill Your Area, Linkagon 등의\n게임 데이터가 모두 삭제됩니다.\n\n이 작업은 되돌릴 수 없습니다.',
                 textAlign: TextAlign.center,
                 style: AppTypography.bodySmall.copyWith(
                   color: Colors.grey[500],

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:hexor/constant.dart';
-import 'package:hexor/theme/app_typography.dart';
+import 'package:linkagon/constant.dart';
+import 'package:linkagon/theme/app_typography.dart';
 
 class SettingsSwitchRow extends StatelessWidget {
   const SettingsSwitchRow({

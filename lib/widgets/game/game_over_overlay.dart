@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'package:hexor/constant.dart';
-import 'package:hexor/theme/app_typography.dart';
-import 'package:hexor/widgets/home_screen/home_components.dart';
+import 'package:linkagon/constant.dart';
+import 'package:linkagon/theme/app_typography.dart';
+import 'package:linkagon/widgets/home_screen/home_components.dart';
 
 class GameOverOverlay extends StatelessWidget {
   const GameOverOverlay({

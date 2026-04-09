@@ -1,4 +1,4 @@
-part of 'package:hexor/widgets/game/animated_color_stream.dart';
+part of 'package:linkagon/widgets/game/animated_color_stream.dart';
 
 class _AnimatedColorStreamView extends StatelessWidget {
   const _AnimatedColorStreamView({

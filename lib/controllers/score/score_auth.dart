@@ -1,4 +1,4 @@
-part of 'package:hexor/controllers/score_controller.dart';
+part of 'package:linkagon/controllers/score_controller.dart';
 
 void _bindScoreAuthState(ScoreController controller) {
   final authService = Get.find<AuthService>();

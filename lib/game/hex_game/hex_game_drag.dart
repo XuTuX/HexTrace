@@ -1,4 +1,4 @@
-part of 'package:hexor/game/hex_game_controller.dart';
+part of 'package:linkagon/game/hex_game_controller.dart';
 
 void _beginDrag(HexGameController controller, HexCoord? coord) {
   if (!controller.canInteract || coord == null) {

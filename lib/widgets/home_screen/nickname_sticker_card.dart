@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:hexor/constant.dart';
+import 'package:linkagon/constant.dart';
 
 class NicknameStickerCard extends StatelessWidget {
   const NicknameStickerCard({

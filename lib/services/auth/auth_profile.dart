@@ -1,4 +1,4 @@
-part of 'package:hexor/services/auth_service.dart';
+part of 'package:linkagon/services/auth_service.dart';
 
 Future<void> _fetchUserProfile(AuthService service) async {
   final currentUser = service._supabase.auth.currentUser;

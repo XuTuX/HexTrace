@@ -1,4 +1,4 @@
-part of 'package:hexor/game/hex_game_controller.dart';
+part of 'package:linkagon/game/hex_game_controller.dart';
 
 void _disposeGame(HexGameController controller) {
   controller._disposed = true;

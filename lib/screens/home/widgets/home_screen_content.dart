@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import 'package:hexor/controllers/score_controller.dart';
-import 'package:hexor/services/auth_service.dart';
-import 'package:hexor/widgets/home_screen/background_painter.dart';
-import 'package:hexor/widgets/home_screen/home_components.dart';
+import 'package:linkagon/controllers/score_controller.dart';
+import 'package:linkagon/services/auth_service.dart';
+import 'package:linkagon/widgets/home_screen/background_painter.dart';
+import 'package:linkagon/widgets/home_screen/home_components.dart';
 
 class HomeScreenContent extends StatelessWidget {
   const HomeScreenContent({

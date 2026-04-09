@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import 'package:hexor/controllers/score_controller.dart';
-import 'package:hexor/services/auth_service.dart';
-import 'package:hexor/services/database_service.dart';
+import 'package:linkagon/controllers/score_controller.dart';
+import 'package:linkagon/services/auth_service.dart';
+import 'package:linkagon/services/database_service.dart';
 
 import 'ranking_data_loader.dart';
 import 'widgets/my_rank_card.dart';

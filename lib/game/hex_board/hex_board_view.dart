@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
-import 'package:hexor/game/hex_game_controller.dart';
+import 'package:linkagon/game/hex_game_controller.dart';
 
 import 'hex_board_layout.dart';
 import 'hex_board_painter.dart';

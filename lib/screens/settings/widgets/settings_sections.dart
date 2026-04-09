@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import 'package:hexor/services/settings_service.dart';
+import 'package:linkagon/services/settings_service.dart';
 
 import 'settings_rows.dart';
 import 'settings_surface.dart';

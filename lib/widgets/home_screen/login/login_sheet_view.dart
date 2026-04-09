@@ -1,4 +1,4 @@
-part of 'package:hexor/widgets/home_screen/login_sheet.dart';
+part of 'package:linkagon/widgets/home_screen/login_sheet.dart';
 
 class _LoginSheetView extends StatelessWidget {
   const _LoginSheetView({

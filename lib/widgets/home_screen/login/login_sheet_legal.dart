@@ -1,4 +1,4 @@
-part of 'package:hexor/widgets/home_screen/login_sheet.dart';
+part of 'package:linkagon/widgets/home_screen/login_sheet.dart';
 
 class _LoginLegalLinks extends StatelessWidget {
   const _LoginLegalLinks({

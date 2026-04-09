@@ -5,20 +5,20 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Hexor",
+            "name": "Linkagon",
             "request": "launch",
             "type": "dart",
             "toolArgs": ["--dart-define-from-file", ".env"]
         },
         {
-            "name": "Hexor (profile mode)",
+            "name": "Linkagon (profile mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "profile",
             "toolArgs": ["--dart-define-from-file", ".env"]
         },
         {
-            "name": "Hexor (release mode)",
+            "name": "Linkagon (release mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "release",

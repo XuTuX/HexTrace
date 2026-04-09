@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:hexor/constant.dart';
+import 'package:linkagon/constant.dart';
 
-/// Unified typography system for Hexor.
+/// Unified typography system for Linkagon.
 ///
 /// Hierarchy:
 ///   display  (64) → Hero title only ("AREA")

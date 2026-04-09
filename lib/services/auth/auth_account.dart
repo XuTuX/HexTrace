@@ -1,4 +1,4 @@
-part of 'package:hexor/services/auth_service.dart';
+part of 'package:linkagon/services/auth_service.dart';
 
 Future<void> _signOut(AuthService service) async {
   service._invalidateProfileLoadRequests();
@@ -7,19 +7,19 @@ Future<void> _signOut(AuthService service) async {
   _resetProfileState(service);
 }
 
-Future<String?> _deleteHexorData(AuthService service) async {
+Future<String?> _deleteLinkagonData(AuthService service) async {
   try {
     service.isLoading.value = true;
-    debugPrint('🔵 [AuthService] Hexor data deletion started');
+    debugPrint('🔵 [AuthService] Linkagon data deletion started');
     final deletingUserId = service._supabase.auth.currentUser?.id;
 
     try {
       final dbService = Get.find<DatabaseService>();
-      await dbService.deleteMyHexorData();
+      await dbService.deleteMyLinkagonData();
       debugPrint('🟢 [AuthService] User data deleted from DB');
     } catch (e) {
       debugPrint('🔴 [AuthService] DB data deletion failed: $e');
-      return 'Hexor Trace 기록 삭제 중 오류가 발생했습니다. 다시 시도해주세요.';
+      return 'Linkagon 기록 삭제 중 오류가 발생했습니다. 다시 시도해주세요.';
     }
 
     if (deletingUserId != null) {
@@ -31,11 +31,11 @@ Future<String?> _deleteHexorData(AuthService service) async {
     service.user.value = null;
     service.userNickname.value = null;
 
-    debugPrint('🟢 [AuthService] Hexor data deletion completed');
+    debugPrint('🟢 [AuthService] Linkagon data deletion completed');
     return null;
   } catch (e) {
-    debugPrint('🔴 [AuthService] Hexor data deletion failed: $e');
-    return 'Hexor Trace 기록 삭제 중 오류가 발생했습니다. 다시 시도해주세요.';
+    debugPrint('🔴 [AuthService] Linkagon data deletion failed: $e');
+    return 'Linkagon 기록 삭제 중 오류가 발생했습니다. 다시 시도해주세요.';
   } finally {
     if (!service.isClosed) {
       service.isLoading.value = false;

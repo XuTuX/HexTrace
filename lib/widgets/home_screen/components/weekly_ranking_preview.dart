@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'package:hexor/constant.dart';
-import 'package:hexor/services/database_service.dart';
+import 'package:linkagon/constant.dart';
+import 'package:linkagon/services/database_service.dart';
 
 class WeeklyRankingPreview extends StatefulWidget {
   const WeeklyRankingPreview({
