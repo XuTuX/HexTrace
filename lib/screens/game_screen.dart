@@ -92,6 +92,96 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                         children: [
                           Column(
                             children: [
+                              if (_controller.isReplaying)
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF1A1A1A),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color:
+                                            Colors.black.withValues(alpha: 0.1),
+                                        blurRadius: 10,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 6, horizontal: 20),
+                                        child: Row(
+                                          children: [
+                                            const Icon(Icons.play_circle_fill,
+                                                color: Color(0xFF0095FF),
+                                                size: 22),
+                                            const SizedBox(width: 12),
+                                            const Text(
+                                              '리플레이 재생 중',
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.w900,
+                                                fontSize: 15,
+                                                letterSpacing: 0.5,
+                                              ),
+                                            ),
+                                            const Spacer(),
+                                            Text(
+                                              '${_controller.currentReplayIndex} / ${_controller.totalReplayMoves}',
+                                              style: const TextStyle(
+                                                color: Colors.white70,
+                                                fontWeight: FontWeight.w800,
+                                                fontSize: 13,
+                                                fontFamily: 'monospace',
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            IconButton(
+                                              onPressed: _controller.stopReplay,
+                                              icon: const Icon(
+                                                  Icons.close_rounded,
+                                                  color: Colors.white70,
+                                                  size: 22),
+                                              visualDensity:
+                                                  VisualDensity.compact,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      // Progress Bar
+                                      Container(
+                                        height: 6,
+                                        width: double.infinity,
+                                        color:
+                                            Colors.white.withValues(alpha: 0.1),
+                                        child: Align(
+                                          alignment: Alignment.centerLeft,
+                                          child: FractionallySizedBox(
+                                            widthFactor: _controller
+                                                        .totalReplayMoves >
+                                                    0
+                                                ? (_controller
+                                                        .currentReplayIndex /
+                                                    _controller
+                                                        .totalReplayMoves)
+                                                : 0.0,
+                                            child: Container(
+                                              decoration: const BoxDecoration(
+                                                gradient: LinearGradient(
+                                                  colors: [
+                                                    Color(0xFF0095FF),
+                                                    Color(0xFF00D47C)
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               const Spacer(flex: 1),
                               GameHud(controller: _controller),
                               const SizedBox(height: 16),
@@ -135,94 +225,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                                 isSharing: _isSharingReplay,
                               ),
                             ),
-                          if (_controller.isReplaying)
-                            Positioned(
-                              top: 0,
-                              left: 0,
-                              right: 0,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF1A1A1A),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color:
-                                          Colors.black.withValues(alpha: 0.1),
-                                      blurRadius: 10,
-                                      offset: const Offset(0, 4),
-                                    ),
-                                  ],
-                                ),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 6, horizontal: 20),
-                                      child: Row(
-                                        children: [
-                                          const Icon(Icons.play_circle_fill,
-                                              color: Color(0xFF0095FF),
-                                              size: 22),
-                                          const SizedBox(width: 12),
-                                          const Text(
-                                            '리플레이 재생 중',
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.w900,
-                                              fontSize: 15,
-                                              letterSpacing: 0.5,
-                                            ),
-                                          ),
-                                          const Spacer(),
-                                          Text(
-                                            '${_controller.currentReplayIndex} / ${_controller.totalReplayMoves}',
-                                            style: const TextStyle(
-                                              color: Colors.white70,
-                                              fontWeight: FontWeight.w800,
-                                              fontSize: 13,
-                                              fontFamily: 'monospace',
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          IconButton(
-                                            onPressed: _controller.stopReplay,
-                                            icon: const Icon(
-                                                Icons.close_rounded,
-                                                color: Colors.white70,
-                                                size: 22),
-                                            visualDensity:
-                                                VisualDensity.compact,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                      // Progress Bar
-                                      Container(
-                                        height: 6,
-                                        width: double.infinity,
-                                        color: Colors.white.withValues(alpha: 0.1),
-                                        child: Align(
-                                          alignment: Alignment.centerLeft,
-                                          child: FractionallySizedBox(
-                                            widthFactor: _controller.totalReplayMoves > 0
-                                                ? (_controller.currentReplayIndex /
-                                                    _controller.totalReplayMoves)
-                                                : 0.0,
-                                            child: Container(
-                                              decoration: const BoxDecoration(
-                                                gradient: LinearGradient(
-                                                  colors: [Color(0xFF0095FF), Color(0xFF00D47C)],
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                          ],
+                        ],
                       ),
                     ),
                   ),
@@ -318,7 +321,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                 final shareText = ReplayShareService.buildShareText(
                   score: _controller.score,
                   bestScore: _scoreController.highscore.value,
-                  isNewHighScore: _scoreController.hasNewHighScoreThisGame.value,
+                  isNewHighScore:
+                      _scoreController.hasNewHighScoreThisGame.value,
                   seed: _controller.initialSeed,
                   recordedMoves: _controller.recordedMoves,
                 );
