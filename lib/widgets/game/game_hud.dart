@@ -12,10 +12,16 @@ class GameHud extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (!controller.isReplaying)
+            Align(
+              alignment: Alignment.centerRight,
+              child: _RestartButton(onPressed: controller.playAgain),
+            ),
+          const SizedBox(height: 8),
           Row(
             children: [
               Expanded(
@@ -31,9 +37,6 @@ class GameHud extends StatelessWidget {
                       : const Color(0xFF2563EB), // Blue
                 ),
               ),
-              const SizedBox(width: 8),
-              if (!controller.isReplaying)
-                _RestartButton(onPressed: controller.playAgain),
             ],
           ),
           const SizedBox(height: 16),
@@ -165,16 +168,16 @@ class _RestartButton extends StatelessWidget {
     return GestureDetector(
       onTap: onPressed,
       child: Container(
-        height: 64,
-        padding: const EdgeInsets.symmetric(horizontal: 14),
+        height: 40,
+        width: 40,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(color: charcoalBlack, width: 2),
           boxShadow: const [
             BoxShadow(
               color: charcoalBlack,
-              offset: Offset(3, 3),
+              offset: Offset(2, 2),
               blurRadius: 0,
             ),
           ],
@@ -183,7 +186,7 @@ class _RestartButton extends StatelessWidget {
           child: Icon(
             Icons.refresh_rounded,
             color: charcoalBlack,
-            size: 28,
+            size: 20,
           ),
         ),
       ),
