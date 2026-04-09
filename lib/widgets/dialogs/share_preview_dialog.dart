@@ -1,6 +1,6 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:linkagon/constant.dart';
 import 'package:linkagon/theme/app_typography.dart';
 import 'package:linkagon/widgets/home_screen/components/home_action_buttons.dart';
 
@@ -52,53 +52,65 @@ class SharePreviewDialog extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 20, vertical: 32),
                 decoration: const BoxDecoration(
-                  color: Color(0xFFF8F9FA), // Professional light grey background
+                  color: Color(0xFF0F172A), // Premium Dark Navy
                 ),
                 child: Center(
                   child: Container(
                     width: double.infinity,
                     constraints: const BoxConstraints(maxWidth: 340),
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: charcoalBlack, width: 3),
+                      color: const Color(0xFF1E293B),
+                      borderRadius: BorderRadius.circular(32),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.1),
+                        width: 1,
+                      ),
                       boxShadow: [
                         BoxShadow(
-                          color: charcoalBlack.withValues(alpha: 0.15),
-                          offset: const Offset(0, 12),
-                          blurRadius: 24,
-                        ),
-                        const BoxShadow(
-                          color: charcoalBlack,
-                          offset: Offset(8, 8),
-                          blurRadius: 0,
+                          color: Colors.black.withValues(alpha: 0.5),
+                          offset: const Offset(0, 20),
+                          blurRadius: 40,
                         ),
                       ],
                     ),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(21),
+                      borderRadius: BorderRadius.circular(31),
                       child: Stack(
                         children: [
-                          // Background Pattern
-                          Positioned(
-                            top: -40,
-                            right: -40,
-                            child: _DecorativeHexagon(
-                              size: 160,
-                              color: regionColors[0].withValues(alpha: 0.12),
+                          // Subtle Hex Grid Pattern
+                          Positioned.fill(
+                            child: Opacity(
+                              opacity: 0.05,
+                              child: CustomPaint(
+                                painter: _HexGridPainter(),
+                              ),
                             ),
                           ),
+
+                          // Glowing Gradient Accents
                           Positioned(
-                            bottom: -20,
-                            left: -30,
-                            child: _DecorativeHexagon(
-                              size: 120,
-                              color: regionColors[4].withValues(alpha: 0.12),
+                            top: -60,
+                            right: -60,
+                            child: Container(
+                              width: 180,
+                              height: 180,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: RadialGradient(
+                                  colors: [
+                                    const Color(0xFF0095FF)
+                                        .withValues(alpha: 0.4),
+                                    const Color(0xFF0095FF)
+                                        .withValues(alpha: 0),
+                                  ],
+                                ),
+                              ),
                             ),
                           ),
+
                           Padding(
                             padding: const EdgeInsets.symmetric(
-                                vertical: 40, horizontal: 24),
+                                vertical: 44, horizontal: 28),
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -106,118 +118,152 @@ class SharePreviewDialog extends StatelessWidget {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Text(
-                                      'HEX',
-                                      style: GoogleFonts.blackHanSans(
-                                        fontSize: 20,
-                                        color: charcoalBlack,
-                                        letterSpacing: 2,
+                                    Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF0095FF)
+                                            .withValues(alpha: 0.15),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: const Icon(
+                                        Icons.hexagon_rounded,
+                                        color: Color(0xFF0095FF),
+                                        size: 20,
                                       ),
                                     ),
-                                    const SizedBox(width: 8),
+                                    const SizedBox(width: 12),
                                     Text(
-                                      'TRACE',
-                                      style: GoogleFonts.blackHanSans(
-                                        fontSize: 20,
-                                        color: const Color(0xFF0095FF),
+                                      'LINKAGON',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.w900,
+                                        color: Colors.white,
                                         letterSpacing: 2,
                                       ),
                                     ),
                                   ],
                                 ),
+                                const SizedBox(height: 48),
+
+                                // Score Label with Line
+                                Row(
+                                  children: [
+                                    Expanded(
+                                        child: Divider(
+                                            color: Colors.white
+                                                .withValues(alpha: 0.1),
+                                            thickness: 1)),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16),
+                                      child: Text(
+                                        'MATCH SCORE',
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.white
+                                              .withValues(alpha: 0.4),
+                                          letterSpacing: 2,
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                        child: Divider(
+                                            color: Colors.white
+                                                .withValues(alpha: 0.1),
+                                            thickness: 1)),
+                                  ],
+                                ),
+                                const SizedBox(height: 24),
+
+                                // Main Score with Glow
+                                Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    Text(
+                                      '$score',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 90,
+                                        fontWeight: FontWeight.w900,
+                                        color: Colors.white,
+                                        height: 1,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+
                                 const SizedBox(height: 40),
 
-                                // Score Label
-                                Text(
-                                  'FINAL SCORE',
-                                  style: GoogleFonts.blackHanSans(
-                                    fontSize: 13,
-                                    color: charcoalBlack.withValues(alpha: 0.4),
-                                    letterSpacing: 1.5,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-
-                                // Main Score
-                                Text(
-                                  '$score',
-                                  style: GoogleFonts.blackHanSans(
-                                    fontSize: 88,
-                                    color: charcoalBlack,
-                                    height: 0.9,
-                                  ),
-                                ),
-
-                                const SizedBox(height: 40),
-
-                                // Best Score Section
+                                // Best Score Section (Glassmorphism)
                                 Container(
+                                  width: double.infinity,
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 20,
-                                    vertical: 16,
+                                    vertical: 20,
                                   ),
                                   decoration: BoxDecoration(
-                                    color:
-                                        charcoalBlack.withValues(alpha: 0.05),
-                                    borderRadius: BorderRadius.circular(20),
+                                    color: Colors.white.withValues(alpha: 0.05),
+                                    borderRadius: BorderRadius.circular(24),
+                                    border: Border.all(
+                                      color:
+                                          Colors.white.withValues(alpha: 0.1),
+                                      width: 1,
+                                    ),
                                   ),
                                   child: Column(
                                     children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(
-                                            Icons.emoji_events_rounded,
-                                            color: isNewHighScore
-                                                ? const Color(0xFFF59E0B)
-                                                : charcoalBlack
-                                                    .withValues(alpha: 0.2),
-                                            size: 18,
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Text(
-                                            'PERSONAL BEST',
-                                            style: GoogleFonts.blackHanSans(
-                                              fontSize: 11,
-                                              color: charcoalBlack
-                                                  .withValues(alpha: 0.4),
-                                            ),
-                                          ),
-                                        ],
+                                      Text(
+                                        'PERSONAL BEST',
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.white
+                                              .withValues(alpha: 0.4),
+                                          letterSpacing: 1.5,
+                                        ),
                                       ),
-                                      const SizedBox(height: 4),
+                                      const SizedBox(height: 8),
                                       Row(
                                         mainAxisAlignment:
                                             MainAxisAlignment.center,
-                                        mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Text(
                                             '$bestScore',
-                                            style: GoogleFonts.blackHanSans(
-                                              fontSize: 28,
-                                              color: charcoalBlack,
+                                            style: GoogleFonts.outfit(
+                                              fontSize: 34,
+                                              fontWeight: FontWeight.w800,
+                                              color: Colors.white,
                                             ),
                                           ),
                                           if (isNewHighScore) ...[
-                                            const SizedBox(width: 10),
+                                            const SizedBox(width: 12),
                                             Container(
                                               padding:
                                                   const EdgeInsets.symmetric(
-                                                horizontal: 8,
+                                                horizontal: 10,
                                                 vertical: 4,
                                               ),
                                               decoration: BoxDecoration(
-                                                color: const Color(0xFF3B82F6),
+                                                gradient: const LinearGradient(
+                                                  colors: [
+                                                    Color(0xFF0095FF),
+                                                    Color(0xFF00D47C)
+                                                  ],
+                                                ),
                                                 borderRadius:
-                                                    BorderRadius.circular(8),
-                                                border: Border.all(
-                                                    color: charcoalBlack,
-                                                    width: 1.5),
+                                                    BorderRadius.circular(12),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color:
+                                                        const Color(0xFF0095FF)
+                                                            .withValues(
+                                                                alpha: 0.4),
+                                                    blurRadius: 10,
+                                                  ),
+                                                ],
                                               ),
                                               child: const Text(
-                                                'NEW',
+                                                'NEW RECORD',
                                                 style: TextStyle(
                                                   color: Colors.white,
                                                   fontSize: 10,
@@ -232,29 +278,28 @@ class SharePreviewDialog extends StatelessWidget {
                                   ),
                                 ),
 
-                                const SizedBox(height: 32),
+                                const SizedBox(height: 40),
 
-                                // Footer / Game Link Hint
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 8),
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                        color: charcoalBlack
-                                            .withValues(alpha: 0.1),
-                                        width: 1),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Text(
-                                    'PLAY NOW ON APP STORE',
-                                    style: GoogleFonts.inter(
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.w900,
-                                      color:
-                                          charcoalBlack.withValues(alpha: 0.3),
-                                      letterSpacing: 1.5,
+                                // Footer / Website or App Store
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.apple,
+                                        color:
+                                            Colors.white.withValues(alpha: 0.2),
+                                        size: 16),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'GET IT ON THE APP STORE',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w700,
+                                        color:
+                                            Colors.white.withValues(alpha: 0.3),
+                                        letterSpacing: 1,
+                                      ),
                                     ),
-                                  ),
+                                  ],
                                 ),
                               ],
                             ),
@@ -266,7 +311,6 @@ class SharePreviewDialog extends StatelessWidget {
                 ),
               ),
             ),
-
             const SizedBox(height: 24),
 
             // Action Button (Outside captured area)
@@ -302,21 +346,47 @@ class SharePreviewDialog extends StatelessWidget {
   }
 }
 
-class _DecorativeHexagon extends StatelessWidget {
-  final double size;
-  final Color color;
+class _HexGridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
 
-  const _DecorativeHexagon({required this.size, required this.color});
+    const double hexSize = 30;
+    const double horizontalSpacing = hexSize * 1.5;
+    const double verticalSpacing = hexSize * 1.732;
+
+    for (double y = 0;
+        y < size.height + verticalSpacing;
+        y += verticalSpacing) {
+      for (double x = 0;
+          x < size.width + horizontalSpacing;
+          x += horizontalSpacing) {
+        final double xOffset =
+            (y / verticalSpacing).floor() % 2 == 0 ? 0 : horizontalSpacing / 2;
+        _drawHexagon(canvas, Offset(x + xOffset, y), hexSize, paint);
+      }
+    }
+  }
+
+  void _drawHexagon(Canvas canvas, Offset center, double size, Paint paint) {
+    final hPath = Path();
+    for (int i = 0; i < 6; i++) {
+      final double angle = (i * 60) * math.pi / 180;
+      final x = center.dx + size * math.cos(angle);
+      final y = center.dy + size * math.sin(angle);
+      if (i == 0) {
+        hPath.moveTo(x, y);
+      } else {
+        hPath.lineTo(x, y);
+      }
+    }
+    hPath.close();
+    canvas.drawPath(hPath, paint);
+  }
 
   @override
-  Widget build(BuildContext context) {
-    return Transform.rotate(
-      angle: 0.5,
-      child: Icon(
-        Icons.hexagon_rounded,
-        size: size,
-        color: color,
-      ),
-    );
-  }
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }

@@ -313,6 +313,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                   pixelRatio: MediaQuery.devicePixelRatioOf(context),
                 );
 
+                if (!mounted) return;
+
                 final shareText = ReplayShareService.buildShareText(
                   score: _controller.score,
                   bestScore: _scoreController.highscore.value,
