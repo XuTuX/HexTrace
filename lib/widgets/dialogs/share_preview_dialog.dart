@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:linkagon/constant.dart';
 import 'package:linkagon/theme/app_typography.dart';
 import 'package:linkagon/widgets/home_screen/components/home_action_buttons.dart';
 
@@ -49,269 +50,165 @@ class SharePreviewDialog extends StatelessWidget {
             RepaintBoundary(
               key: shareCardKey,
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 32),
-                decoration: const BoxDecoration(
-                  color: Color(0xFF0F172A), // Premium Dark Navy
-                ),
-                child: Center(
-                  child: Container(
-                    width: double.infinity,
-                    constraints: const BoxConstraints(maxWidth: 340),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1E293B),
-                      borderRadius: BorderRadius.circular(32),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.1),
-                        width: 1,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.5),
-                          offset: const Offset(0, 20),
-                          blurRadius: 40,
-                        ),
-                      ],
+                width: 360,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(32),
+                  border: Border.all(color: charcoalBlack, width: 2.5),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: charcoalBlack,
+                      offset: Offset(8, 8),
+                      blurRadius: 0,
                     ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(31),
-                      child: Stack(
-                        children: [
-                          // Subtle Hex Grid Pattern
-                          Positioned.fill(
-                            child: Opacity(
-                              opacity: 0.05,
-                              child: CustomPaint(
-                                painter: _HexGridPainter(),
-                              ),
-                            ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(29.5),
+                  child: Stack(
+                    children: [
+                      // Decorative elements - subtle hex patterns
+                      Positioned(
+                        top: -30,
+                        right: -30,
+                        child: Transform.rotate(
+                          angle: 0.5,
+                          child: Icon(
+                            Icons.hexagon_rounded,
+                            size: 150,
+                            color: charcoalBlack.withValues(alpha: 0.03),
                           ),
+                        ),
+                      ),
 
-                          // Glowing Gradient Accents
-                          Positioned(
-                            top: -60,
-                            right: -60,
-                            child: Container(
-                              width: 180,
-                              height: 180,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                gradient: RadialGradient(
-                                  colors: [
-                                    const Color(0xFF0095FF)
-                                        .withValues(alpha: 0.4),
-                                    const Color(0xFF0095FF)
-                                        .withValues(alpha: 0),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 44, horizontal: 28),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
+                      // Main Content
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 50, horizontal: 32),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Brand Identity
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                // Brand Logo
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(8),
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFF0095FF)
-                                            .withValues(alpha: 0.15),
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: const Icon(
-                                        Icons.hexagon_rounded,
-                                        color: Color(0xFF0095FF),
-                                        size: 20,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Text(
-                                      'LINKAGON',
-                                      style: GoogleFonts.outfit(
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.w900,
-                                        color: Colors.white,
-                                        letterSpacing: 2,
-                                      ),
-                                    ),
-                                  ],
+                                const Icon(
+                                  Icons.hexagon_rounded,
+                                  color: charcoalBlack,
+                                  size: 28,
                                 ),
-                                const SizedBox(height: 48),
-
-                                // Score Label with Line
-                                Row(
-                                  children: [
-                                    Expanded(
-                                        child: Divider(
-                                            color: Colors.white
-                                                .withValues(alpha: 0.1),
-                                            thickness: 1)),
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 16),
-                                      child: Text(
-                                        'MATCH SCORE',
-                                        style: GoogleFonts.outfit(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.white
-                                              .withValues(alpha: 0.4),
-                                          letterSpacing: 2,
-                                        ),
-                                      ),
-                                    ),
-                                    Expanded(
-                                        child: Divider(
-                                            color: Colors.white
-                                                .withValues(alpha: 0.1),
-                                            thickness: 1)),
-                                  ],
-                                ),
-                                const SizedBox(height: 24),
-
-                                // Main Score with Glow
-                                Stack(
-                                  alignment: Alignment.center,
-                                  children: [
-                                    Text(
-                                      '$score',
-                                      style: GoogleFonts.outfit(
-                                        fontSize: 90,
-                                        fontWeight: FontWeight.w900,
-                                        color: Colors.white,
-                                        height: 1,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-
-                                const SizedBox(height: 40),
-
-                                // Best Score Section (Glassmorphism)
-                                Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 20,
-                                    vertical: 20,
+                                const SizedBox(width: 12),
+                                Text(
+                                  'LINKAGON',
+                                  style: GoogleFonts.blackHanSans(
+                                    fontSize: 24,
+                                    color: charcoalBlack,
+                                    letterSpacing: 2,
                                   ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.05),
-                                    borderRadius: BorderRadius.circular(24),
-                                    border: Border.all(
-                                      color:
-                                          Colors.white.withValues(alpha: 0.1),
-                                      width: 1,
-                                    ),
-                                  ),
-                                  child: Column(
-                                    children: [
-                                      Text(
-                                        'PERSONAL BEST',
-                                        style: GoogleFonts.outfit(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.white
-                                              .withValues(alpha: 0.4),
-                                          letterSpacing: 1.5,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            '$bestScore',
-                                            style: GoogleFonts.outfit(
-                                              fontSize: 34,
-                                              fontWeight: FontWeight.w800,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                          if (isNewHighScore) ...[
-                                            const SizedBox(width: 12),
-                                            Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                horizontal: 10,
-                                                vertical: 4,
-                                              ),
-                                              decoration: BoxDecoration(
-                                                gradient: const LinearGradient(
-                                                  colors: [
-                                                    Color(0xFF0095FF),
-                                                    Color(0xFF00D47C)
-                                                  ],
-                                                ),
-                                                borderRadius:
-                                                    BorderRadius.circular(12),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color:
-                                                        const Color(0xFF0095FF)
-                                                            .withValues(
-                                                                alpha: 0.4),
-                                                    blurRadius: 10,
-                                                  ),
-                                                ],
-                                              ),
-                                              child: const Text(
-                                                'NEW RECORD',
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 10,
-                                                  fontWeight: FontWeight.w900,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-
-                                const SizedBox(height: 40),
-
-                                // Footer / Website or App Store
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(Icons.apple,
-                                        color:
-                                            Colors.white.withValues(alpha: 0.2),
-                                        size: 16),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      'GET IT ON THE APP STORE',
-                                      style: GoogleFonts.outfit(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w700,
-                                        color:
-                                            Colors.white.withValues(alpha: 0.3),
-                                        letterSpacing: 1,
-                                      ),
-                                    ),
-                                  ],
                                 ),
                               ],
                             ),
-                          ),
-                        ],
+
+                            const SizedBox(height: 50),
+
+                            // Score Label
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: isNewHighScore ? const Color(0xFFFEF2F2) : charcoalBlack.withValues(alpha: 0.05),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: charcoalBlack, width: 2),
+                              ),
+                              child: Text(
+                                isNewHighScore ? 'NEW BEST!' : 'FINAL SCORE',
+                                style: GoogleFonts.blackHanSans(
+                                  fontSize: 14,
+                                  color: isNewHighScore ? const Color(0xFFEF4444) : charcoalBlack,
+                                  letterSpacing: 1,
+                                ),
+                              ),
+                            ),
+                            
+                            const SizedBox(height: 24),
+
+                            // Score Display Area
+                            SizedBox(
+                              height: 110,
+                              child: Center(
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    score.toString().replaceAllMapped(
+                                        RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+                                        (Match m) => '${m[1]},'),
+                                    style: GoogleFonts.blackHanSans(
+                                      fontSize: 100,
+                                      color: charcoalBlack,
+                                      height: 1,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(height: 50),
+
+                            // Achievement Stats
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 20),
+                              decoration: BoxDecoration(
+                                color: charcoalBlack.withValues(alpha: 0.04),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  _StatItem(
+                                    label: 'PERSONAL BEST',
+                                    value: bestScore.toString(),
+                                  ),
+                                  if (isNewHighScore) ...[
+                                    const SizedBox(width: 32),
+                                    const _StatItem(
+                                      label: 'STATUS',
+                                      value: 'RECORD',
+                                      color: Color(0xFF3B82F6),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+
+                            const SizedBox(height: 40),
+
+                            // Store Info
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.apple_rounded,
+                                    color: Colors.black54,
+                                    size: 18),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'DOWNLOAD ON APP STORE',
+                                  style: GoogleFonts.blackHanSans(
+                                    fontSize: 10,
+                                    color: Colors.black54,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
 
             // Action Button (Outside captured area)
             Padding(
@@ -333,12 +230,11 @@ class SharePreviewDialog extends StatelessWidget {
 
             Text(
               '이미지가 갤러리에 저장되거나 친구에게 공유됩니다',
-              style: AppTypography.label.copyWith(
-                color: Colors.white70,
-                fontSize: 11,
+              style: AppTypography.caption.copyWith(
+                color: Colors.white.withValues(alpha: 0.5),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
           ],
         ),
       ),
@@ -346,47 +242,40 @@ class SharePreviewDialog extends StatelessWidget {
   }
 }
 
-class _HexGridPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1;
+class _StatItem extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color? color;
 
-    const double hexSize = 30;
-    const double horizontalSpacing = hexSize * 1.5;
-    const double verticalSpacing = hexSize * 1.732;
-
-    for (double y = 0;
-        y < size.height + verticalSpacing;
-        y += verticalSpacing) {
-      for (double x = 0;
-          x < size.width + horizontalSpacing;
-          x += horizontalSpacing) {
-        final double xOffset =
-            (y / verticalSpacing).floor() % 2 == 0 ? 0 : horizontalSpacing / 2;
-        _drawHexagon(canvas, Offset(x + xOffset, y), hexSize, paint);
-      }
-    }
-  }
-
-  void _drawHexagon(Canvas canvas, Offset center, double size, Paint paint) {
-    final hPath = Path();
-    for (int i = 0; i < 6; i++) {
-      final double angle = (i * 60) * math.pi / 180;
-      final x = center.dx + size * math.cos(angle);
-      final y = center.dy + size * math.sin(angle);
-      if (i == 0) {
-        hPath.moveTo(x, y);
-      } else {
-        hPath.lineTo(x, y);
-      }
-    }
-    hPath.close();
-    canvas.drawPath(hPath, paint);
-  }
+  const _StatItem({
+    required this.label,
+    required this.value,
+    this.color,
+  });
 
   @override
-  bool shouldRepaint(CustomPainter oldDelegate) => false;
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.outfit(
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            color: Colors.white.withValues(alpha: 0.4),
+            letterSpacing: 1.5,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: GoogleFonts.outfit(
+            fontSize: 22,
+            fontWeight: FontWeight.w900,
+            color: color ?? Colors.white,
+          ),
+        ),
+      ],
+    );
+  }
 }
