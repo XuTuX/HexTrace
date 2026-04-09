@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -56,7 +55,8 @@ class GameOverOverlay extends StatelessWidget {
                 ],
               ),
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -87,7 +87,7 @@ class GameOverOverlay extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 32),
-                    
+
                     // Score Section
                     Text(
                       '최종 점수',
@@ -101,12 +101,12 @@ class GameOverOverlay extends StatelessWidget {
                       '$score',
                       style: GoogleFonts.blackHanSans(
                         fontSize: 84,
-                        color: const Color(0xFF0095FF),
+                        color: charcoalBlack,
                         height: 0.9,
                       ),
                     ),
                     const SizedBox(height: 32),
-                    
+
                     // Simple Best Score Box
                     Container(
                       padding: const EdgeInsets.symmetric(
@@ -156,7 +156,7 @@ class GameOverOverlay extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 40),
-                    
+
                     // Action Buttons
                     Row(
                       children: [

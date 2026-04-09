@@ -122,12 +122,24 @@ class HexGameController extends ChangeNotifier {
       if (_disposed || isGameOver) break;
 
       currentReplayIndex = i + 1;
-      dragPath = movesToReplay[i];
-      _notify();
+      final fullPath = movesToReplay[i];
+      
+      // Build the path step-by-step to simulate dragging
+      dragPath = [];
+      for (final step in fullPath) {
+        dragPath = [...dragPath, step];
+        _notify();
+        unawaited(AppHaptics.selection()); // Simple vibration for each step
+        await Future<void>.delayed(const Duration(milliseconds: 140));
+      }
+      
+      // Pause briefly after the full path is shown (0.8s)
+      await Future<void>.delayed(const Duration(milliseconds: 800));
+      
       await _resolveCurrentMatch(this);
       
-      // Slowed down from 600ms to 1200ms
-      await Future<void>.delayed(const Duration(milliseconds: 1200));
+      // Gap between moves (0.6s)
+      await Future<void>.delayed(const Duration(milliseconds: 600));
     }
 
     statusText = '리플레이가 끝났습니다.';
