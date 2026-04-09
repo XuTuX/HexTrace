@@ -121,8 +121,13 @@ class HexGameController extends ChangeNotifier {
     
     statusText = '리플레이가 끝났습니다.';
     statusTone = GameMessageTone.info;
+    _notify();
+    
+    // 리플레이 종료 후 1.2초 대기했다가 결과 화면으로 전환
+    await Future<void>.delayed(const Duration(milliseconds: 1200));
     
     isReplaying = false;
+    _endGame(this, '리플레이가 완료되었습니다.');
     _notify();
   }
 
