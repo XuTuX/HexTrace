@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import '../controllers/score_controller.dart';
 import '../game/hex_board_view.dart';
 import '../game/hex_game_controller.dart';
+import '../services/app_haptics.dart';
 import '../utils/browser_back_blocker.dart';
 import '../widgets/game/floating_status_view.dart';
 import '../widgets/game/game_hud.dart';
@@ -123,12 +124,15 @@ class _GameScreenState extends State<GameScreen> {
                               right: 0,
                               child: IgnorePointer(
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 8),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFDC2626).withValues(alpha: 0.9),
+                                    color: const Color(0xFFDC2626)
+                                        .withValues(alpha: 0.9),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withValues(alpha: 0.2),
+                                        color:
+                                            Colors.black.withValues(alpha: 0.2),
                                         blurRadius: 8,
                                         offset: const Offset(0, 2),
                                       ),
@@ -138,7 +142,8 @@ class _GameScreenState extends State<GameScreen> {
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Icon(Icons.play_circle_fill, color: Colors.white, size: 18),
+                                        Icon(Icons.play_circle_fill,
+                                            color: Colors.white, size: 18),
                                         SizedBox(width: 8),
                                         Text(
                                           '리플레이 재생 중...',
@@ -187,8 +192,11 @@ class _GameScreenState extends State<GameScreen> {
       _lastSyncedScore = _controller.score;
     }
 
-    if (_controller.isGameOver && !_didReportGameOver && !_controller.isReplaying) {
+    if (_controller.isGameOver &&
+        !_didReportGameOver &&
+        !_controller.isReplaying) {
       _didReportGameOver = true;
+      unawaited(AppHaptics.gameOver());
       _scoreController.checkHighScore();
       unawaited(_scoreController.uploadHighScoreToServer());
     } else if (!_controller.isGameOver) {

@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 
 import 'hex_game_models.dart';
+import '../services/app_haptics.dart';
 
 export 'hex_game_models.dart';
 
@@ -97,35 +98,35 @@ class HexGameController extends ChangeNotifier {
     isReplaying = true;
     final movesToReplay = List<List<HexCoord>>.from(recordedMoves);
     _resetGame(this, seed: initialSeed, isReplayMode: true);
-    
+
     statusText = '리플레이를 준비하고 있어요...';
     statusTone = GameMessageTone.info;
     _notify();
-    
+
     await Future<void>.delayed(const Duration(milliseconds: 1500));
-    
+
     statusText = '리플레이 시작!';
     statusTone = GameMessageTone.success;
     _notify();
-    
+
     await Future<void>.delayed(const Duration(milliseconds: 500));
-    
+
     for (final move in movesToReplay) {
       if (_disposed || isGameOver) break;
-      
+
       dragPath = move;
       _notify();
       await _resolveCurrentMatch(this);
       await Future<void>.delayed(const Duration(milliseconds: 600));
     }
-    
+
     statusText = '리플레이가 끝났습니다.';
     statusTone = GameMessageTone.info;
     _notify();
-    
+
     // 리플레이 종료 후 1.2초 대기했다가 결과 화면으로 전환
     await Future<void>.delayed(const Duration(milliseconds: 1200));
-    
+
     isReplaying = false;
     _endGame(this, '리플레이가 완료되었습니다.');
     _notify();

@@ -16,7 +16,8 @@ Future<void> _resolveCurrentMatch(HexGameController controller) async {
   controller.clearingPath = matchedPath;
   controller.lastMatchPath = matchedPath;
   controller.combo = controller._lastMatchAt != null &&
-          DateTime.now().difference(controller._lastMatchAt!) <= const Duration(seconds: 4)
+          DateTime.now().difference(controller._lastMatchAt!) <=
+              const Duration(seconds: 4)
       ? controller.combo + 1
       : 1;
   _clearDrag(controller);
@@ -30,13 +31,16 @@ Future<void> _resolveCurrentMatch(HexGameController controller) async {
   final gainedScore =
       _scoreForLength(controller, matchedPath.length, controller.combo);
   controller.score += gainedScore;
-  controller.timeRemaining = min(
-    controller.startingSeconds.toDouble() + 25,
-    controller.timeRemaining +
-        _timeBonusForLength(controller, matchedPath.length),
-  );
+  if (!controller.isReplaying) {
+    controller.timeRemaining = min(
+      controller.startingSeconds.toDouble() + 25,
+      controller.timeRemaining +
+          _timeBonusForLength(controller, matchedPath.length),
+    );
+  }
   controller.statusText = '+$gainedScore';
   controller.statusTone = GameMessageTone.success;
+  unawaited(AppHaptics.success());
   controller._notify();
 
   await Future<void>.delayed(const Duration(milliseconds: 180));

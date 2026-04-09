@@ -5,6 +5,7 @@ void _beginDrag(HexGameController controller, HexCoord? coord) {
     return;
   }
 
+  unawaited(AppHaptics.selection());
   controller.dragPath = [coord];
   controller.invalidPulse = false;
   _refreshDragState(controller);
@@ -120,6 +121,7 @@ void _updateStatusForDrag(HexGameController controller) {
 }
 
 void _showInvalidPulse(HexGameController controller, String message) {
+  unawaited(AppHaptics.warning());
   controller.invalidPulse = true;
   controller.statusText = message;
   controller.statusTone = GameMessageTone.error;
