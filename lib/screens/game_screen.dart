@@ -116,6 +116,45 @@ class _GameScreenState extends State<GameScreen> {
                                 onRanking: _openRanking,
                               ),
                             ),
+                          if (_controller.isReplaying)
+                            Positioned(
+                              top: 0,
+                              left: 0,
+                              right: 0,
+                              child: IgnorePointer(
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFDC2626).withValues(alpha: 0.9),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(alpha: 0.2),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: const Center(
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.play_circle_fill, color: Colors.white, size: 18),
+                                        SizedBox(width: 8),
+                                        Text(
+                                          '리플레이 재생 중...',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w900,
+                                            fontSize: 14,
+                                            letterSpacing: 1.2,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                     ),

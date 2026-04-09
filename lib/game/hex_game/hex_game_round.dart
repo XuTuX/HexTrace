@@ -163,7 +163,7 @@ void _resetGame(
 
 void _startTimer(HexGameController controller) {
   controller._timer = Timer.periodic(const Duration(milliseconds: 250), (_) {
-    if (controller.isGameOver) {
+    if (controller.isGameOver || controller.isReplaying) {
       return;
     }
 
