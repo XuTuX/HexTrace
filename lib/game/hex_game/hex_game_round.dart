@@ -22,16 +22,21 @@ Future<void> _resolveCurrentMatch(HexGameController controller) async {
   controller.isResolvingMatch = true;
   controller.clearingPath = matchedPath;
   controller.lastMatchPath = matchedPath;
-  controller.combo = controller._lastMatchAt != null &&
-          DateTime.now().difference(controller._lastMatchAt!) <=
-              const Duration(seconds: 4)
-      ? controller.combo + 1
-      : 1;
+  if (!controller.isReplaying) {
+    controller.combo = controller._lastMatchAt != null &&
+            DateTime.now().difference(controller._lastMatchAt!) <=
+                const Duration(seconds: 4)
+        ? controller.combo + 1
+        : 1;
+  }
   _clearDrag(controller);
 
   final now = DateTime.now();
   if (!controller.isReplaying) {
-    controller.recordedMoves.add(matchedPath);
+    controller.recordedMoves.add(RecordedMove(
+      path: matchedPath,
+      combo: controller.combo,
+    ));
   }
   controller._lastMatchAt = now;
 

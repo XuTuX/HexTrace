@@ -51,3 +51,14 @@ class BarWindow {
 
   bool containsIndex(int index) => index >= start && index <= end;
 }
+
+@immutable
+class RecordedMove {
+  const RecordedMove({
+    required this.path,
+    required this.combo,
+  });
+
+  final List<HexCoord> path;
+  final int combo;
+}

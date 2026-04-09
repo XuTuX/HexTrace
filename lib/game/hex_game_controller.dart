@@ -34,7 +34,7 @@ class HexGameController extends ChangeNotifier {
   int _nextBarEntryId = 0;
 
   int initialSeed = 0;
-  final List<List<HexCoord>> recordedMoves = [];
+  final List<RecordedMove> recordedMoves = [];
   bool isReplaying = false;
   int currentReplayIndex = 0;
   int totalReplayMoves = 0;
@@ -99,7 +99,7 @@ class HexGameController extends ChangeNotifier {
 
   Future<void> watchReplay() async {
     isReplaying = true;
-    final movesToReplay = List<List<HexCoord>>.from(recordedMoves);
+    final movesToReplay = List<RecordedMove>.from(recordedMoves);
     _resetGame(this, seed: initialSeed, isReplayMode: true);
 
     statusText = '리플레이를 준비하고 있어요...';
@@ -122,7 +122,8 @@ class HexGameController extends ChangeNotifier {
       if (_disposed || isGameOver) break;
 
       currentReplayIndex = i + 1;
-      final fullPath = movesToReplay[i];
+      final moveData = movesToReplay[i];
+      final fullPath = moveData.path;
       
       // Build the path step-by-step to simulate dragging
       dragPath = [];
@@ -136,6 +137,7 @@ class HexGameController extends ChangeNotifier {
       // Pause briefly after the full path is shown (1.0s)
       await Future<void>.delayed(const Duration(milliseconds: 1000));
       
+      combo = moveData.combo; // Inject the original combo count
       await _resolveCurrentMatch(this);
       
       // Gap between moves (0.6s)

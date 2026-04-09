@@ -15,21 +15,24 @@ class ReplayShareService {
 
   static String buildReplayCode({
     required int seed,
-    required List<List<HexCoord>> recordedMoves,
+    required List<RecordedMove> recordedMoves,
   }) {
     final payload = jsonEncode({
-      'v': 1,
+      'v': 2,
       'seed': seed,
       'moves': recordedMoves
           .map(
-            (move) => move
-                .map((coord) => <int>[coord.col, coord.row])
-                .toList(growable: false),
+            (move) => {
+              'p': move.path
+                  .map((coord) => <int>[coord.col, coord.row])
+                  .toList(growable: false),
+              'c': move.combo,
+            },
           )
           .toList(growable: false),
     });
 
-    return 'HTR1:${base64UrlEncode(utf8.encode(payload))}';
+    return 'HTR2:${base64UrlEncode(utf8.encode(payload))}';
   }
 
   static String buildShareText({
@@ -37,7 +40,7 @@ class ReplayShareService {
     required int bestScore,
     required bool isNewHighScore,
     required int seed,
-    required List<List<HexCoord>> recordedMoves,
+    required List<RecordedMove> recordedMoves,
   }) {
     final replayCode = buildReplayCode(
       seed: seed,
