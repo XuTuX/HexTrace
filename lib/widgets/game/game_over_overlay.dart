@@ -1,6 +1,9 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'package:hexor/constant.dart';
+import 'package:hexor/theme/app_typography.dart';
 import 'package:hexor/widgets/home_screen/home_components.dart';
 
 class GameOverOverlay extends StatelessWidget {
@@ -11,8 +14,11 @@ class GameOverOverlay extends StatelessWidget {
     required this.isNewHighScore,
     required this.onRestart,
     required this.onReplay,
+    required this.onShare,
     required this.onHome,
     required this.onRanking,
+    required this.shareCardKey,
+    required this.isSharing,
   });
 
   final int score;
@@ -20,175 +26,188 @@ class GameOverOverlay extends StatelessWidget {
   final bool isNewHighScore;
   final VoidCallback onRestart;
   final VoidCallback onReplay;
+  final VoidCallback onShare;
   final VoidCallback onHome;
   final VoidCallback onRanking;
+  final GlobalKey shareCardKey;
+  final bool isSharing;
 
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
-      color: charcoalBlack.withValues(alpha: 0.72),
+      color: Colors.black.withValues(alpha: 0.8),
       child: Center(
         child: Padding(
-          padding: const EdgeInsets.all(28),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(32),
-              border: Border.all(color: charcoalBlack, width: 3),
-              boxShadow: const [
-                BoxShadow(
-                  color: charcoalBlack,
-                  offset: Offset(6, 6),
-                  blurRadius: 0,
-                ),
-              ],
-            ),
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(24, 40, 24, 32),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFEE2E2),
-                      borderRadius: BorderRadius.circular(12),
-                      border:
-                          Border.all(color: const Color(0xFFDC2626), width: 2),
-                    ),
-                    child: const Text(
-                      'GAME OVER',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w900,
-                        color: Color(0xFFDC2626),
-                        letterSpacing: 1.2,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _ScoreDisplay(
-                        label: '최종 점수',
-                        score: score,
-                        color: const Color(0xFF16A34A),
-                        isLarge: true,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  _ScoreDisplay(
-                    label: '최고 기록',
-                    score: bestScore,
-                    color: charcoalBlack.withValues(alpha: 0.6),
-                    isNew: isNewHighScore,
-                  ),
-                  const SizedBox(height: 40),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: SecondaryButton(
-                          label: '홈',
-                          icon: Icons.home_rounded,
-                          onPressed: onHome,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: SecondaryButton(
-                          label: '랭킹',
-                          icon: Icons.emoji_events_rounded,
-                          onPressed: onRanking,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  SecondaryButton(
-                    label: '리플레이 보기',
-                    icon: Icons.play_circle_outline_rounded,
-                    onPressed: onReplay,
-                  ),
-                  const SizedBox(height: 12),
-                  PrimaryButton(
-                    label: '다시 시작하기',
-                    onPressed: onRestart,
+          padding: const EdgeInsets.all(24),
+          child: RepaintBoundary(
+            key: shareCardKey,
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 400),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(32),
+                border: Border.all(color: charcoalBlack, width: 2.5),
+                boxShadow: const [
+                  BoxShadow(
+                    color: charcoalBlack,
+                    offset: Offset(6, 6),
+                    blurRadius: 0,
                   ),
                 ],
+              ),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Simple Game Over Badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFEF2F2),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: const Color(0xFFEF4444).withValues(alpha: 0.5),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Text(
+                        'GAME OVER',
+                        style: GoogleFonts.blackHanSans(
+                          fontSize: 16,
+                          color: const Color(0xFFEF4444),
+                          letterSpacing: 1.5,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    
+                    // Score Section
+                    Text(
+                      '최종 점수',
+                      style: GoogleFonts.blackHanSans(
+                        fontSize: 16,
+                        color: charcoalBlack.withValues(alpha: 0.4),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '$score',
+                      style: GoogleFonts.blackHanSans(
+                        fontSize: 84,
+                        color: const Color(0xFF16A34A),
+                        height: 0.9,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    
+                    // Simple Best Score Box
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 14,
+                      ),
+                      decoration: BoxDecoration(
+                        color: charcoalBlack.withValues(alpha: 0.04),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.emoji_events_rounded,
+                            color: Color(0xFFF59E0B),
+                            size: 20,
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            '최고 기록',
+                            style: AppTypography.label.copyWith(
+                              fontSize: 13,
+                              color: charcoalBlack.withValues(alpha: 0.5),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            '$bestScore',
+                            style: GoogleFonts.blackHanSans(
+                              fontSize: 24,
+                              color: charcoalBlack,
+                            ),
+                          ),
+                          if (isNewHighScore) ...[
+                            const SizedBox(width: 10),
+                            Text(
+                              'NEW!',
+                              style: GoogleFonts.blackHanSans(
+                                color: const Color(0xFF3B82F6),
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 40),
+                    
+                    // Action Buttons
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SecondaryButton(
+                            label: '홈',
+                            icon: Icons.home_rounded,
+                            onPressed: onHome,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: SecondaryButton(
+                            label: '랭킹',
+                            icon: Icons.emoji_events_rounded,
+                            onPressed: onRanking,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SecondaryButton(
+                            label: '리플레이',
+                            icon: Icons.play_circle_outline_rounded,
+                            onPressed: onReplay,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: SecondaryButton(
+                            label: isSharing ? '공유 중' : '공유하기',
+                            icon: isSharing
+                                ? Icons.hourglass_top_rounded
+                                : Icons.ios_share_rounded,
+                            onPressed: onShare,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    PrimaryButton(
+                      label: '다시 시작하기',
+                      onPressed: onRestart,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
         ),
       ),
-    );
-  }
-}
-
-class _ScoreDisplay extends StatelessWidget {
-  const _ScoreDisplay({
-    required this.label,
-    required this.score,
-    required this.color,
-    this.isLarge = false,
-    this.isNew = false,
-  });
-
-  final String label;
-  final int score;
-  final Color color;
-  final bool isLarge;
-  final bool isNew;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w800,
-            color: charcoalBlack.withValues(alpha: 0.45),
-            letterSpacing: 0.5,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              '$score',
-              style: TextStyle(
-                fontSize: isLarge ? 48 : 24,
-                fontWeight: FontWeight.w900,
-                color: isNew ? const Color(0xFFDC2626) : color,
-                height: 1,
-              ),
-            ),
-            if (isNew) ...[
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFDC2626),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: const Text(
-                  'NEW',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ],
     );
   }
 }

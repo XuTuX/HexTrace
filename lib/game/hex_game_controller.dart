@@ -58,6 +58,7 @@ class HexGameController extends ChangeNotifier {
   GameMessageTone statusTone = GameMessageTone.info;
 
   Timer? _timer;
+  DateTime? _timerDeadlineAt;
   // ignore: prefer_final_fields
   bool _disposed = false;
   DateTime? _lastMatchAt;
@@ -166,6 +167,10 @@ class HexGameController extends ChangeNotifier {
 
   bool hasAnyValidMove() {
     return _hasAnyValidMove(this);
+  }
+
+  void syncTimer() {
+    _syncTimerState(this);
   }
 
   @override

@@ -2,11 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../controllers/score_controller.dart';
 import '../game/hex_board_view.dart';
 import '../game/hex_game_controller.dart';
 import '../services/app_haptics.dart';
+import '../services/replay_share_service.dart';
 import '../utils/browser_back_blocker.dart';
 import '../widgets/game/floating_status_view.dart';
 import '../widgets/game/game_hud.dart';
@@ -22,16 +24,19 @@ class GameScreen extends StatefulWidget {
   State<GameScreen> createState() => _GameScreenState();
 }
 
-class _GameScreenState extends State<GameScreen> {
+class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   late final HexGameController _controller;
   late final ScoreController _scoreController;
   final BrowserBackBlocker _browserBackBlocker = BrowserBackBlocker();
+  final GlobalKey _shareCardKey = GlobalKey();
   int _lastSyncedScore = 0;
   bool _didReportGameOver = false;
+  bool _isSharingReplay = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     try {
       _scoreController = Get.find<ScoreController>();
     } catch (_) {
@@ -46,10 +51,18 @@ class _GameScreenState extends State<GameScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _browserBackBlocker.detach();
     _controller.removeListener(_handleControllerChanged);
     _controller.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _controller.syncTimer();
+    }
   }
 
   @override
@@ -112,9 +125,12 @@ class _GameScreenState extends State<GameScreen> {
                                     .hasNewHighScoreThisGame.value,
                                 onRestart: _restartGame,
                                 onReplay: _replayGame,
+                                onShare: _shareReplay,
                                 onHome: () =>
                                     Get.offAll(() => const HomeScreen()),
                                 onRanking: _openRanking,
+                                shareCardKey: _shareCardKey,
+                                isSharing: _isSharingReplay,
                               ),
                             ),
                           if (_controller.isReplaying)
@@ -225,5 +241,62 @@ class _GameScreenState extends State<GameScreen> {
       backgroundColor: Colors.transparent,
       enterBottomSheetDuration: const Duration(milliseconds: 300),
     );
+  }
+
+  Future<void> _shareReplay() async {
+    if (_isSharingReplay) {
+      return;
+    }
+
+    setState(() {
+      _isSharingReplay = true;
+    });
+
+    try {
+      final renderBox = context.findRenderObject() as RenderBox?;
+      final shareOrigin = renderBox == null
+          ? null
+          : renderBox.localToGlobal(Offset.zero) & renderBox.size;
+      final shareText = ReplayShareService.buildShareText(
+        score: _controller.score,
+        bestScore: _scoreController.highscore.value,
+        isNewHighScore: _scoreController.hasNewHighScoreThisGame.value,
+        seed: _controller.initialSeed,
+        recordedMoves: _controller.recordedMoves,
+      );
+      final shareImage = await ReplayShareService.captureReplayCard(
+        repaintBoundaryKey: _shareCardKey,
+        pixelRatio: MediaQuery.devicePixelRatioOf(context),
+      );
+
+      await SharePlus.instance.share(
+        ShareParams(
+          title: 'Hexor Trace 리플레이',
+          subject: 'Hexor Trace 리플레이',
+          text: shareText,
+          files: shareImage == null ? null : [shareImage],
+          fileNameOverrides:
+              shareImage == null ? null : const ['hexor-trace-replay.png'],
+          sharePositionOrigin: shareOrigin,
+        ),
+      );
+    } catch (_) {
+      if (mounted) {
+        Get.snackbar(
+          '공유 실패',
+          '리플레이를 공유하지 못했습니다. 잠시 후 다시 시도해 주세요.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          margin: const EdgeInsets.all(16),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSharingReplay = false;
+        });
+      }
+    }
   }
 }

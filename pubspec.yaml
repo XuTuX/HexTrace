@@ -43,6 +43,7 @@ dependencies:
   url_launcher: ^6.3.2
   google_mobile_ads: ^5.2.0
   flutter_dotenv: ^5.2.1
+  share_plus: ^12.0.2
 dev_dependencies:
   flutter_test:
     sdk: flutter

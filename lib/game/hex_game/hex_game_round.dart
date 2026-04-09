@@ -3,9 +3,16 @@ part of 'package:hexor/game/hex_game_controller.dart';
 void _disposeGame(HexGameController controller) {
   controller._disposed = true;
   controller._timer?.cancel();
+  controller._timerDeadlineAt = null;
 }
 
 Future<void> _resolveCurrentMatch(HexGameController controller) async {
+  _syncTimerState(controller, notify: false);
+  if (controller.isGameOver) {
+    controller._notify();
+    return;
+  }
+
   final matchedPath = List<HexCoord>.from(controller.dragPath);
   final matchedColors = _colorsForPath(controller, matchedPath);
   final usedWindow =
@@ -32,10 +39,14 @@ Future<void> _resolveCurrentMatch(HexGameController controller) async {
       _scoreForLength(controller, matchedPath.length, controller.combo);
   controller.score += gainedScore;
   if (!controller.isReplaying) {
-    controller.timeRemaining = min(
+    final nextRemaining = min(
       controller.startingSeconds.toDouble() + 25,
       controller.timeRemaining +
           _timeBonusForLength(controller, matchedPath.length),
+    );
+    controller.timeRemaining = nextRemaining;
+    controller._timerDeadlineAt = DateTime.now().add(
+      Duration(milliseconds: (nextRemaining * 1000).round()),
     );
   }
   controller.statusText = '+$gainedScore';
@@ -118,6 +129,7 @@ void _endGame(HexGameController controller, String message) {
   controller.isGameOver = true;
   controller.isResolvingMatch = false;
   controller._timer?.cancel();
+  controller._timerDeadlineAt = null;
   _clearDrag(controller);
   controller.clearingPath = const [];
   controller.statusText = message;
@@ -157,6 +169,9 @@ void _resetGame(
   controller._nextBarEntryId = 0;
   controller.statusText = '';
   controller.statusTone = GameMessageTone.info;
+  controller._timerDeadlineAt = DateTime.now().add(
+    Duration(milliseconds: (controller.timeRemaining * 1000).round()),
+  );
 
   controller.colorBar = const [];
   _refillColorBar(controller);
@@ -167,16 +182,41 @@ void _resetGame(
 
 void _startTimer(HexGameController controller) {
   controller._timer = Timer.periodic(const Duration(milliseconds: 250), (_) {
-    if (controller.isGameOver || controller.isReplaying) {
-      return;
-    }
-
-    controller.timeRemaining = max(0, controller.timeRemaining - 0.25);
-
-    if (controller.timeRemaining <= 0) {
-      _endGame(controller, '시간이 모두 지났어요.');
-    }
-
-    controller._notify();
+    _syncTimerState(controller);
   });
+}
+
+bool _syncTimerState(
+  HexGameController controller, {
+  bool notify = true,
+}) {
+  if (controller.isGameOver || controller.isReplaying) {
+    return controller.isGameOver;
+  }
+
+  final deadlineAt = controller._timerDeadlineAt;
+  if (deadlineAt == null) {
+    return controller.isGameOver;
+  }
+
+  final nextRemaining = max(
+    0.0,
+    deadlineAt.difference(DateTime.now()).inMilliseconds / 1000,
+  ).toDouble();
+  final didChange = (controller.timeRemaining - nextRemaining).abs() >= 0.05;
+  controller.timeRemaining = nextRemaining;
+
+  if (nextRemaining <= 0) {
+    _endGame(controller, '시간이 모두 지났어요.');
+    if (notify) {
+      controller._notify();
+    }
+    return true;
+  }
+
+  if (notify && didChange) {
+    controller._notify();
+  }
+
+  return false;
 }
