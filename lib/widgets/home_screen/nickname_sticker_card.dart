@@ -10,11 +10,13 @@ class NicknameStickerCard extends StatelessWidget {
     required this.nickname,
     required this.score,
     this.isLoading = false,
+    this.onTapNickname,
   });
 
   final String? nickname;
   final int score;
   final bool isLoading;
+  final VoidCallback? onTapNickname;
 
   static const Color stickerYellow = Color(0xFFF9D86D);
 
@@ -134,52 +136,56 @@ class NicknameStickerCard extends StatelessWidget {
                           ),
                         );
                       },
-                      child: Container(
-                        constraints: BoxConstraints(maxWidth: stickerMaxWidth),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: stickerHorizontalPadding,
-                          vertical: stickerVerticalPadding,
-                        ),
-                        decoration: BoxDecoration(
-                          color: stickerYellow,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: charcoalBlack,
-                            width: 2.5,
-                          ),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: charcoalBlack,
-                              offset: Offset(3, 3),
-                              blurRadius: 0,
+                        child: GestureDetector(
+                          onTap: onTapNickname,
+                          behavior: HitTestBehavior.opaque,
+                          child: Container(
+                            constraints: BoxConstraints(maxWidth: stickerMaxWidth),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: stickerHorizontalPadding,
+                              vertical: stickerVerticalPadding,
                             ),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.person_rounded,
-                              size: iconSize,
-                              color: charcoalBlack,
-                            ),
-                            const SizedBox(width: 8),
-                            Flexible(
-                              child: Text(
-                                nickname!.trim(),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.blackHanSans(
-                                  fontSize: nicknameFontSize,
-                                  color: charcoalBlack,
-                                  height: 1.0,
-                                  letterSpacing: 0.4,
-                                ),
+                            decoration: BoxDecoration(
+                              color: stickerYellow,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: charcoalBlack,
+                                width: 2.5,
                               ),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: charcoalBlack,
+                                  offset: Offset(3, 3),
+                                  blurRadius: 0,
+                                ),
+                              ],
                             ),
-                          ],
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.person_rounded,
+                                  size: iconSize,
+                                  color: charcoalBlack,
+                                ),
+                                const SizedBox(width: 8),
+                                Flexible(
+                                  child: Text(
+                                    nickname!.trim(),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: GoogleFonts.blackHanSans(
+                                      fontSize: nicknameFontSize,
+                                      color: charcoalBlack,
+                                      height: 1.0,
+                                      letterSpacing: 0.4,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                      ),
                     ),
                   ),
               ],

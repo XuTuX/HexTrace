@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 
 import 'package:hexor/controllers/score_controller.dart';
 import 'package:hexor/services/auth_service.dart';
+import 'package:hexor/widgets/dialogs/edit_nickname_dialog.dart';
 import 'package:hexor/widgets/home_screen/nickname_sticker_card.dart';
 
 class ScoreDisplay extends StatelessWidget {
@@ -25,6 +26,17 @@ class ScoreDisplay extends StatelessWidget {
         nickname: authService.userNickname.value,
         score: scoreController.highscore.value,
         isLoading: isLoading,
+        onTapNickname: () {
+          Get.dialog(
+            EditNicknameDialog(
+              currentNickname: authService.userNickname.value ?? '',
+              onSave: (newNickname) async {
+                return await authService.updateNickname(newNickname);
+              },
+            ),
+            barrierDismissible: false,
+          );
+        },
       );
     });
   }
