@@ -60,26 +60,29 @@ class GameOverOverlay extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Simple Game Over Badge
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 10,
+                        horizontal: 22,
+                        vertical: 12,
                       ),
                       decoration: BoxDecoration(
                         color: const Color(0xFFFEF2F2),
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: const Color(0xFFEF4444).withValues(alpha: 0.5),
-                          width: 1.5,
-                        ),
+                        border: Border.all(color: charcoalBlack, width: 2.5),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: charcoalBlack,
+                            offset: Offset(4, 4),
+                            blurRadius: 0,
+                          ),
+                        ],
                       ),
                       child: Text(
                         'GAME OVER',
                         style: GoogleFonts.blackHanSans(
-                          fontSize: 16,
+                          fontSize: 18,
                           color: const Color(0xFFEF4444),
-                          letterSpacing: 1.5,
+                          letterSpacing: 2.0,
                         ),
                       ),
                     ),
@@ -98,7 +101,7 @@ class GameOverOverlay extends StatelessWidget {
                       '$score',
                       style: GoogleFonts.blackHanSans(
                         fontSize: 84,
-                        color: const Color(0xFF16A34A),
+                        color: const Color(0xFF0095FF),
                         height: 0.9,
                       ),
                     ),

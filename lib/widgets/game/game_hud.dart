@@ -24,19 +24,33 @@ class GameHud extends StatelessWidget {
           const SizedBox(height: 8),
           Row(
             children: [
-              Expanded(
-                child: StatCard(label: '점수', value: '${controller.score}'),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: StatCard(
-                  label: '시간',
-                  value: '${controller.timeRemaining.ceil()}초',
-                  accent: controller.timeRemaining <= 10
-                      ? const Color(0xFFDC2626) // Red
-                      : const Color(0xFF2563EB), // Blue
+              if (controller.isReplaying)
+                Expanded(
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 180),
+                      child: StatCard(
+                        label: '점수',
+                        value: '${controller.score}',
+                      ),
+                    ),
+                  ),
+                )
+              else ...[
+                Expanded(
+                  child: StatCard(label: '점수', value: '${controller.score}'),
                 ),
-              ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: StatCard(
+                    label: '시간',
+                    value: '${controller.timeRemaining.ceil()}초',
+                    accent: controller.timeRemaining <= 10
+                        ? const Color(0xFFDC2626) // Red
+                        : const Color(0xFF2563EB), // Blue
+                  ),
+                ),
+              ],
             ],
           ),
           const SizedBox(height: 16),

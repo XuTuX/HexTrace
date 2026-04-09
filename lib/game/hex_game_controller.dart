@@ -36,6 +36,8 @@ class HexGameController extends ChangeNotifier {
   int initialSeed = 0;
   final List<List<HexCoord>> recordedMoves = [];
   bool isReplaying = false;
+  int currentReplayIndex = 0;
+  int totalReplayMoves = 0;
 
   late List<List<GameColor>> board;
   late List<ColorBarEntry> colorBar;
@@ -112,13 +114,20 @@ class HexGameController extends ChangeNotifier {
 
     await Future<void>.delayed(const Duration(milliseconds: 500));
 
-    for (final move in movesToReplay) {
+    totalReplayMoves = movesToReplay.length;
+    currentReplayIndex = 0;
+    _notify();
+
+    for (int i = 0; i < movesToReplay.length; i++) {
       if (_disposed || isGameOver) break;
 
-      dragPath = move;
+      currentReplayIndex = i + 1;
+      dragPath = movesToReplay[i];
       _notify();
       await _resolveCurrentMatch(this);
-      await Future<void>.delayed(const Duration(milliseconds: 600));
+      
+      // Slowed down from 600ms to 1200ms
+      await Future<void>.delayed(const Duration(milliseconds: 1200));
     }
 
     statusText = '리플레이가 끝났습니다.';
