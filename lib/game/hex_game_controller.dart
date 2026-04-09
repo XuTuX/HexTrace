@@ -133,8 +133,8 @@ class HexGameController extends ChangeNotifier {
         await Future<void>.delayed(const Duration(milliseconds: 140));
       }
       
-      // Pause briefly after the full path is shown (0.8s)
-      await Future<void>.delayed(const Duration(milliseconds: 800));
+      // Pause briefly after the full path is shown (1.0s)
+      await Future<void>.delayed(const Duration(milliseconds: 1000));
       
       await _resolveCurrentMatch(this);
       
