@@ -10,6 +10,7 @@ import '../game/hex_game_controller.dart';
 import '../services/app_haptics.dart';
 import '../services/replay_share_service.dart';
 import '../utils/browser_back_blocker.dart';
+import '../widgets/dialogs/share_preview_dialog.dart';
 import '../widgets/game/floating_status_view.dart';
 import '../widgets/game/game_hud.dart';
 import '../widgets/game/game_over_overlay.dart';
@@ -28,7 +29,6 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   late final HexGameController _controller;
   late final ScoreController _scoreController;
   final BrowserBackBlocker _browserBackBlocker = BrowserBackBlocker();
-  final GlobalKey _shareCardKey = GlobalKey();
   int _lastSyncedScore = 0;
   bool _didReportGameOver = false;
   bool _isSharingReplay = false;
@@ -129,7 +129,6 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                                 onHome: () =>
                                     Get.offAll(() => const HomeScreen()),
                                 onRanking: _openRanking,
-                                shareCardKey: _shareCardKey,
                                 isSharing: _isSharingReplay,
                               ),
                             ),
@@ -279,59 +278,77 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _shareReplay() async {
-    if (_isSharingReplay) {
-      return;
-    }
+    final GlobalKey dialogShareKey = GlobalKey();
 
-    setState(() {
-      _isSharingReplay = true;
-    });
+    await Get.dialog(
+      StatefulBuilder(
+        builder: (context, setDialogState) {
+          return SharePreviewDialog(
+            score: _controller.score,
+            bestScore: _scoreController.highscore.value,
+            isNewHighScore: _scoreController.hasNewHighScoreThisGame.value,
+            shareCardKey: dialogShareKey,
+            isSharing: _isSharingReplay,
+            onShare: () async {
+              if (_isSharingReplay) return;
 
-    try {
-      final renderBox = context.findRenderObject() as RenderBox?;
-      final shareOrigin = renderBox == null
-          ? null
-          : renderBox.localToGlobal(Offset.zero) & renderBox.size;
-      final shareText = ReplayShareService.buildShareText(
-        score: _controller.score,
-        bestScore: _scoreController.highscore.value,
-        isNewHighScore: _scoreController.hasNewHighScoreThisGame.value,
-        seed: _controller.initialSeed,
-        recordedMoves: _controller.recordedMoves,
-      );
-      final shareImage = await ReplayShareService.captureReplayCard(
-        repaintBoundaryKey: _shareCardKey,
-        pixelRatio: MediaQuery.devicePixelRatioOf(context),
-      );
+              setDialogState(() => _isSharingReplay = true);
+              setState(() => _isSharingReplay = true);
 
-      await SharePlus.instance.share(
-        ShareParams(
-          title: 'Hexor Trace 리플레이',
-          subject: 'Hexor Trace 리플레이',
-          text: shareText,
-          files: shareImage == null ? null : [shareImage],
-          fileNameOverrides:
-              shareImage == null ? null : const ['hexor-trace-replay.png'],
-          sharePositionOrigin: shareOrigin,
-        ),
-      );
-    } catch (_) {
-      if (mounted) {
-        Get.snackbar(
-          '공유 실패',
-          '리플레이를 공유하지 못했습니다. 잠시 후 다시 시도해 주세요.',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-          margin: const EdgeInsets.all(16),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isSharingReplay = false;
-        });
-      }
-    }
+              try {
+                final shareImage = await ReplayShareService.captureReplayCard(
+                  repaintBoundaryKey: dialogShareKey,
+                  pixelRatio: MediaQuery.devicePixelRatioOf(context),
+                );
+
+                final shareText = ReplayShareService.buildShareText(
+                  score: _controller.score,
+                  bestScore: _scoreController.highscore.value,
+                  isNewHighScore: _scoreController.hasNewHighScoreThisGame.value,
+                  seed: _controller.initialSeed,
+                  recordedMoves: _controller.recordedMoves,
+                );
+
+                final renderBox = context.findRenderObject() as RenderBox?;
+                final shareOrigin = renderBox == null
+                    ? null
+                    : renderBox.localToGlobal(Offset.zero) & renderBox.size;
+
+                await SharePlus.instance.share(
+                  ShareParams(
+                    title: 'Hexor Trace 리플레이',
+                    subject: 'Hexor Trace 리플레이',
+                    text: shareText,
+                    files: shareImage == null ? null : [shareImage],
+                    fileNameOverrides: shareImage == null
+                        ? null
+                        : const ['hexor-trace-replay.png'],
+                    sharePositionOrigin: shareOrigin,
+                  ),
+                );
+
+                if (mounted) {
+                  Get.back(); // Close dialog on success
+                }
+              } catch (e) {
+                Get.snackbar(
+                  '공유 실패',
+                  '리플레이를 공유하지 못했습니다. 잠시 후 다시 시도해 주세요.',
+                  snackPosition: SnackPosition.BOTTOM,
+                  backgroundColor: Colors.red,
+                  colorText: Colors.white,
+                );
+              } finally {
+                if (mounted) {
+                  setDialogState(() => _isSharingReplay = false);
+                  setState(() => _isSharingReplay = false);
+                }
+              }
+            },
+          );
+        },
+      ),
+      barrierColor: Colors.black.withValues(alpha: 0.85),
+    );
   }
 }
