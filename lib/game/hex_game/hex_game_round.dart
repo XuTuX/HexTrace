@@ -49,7 +49,11 @@ Future<void> _resolveCurrentMatch(HexGameController controller) async {
       Duration(milliseconds: (nextRemaining * 1000).round()),
     );
   }
-  controller.statusText = '+$gainedScore';
+  if (controller.combo > 1) {
+    controller.statusText = 'COMBO ${controller.combo}\n+$gainedScore';
+  } else {
+    controller.statusText = '+$gainedScore';
+  }
   controller.statusTone = GameMessageTone.success;
   unawaited(AppHaptics.success());
   controller._notify();
