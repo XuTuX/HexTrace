@@ -15,13 +15,16 @@ Future<void> _resolveCurrentMatch(HexGameController controller) async {
   controller.isResolvingMatch = true;
   controller.clearingPath = matchedPath;
   controller.lastMatchPath = matchedPath;
+  controller.combo = controller._lastMatchAt != null &&
+          DateTime.now().difference(controller._lastMatchAt!) <= const Duration(seconds: 4)
+      ? controller.combo + 1
+      : 1;
   _clearDrag(controller);
 
   final now = DateTime.now();
-  controller.combo = controller._lastMatchAt != null &&
-          now.difference(controller._lastMatchAt!) <= const Duration(seconds: 4)
-      ? controller.combo + 1
-      : 1;
+  if (!controller.isReplaying) {
+    controller.recordedMoves.add(matchedPath);
+  }
   controller._lastMatchAt = now;
 
   final gainedScore =
@@ -117,9 +120,22 @@ void _endGame(HexGameController controller, String message) {
   controller.statusTone = GameMessageTone.error;
 }
 
-void _resetGame(HexGameController controller) {
+void _resetGame(
+  HexGameController controller, {
+  int? seed,
+  bool isReplayMode = false,
+}) {
   controller._gameVersion++;
   controller._timer?.cancel();
+
+  if (seed != null) {
+    controller.initialSeed = seed;
+    controller._random = Random(seed);
+  }
+
+  if (!isReplayMode) {
+    controller.recordedMoves.clear();
+  }
 
   controller.score = 0;
   controller.combo = 0;

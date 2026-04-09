@@ -10,6 +10,7 @@ class GameOverOverlay extends StatelessWidget {
     required this.bestScore,
     required this.isNewHighScore,
     required this.onRestart,
+    required this.onReplay,
     required this.onHome,
     required this.onRanking,
   });
@@ -18,6 +19,7 @@ class GameOverOverlay extends StatelessWidget {
   final int bestScore;
   final bool isNewHighScore;
   final VoidCallback onRestart;
+  final VoidCallback onReplay;
   final VoidCallback onHome;
   final VoidCallback onRanking;
 
@@ -105,6 +107,12 @@ class GameOverOverlay extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 16),
+                  SecondaryButton(
+                    label: '리플레이 보기',
+                    icon: Icons.play_circle_outline_rounded,
+                    onPressed: onReplay,
+                  ),
+                  const SizedBox(height: 12),
                   PrimaryButton(
                     label: '다시 시작하기',
                     onPressed: onRestart,

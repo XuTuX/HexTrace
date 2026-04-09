@@ -31,12 +31,14 @@ class GameHud extends StatelessWidget {
                       : const Color(0xFF2563EB), // Blue
                 ),
               ),
+              const SizedBox(width: 8),
+              if (!controller.isReplaying)
+                _RestartButton(onPressed: controller.playAgain),
             ],
           ),
           const SizedBox(height: 16),
           ColorBarPanel(
-            colors: controller.colorBar,
-            highlightedWindows: controller.activeBarWindows,
+            controller: controller,
           ),
         ],
       ),
@@ -103,12 +105,10 @@ class StatCard extends StatelessWidget {
 class ColorBarPanel extends StatelessWidget {
   const ColorBarPanel({
     super.key,
-    required this.colors,
-    required this.highlightedWindows,
+    required this.controller,
   });
 
-  final List<ColorBarEntry> colors;
-  final List<BarWindow> highlightedWindows;
+  final HexGameController controller;
 
   @override
   Widget build(BuildContext context) {
@@ -133,9 +133,11 @@ class ColorBarPanel extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               Text(
-                '사용한 구간만 사라져요',
+                controller.isReplaying ? '리플레이 재생 중...' : '사용한 구간만 사라져요',
                 style: TextStyle(
-                  color: charcoalBlack.withValues(alpha: 0.62),
+                  color: controller.isReplaying
+                      ? const Color(0xFFDC2626)
+                      : charcoalBlack.withValues(alpha: 0.62),
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
                 ),
@@ -144,10 +146,46 @@ class ColorBarPanel extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           AnimatedColorStream(
-            entries: colors,
-            highlightedWindows: highlightedWindows,
+            entries: controller.colorBar,
+            highlightedWindows: controller.activeBarWindows,
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _RestartButton extends StatelessWidget {
+  const _RestartButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        height: 64,
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: charcoalBlack, width: 2),
+          boxShadow: const [
+            BoxShadow(
+              color: charcoalBlack,
+              offset: Offset(3, 3),
+              blurRadius: 0,
+            ),
+          ],
+        ),
+        child: const Center(
+          child: Icon(
+            Icons.refresh_rounded,
+            color: charcoalBlack,
+            size: 28,
+          ),
+        ),
       ),
     );
   }

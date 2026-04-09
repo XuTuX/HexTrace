@@ -110,6 +110,7 @@ class _GameScreenState extends State<GameScreen> {
                                 isNewHighScore: _scoreController
                                     .hasNewHighScoreThisGame.value,
                                 onRestart: _restartGame,
+                                onReplay: _replayGame,
                                 onHome: () =>
                                     Get.offAll(() => const HomeScreen()),
                                 onRanking: _openRanking,
@@ -138,14 +139,16 @@ class _GameScreenState extends State<GameScreen> {
 
     final gained = _controller.score - _lastSyncedScore;
     if (gained > 0) {
-      _scoreController.registerPuzzleMatch(
-        points: gained,
-        comboDepth: _controller.combo,
-      );
+      if (!_controller.isReplaying) {
+        _scoreController.registerPuzzleMatch(
+          points: gained,
+          comboDepth: _controller.combo,
+        );
+      }
       _lastSyncedScore = _controller.score;
     }
 
-    if (_controller.isGameOver && !_didReportGameOver) {
+    if (_controller.isGameOver && !_didReportGameOver && !_controller.isReplaying) {
       _didReportGameOver = true;
       _scoreController.checkHighScore();
       unawaited(_scoreController.uploadHighScoreToServer());
@@ -158,7 +161,14 @@ class _GameScreenState extends State<GameScreen> {
     _scoreController.resetScore();
     _lastSyncedScore = 0;
     _didReportGameOver = false;
-    _controller.restart();
+    _controller.playAgain();
+  }
+
+  void _replayGame() {
+    _scoreController.resetScore();
+    _lastSyncedScore = 0;
+    _didReportGameOver = false;
+    unawaited(_controller.watchReplay());
   }
 
   void _openRanking() {

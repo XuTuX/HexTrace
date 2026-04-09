@@ -18,17 +18,23 @@ class HexGameController extends ChangeNotifier {
     this.cols = 6,
     this.colorBarSize = 10,
     this.startingSeconds = 60,
-    Random? random,
-  }) : _random = random ?? Random() {
-    _resetGame(this);
+    int? seed,
+  }) : initialSeed = seed ?? Random().nextInt(1000000) {
+    _random = Random(initialSeed);
+    _resetGame(this, seed: initialSeed);
   }
 
   final int rows;
   final int cols;
   final int colorBarSize;
   final int startingSeconds;
-  final Random _random;
+  late Random _random;
+  // ignore: prefer_final_fields
   int _nextBarEntryId = 0;
+
+  int initialSeed = 0;
+  final List<List<HexCoord>> recordedMoves = [];
+  bool isReplaying = false;
 
   late List<List<GameColor>> board;
   late List<ColorBarEntry> colorBar;
@@ -51,12 +57,15 @@ class HexGameController extends ChangeNotifier {
   GameMessageTone statusTone = GameMessageTone.info;
 
   Timer? _timer;
+  // ignore: prefer_final_fields
   bool _disposed = false;
   DateTime? _lastMatchAt;
+  // ignore: prefer_final_fields
   int _gameVersion = 0;
+  // ignore: prefer_final_fields
   int _invalidPulseVersion = 0;
 
-  bool get canInteract => !isGameOver && !isResolvingMatch;
+  bool get canInteract => !isGameOver && !isResolvingMatch && !isReplaying;
 
   DragState get visibleDragState {
     if (invalidPulse && dragPath.isNotEmpty) {
@@ -75,7 +84,33 @@ class HexGameController extends ChangeNotifier {
   }
 
   void restart() {
-    _resetGame(this);
+    _resetGame(this, seed: initialSeed);
+  }
+
+  void playAgain() {
+    initialSeed = Random().nextInt(1000000);
+    _random = Random(initialSeed);
+    _resetGame(this, seed: initialSeed);
+  }
+
+  Future<void> watchReplay() async {
+    isReplaying = true;
+    final movesToReplay = List<List<HexCoord>>.from(recordedMoves);
+    _resetGame(this, seed: initialSeed, isReplayMode: true);
+    
+    await Future<void>.delayed(const Duration(milliseconds: 800));
+    
+    for (final move in movesToReplay) {
+      if (_disposed || isGameOver) break;
+      
+      dragPath = move;
+      _notify();
+      await _resolveCurrentMatch(this);
+      await Future<void>.delayed(const Duration(milliseconds: 400));
+    }
+    
+    isReplaying = false;
+    _notify();
   }
 
   void beginDrag(HexCoord? coord) {
