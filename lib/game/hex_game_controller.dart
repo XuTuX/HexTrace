@@ -130,7 +130,7 @@ class HexGameController extends ChangeNotifier {
       for (final step in fullPath) {
         dragPath = [...dragPath, step];
         _notify();
-        unawaited(AppHaptics.selection()); // Simple vibration for each step
+        unawaited(AppHaptics.selection());
         await Future<void>.delayed(const Duration(milliseconds: 140));
       }
       

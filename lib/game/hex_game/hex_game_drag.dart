@@ -29,6 +29,7 @@ void _extendDrag(HexGameController controller, HexCoord? coord) {
     controller.invalidPulse = false;
     _refreshDragState(controller);
     _updateStatusForDrag(controller);
+    unawaited(AppHaptics.selection());
     controller._notify();
     return;
   }
@@ -55,6 +56,7 @@ void _extendDrag(HexGameController controller, HexCoord? coord) {
   controller.invalidPulse = false;
   _refreshDragState(controller);
   _updateStatusForDrag(controller);
+  unawaited(AppHaptics.selection());
   controller._notify();
 }
 
@@ -121,7 +123,6 @@ void _updateStatusForDrag(HexGameController controller) {
 }
 
 void _showInvalidPulse(HexGameController controller, String message) {
-  unawaited(AppHaptics.warning());
   controller.invalidPulse = true;
   controller.statusText = message;
   controller.statusTone = GameMessageTone.error;

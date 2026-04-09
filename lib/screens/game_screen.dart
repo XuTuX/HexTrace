@@ -72,6 +72,9 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       builder: (context, _) {
         return PopScope(
           canPop: false,
+          onPopInvokedWithResult: (didPop, result) {
+            // 시스템 뒤로가기 차단
+          },
           child: Scaffold(
             backgroundColor: const Color(0xFFF8F9FA),
             body: Stack(

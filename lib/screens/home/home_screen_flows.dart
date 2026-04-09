@@ -18,7 +18,7 @@ void handleRankingPress(AuthService authService) {
 }
 
 void openGameScreen() {
-  Get.to(() => const GameScreen());
+  Get.off(() => const GameScreen());
 }
 
 void showLoginSheet(
