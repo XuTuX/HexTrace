@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:linkagon/constant.dart';
-import 'package:linkagon/theme/app_typography.dart';
 import 'package:linkagon/game/game_palette.dart';
 import 'package:linkagon/game/hex_game_controller.dart';
 

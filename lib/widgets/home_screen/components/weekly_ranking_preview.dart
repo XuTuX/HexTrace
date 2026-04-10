@@ -5,6 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:linkagon/constant.dart';
 import 'package:linkagon/screens/ranking/weekly_reset_info.dart';
 import 'package:linkagon/services/database_service.dart';
+import 'package:linkagon/game/game_palette.dart';
+import 'package:linkagon/game/hex_game_controller.dart';
 
 class WeeklyRankingPreview extends StatefulWidget {
   const WeeklyRankingPreview({
@@ -62,121 +64,141 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: charcoalBlack.withValues(alpha: 0.1),
-          width: 1.5,
+          color: charcoalBlack,
+          width: 2,
         ),
+        boxShadow: const [
+          BoxShadow(
+            color: charcoalBlack,
+            offset: Offset(4, 4),
+          ),
+        ],
       ),
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 14, 12, 0),
+            padding: const EdgeInsets.fromLTRB(20, 16, 16, 12),
             child: Row(
               children: [
-                const Text(
-                  '🏆',
-                  style: TextStyle(fontSize: 16),
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  '주간 랭킹',
-                  style: GoogleFonts.blackHanSans(
-                    fontSize: 14,
-                    color: charcoalBlack,
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: GamePalette.colorFor(GameColor.amber),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: charcoalBlack, width: 1.5),
+                  ),
+                  child: const Icon(
+                    Icons.emoji_events,
+                    color: Colors.white,
+                    size: 14,
                   ),
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  weeklyResetInfo.koreanLabel,
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: charcoalBlack.withValues(alpha: 0.35),
+                  '주간 랭킹',
+                  style: GoogleFonts.blackHanSans(
+                    fontSize: 16,
+                    letterSpacing: 0.5,
+                    color: charcoalBlack,
                   ),
                 ),
                 const Spacer(),
                 GestureDetector(
                   onTap: widget.onViewAll,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        '전체 보기',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: charcoalBlack.withValues(alpha: 0.4),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: charcoalBlack.withValues(alpha: 0.05),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '더 보기',
+                          style: GoogleFonts.notoSans(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w900,
+                            color: charcoalBlack.withValues(alpha: 0.4),
+                          ),
                         ),
-                      ),
-                      Icon(
-                        Icons.chevron_right_rounded,
-                        size: 16,
-                        color: charcoalBlack.withValues(alpha: 0.3),
-                      ),
-                    ],
+                        Icon(
+                          Icons.chevron_right_rounded,
+                          size: 14,
+                          color: charcoalBlack.withValues(alpha: 0.3),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
             ),
           ),
           if (_isLoading)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 18),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 32),
               child: SizedBox(
-                width: 18,
-                height: 18,
+                width: 24,
+                height: 24,
                 child: CircularProgressIndicator(
-                  color: charcoalBlack.withValues(alpha: 0.2),
-                  strokeWidth: 2,
+                  color: charcoalBlack,
+                  strokeWidth: 3,
                 ),
               ),
             )
           else if (_topScores.isEmpty)
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 18),
+              padding: const EdgeInsets.symmetric(vertical: 32),
               child: Text(
                 'NO DATA',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: charcoalBlack.withValues(alpha: 0.15),
-                  letterSpacing: 1.5,
+                style: GoogleFonts.blackHanSans(
+                  fontSize: 14,
+                  color: charcoalBlack.withValues(alpha: 0.1),
+                  letterSpacing: 2.0,
                 ),
               ),
             )
           else ...[
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              child: Divider(
-                color: charcoalBlack.withValues(alpha: 0.06),
-                height: 16,
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: charcoalBlack.withValues(alpha: 0.03),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                children: List.generate(_topScores.length, (index) {
+                  return _RankRow(
+                    rank: index + 1,
+                    data: _topScores[index],
+                    isLast: index == _topScores.length - 1,
+                  );
+                }),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  weeklyResetInfo.englishCompactLabel,
-                  style: TextStyle(
+          ],
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.timer_outlined, size: 12, color: charcoalBlack38),
+                const SizedBox(width: 4),
+                Text(
+                  weeklyResetInfo.koreanLabel,
+                  style: GoogleFonts.notoSans(
                     fontSize: 10,
                     fontWeight: FontWeight.w800,
-                    letterSpacing: 1.2,
-                    color: charcoalBlack.withValues(alpha: 0.32),
+                    color: charcoalBlack.withValues(alpha: 0.3),
                   ),
                 ),
-              ),
+              ],
             ),
-            ...List.generate(_topScores.length, (index) {
-              return _RankRow(
-                rank: index + 1,
-                data: _topScores[index],
-                isLast: index == _topScores.length - 1,
-              );
-            }),
-          ],
-          const SizedBox(height: 6),
+          ),
+          const SizedBox(height: 16),
         ],
       ),
     );
@@ -207,66 +229,62 @@ class _RankRow extends StatelessWidget {
     final nickname = profiles['nickname'] ?? 'Player';
     final score = data['score'] ?? 0;
 
-    final Color rankBg;
-    final Color rankFg;
-    switch (rank) {
-      case 1:
-        rankBg = const Color(0xFFFFB300);
-        rankFg = Colors.white;
-        break;
-      case 2:
-        rankBg = const Color(0xFFB0BEC5);
-        rankFg = Colors.white;
-        break;
-      case 3:
-        rankBg = const Color(0xFFBF8040);
-        rankFg = Colors.white;
-        break;
-      default:
-        rankBg = charcoalBlack.withValues(alpha: 0.08);
-        rankFg = charcoalBlack;
-    }
+    final Color rankColor = switch (rank) {
+      1 => GamePalette.colorFor(GameColor.amber),
+      2 => charcoalBlack.withValues(alpha: 0.4),
+      3 => GamePalette.colorFor(GameColor.coral),
+      _ => charcoalBlack.withValues(alpha: 0.2),
+    };
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+    return Container(
+      margin: EdgeInsets.only(bottom: isLast ? 0 : 4),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: charcoalBlack.withValues(alpha: 0.05),
+          width: 1,
+        ),
+      ),
       child: Row(
         children: [
-          Container(
+          SizedBox(
             width: 24,
-            height: 24,
-            decoration: BoxDecoration(
-              color: rankBg,
-              borderRadius: BorderRadius.circular(7),
-            ),
-            child: Center(
-              child: Text(
-                '$rank',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w900,
-                  color: rankFg,
-                ),
+            child: Text(
+              '$rank',
+              style: GoogleFonts.blackHanSans(
+                fontSize: 16,
+                color: rankColor,
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           Expanded(
             child: Text(
               nickname.toString(),
               style: GoogleFonts.notoSans(
                 fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: charcoalBlack.withValues(alpha: 0.8),
+                fontWeight: FontWeight.w800,
+                color: charcoalBlack,
               ),
               overflow: TextOverflow.ellipsis,
             ),
           ),
           Text(
             _formatScore(score),
-            style: TextStyle(
+            style: GoogleFonts.blackHanSans(
               fontSize: 14,
+              color: charcoalBlack.withValues(alpha: 0.8),
+            ),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            'P',
+            style: GoogleFonts.notoSans(
+              fontSize: 9,
               fontWeight: FontWeight.w900,
-              color: charcoalBlack.withValues(alpha: 0.7),
+              color: charcoalBlack.withValues(alpha: 0.2),
             ),
           ),
         ],

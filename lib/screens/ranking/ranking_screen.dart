@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import 'package:linkagon/constant.dart';
 import 'package:linkagon/controllers/score_controller.dart';
 import 'package:linkagon/services/auth_service.dart';
 import 'package:linkagon/services/database_service.dart';
@@ -113,9 +114,9 @@ class _RankingScreenState extends State<RankingScreen> {
 
     return Container(
       constraints: BoxConstraints(maxHeight: Get.height * 0.9),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFAFAFA),
-        borderRadius: const BorderRadius.only(
+      decoration: const BoxDecoration(
+        color: Color(0xFFFAFAFA),
+        borderRadius: BorderRadius.only(
           topLeft: Radius.circular(32),
           topRight: Radius.circular(32),
         ),
