@@ -263,7 +263,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       _didReportGameOver = true;
       unawaited(AppHaptics.gameOver());
       _scoreController.checkHighScore();
-      unawaited(_scoreController.uploadHighScoreToServer());
+      unawaited(_scoreController.uploadHighScoreToServer(_controller.score));
     } else if (!_controller.isGameOver) {
       _didReportGameOver = false;
     }
@@ -316,7 +316,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                   pixelRatio: MediaQuery.devicePixelRatioOf(context),
                 );
 
-                if (!mounted) return;
+                if (!mounted || !context.mounted) return;
 
                 final shareText = ReplayShareService.buildShareText(
                   score: _controller.score,

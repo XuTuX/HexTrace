@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:linkagon/constant.dart';
+import 'package:linkagon/screens/ranking/weekly_reset_info.dart';
 import 'package:linkagon/services/database_service.dart';
 
 class WeeklyRankingPreview extends StatefulWidget {
@@ -30,7 +31,9 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
   Future<void> _loadTopScores() async {
     try {
       final dbService = Get.find<DatabaseService>();
-      final scores = await dbService.getLeaderboard(gameId).catchError((e) {
+      final scores = await dbService
+          .getWeeklyLeaderboard(gameId, limit: 3)
+          .catchError((e) {
         debugPrint('🔴 [WeeklyRankingPreview] Error: $e');
         return <Map<String, dynamic>>[];
       });
@@ -54,6 +57,8 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
 
   @override
   Widget build(BuildContext context) {
+    final weeklyResetInfo = WeeklyResetInfo.current();
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -79,6 +84,15 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
                   style: GoogleFonts.blackHanSans(
                     fontSize: 14,
                     color: charcoalBlack,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  weeklyResetInfo.koreanLabel,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: charcoalBlack.withValues(alpha: 0.35),
                   ),
                 ),
                 const Spacer(),
@@ -137,6 +151,21 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
               child: Divider(
                 color: charcoalBlack.withValues(alpha: 0.06),
                 height: 16,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  weeklyResetInfo.englishCompactLabel,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.2,
+                    color: charcoalBlack.withValues(alpha: 0.32),
+                  ),
+                ),
               ),
             ),
             ...List.generate(_topScores.length, (index) {

@@ -6,6 +6,7 @@ import 'package:linkagon/services/auth_service.dart';
 import 'package:linkagon/services/database_service.dart';
 
 import 'ranking_data_loader.dart';
+import 'ranking_period.dart';
 import 'widgets/my_rank_card.dart';
 import 'widgets/ranking_chrome.dart';
 import 'widgets/rank_list_item.dart';
@@ -24,6 +25,7 @@ class _RankingScreenState extends State<RankingScreen> {
   int? _myRank;
   int? _myScore;
   List<Map<String, dynamic>> _scores = [];
+  RankingPeriod _period = RankingPeriod.weekly;
   late final Worker _authWorker;
 
   @override
@@ -63,6 +65,7 @@ class _RankingScreenState extends State<RankingScreen> {
         scoreController: scoreController,
         authService: authService,
         dbService: dbService,
+        period: _period,
       );
 
       if (!mounted) {
@@ -92,6 +95,17 @@ class _RankingScreenState extends State<RankingScreen> {
     }
   }
 
+  void _handlePeriodChanged(RankingPeriod period) {
+    if (_period == period) {
+      return;
+    }
+
+    setState(() {
+      _period = period;
+    });
+    _loadRankingData();
+  }
+
   @override
   Widget build(BuildContext context) {
     final authService = Get.find<AuthService>();
@@ -99,20 +113,28 @@ class _RankingScreenState extends State<RankingScreen> {
 
     return Container(
       constraints: BoxConstraints(maxHeight: Get.height * 0.9),
-      decoration: const BoxDecoration(
-        color: Color(0xFFF8F9FA),
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(28),
-          topRight: Radius.circular(28),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFAFAFA),
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(32),
+          topRight: Radius.circular(32),
+        ),
+        border: Border(
+          top: BorderSide(color: charcoalBlack, width: 3),
+          left: BorderSide(color: charcoalBlack, width: 3),
+          right: BorderSide(color: charcoalBlack, width: 3),
         ),
       ),
       child: SafeArea(
         child: Column(
           children: [
             const RankingSheetHandle(),
+            const SizedBox(height: 12),
+            RankingHeader(
+              period: _period,
+              onPeriodChanged: _handlePeriodChanged,
+            ),
             const SizedBox(height: 20),
-            const RankingHeader(),
-            const SizedBox(height: 16),
             Expanded(
               child: Center(
                 child: ConstrainedBox(
@@ -137,7 +159,7 @@ class _RankingScreenState extends State<RankingScreen> {
     }
 
     if (_scores.isEmpty) {
-      return const EmptyRankingState();
+      return EmptyRankingState(period: _period);
     }
 
     return Column(
@@ -149,12 +171,13 @@ class _RankingScreenState extends State<RankingScreen> {
             rank: _myRank,
             score: _myScore,
             isLoggedIn: myId != null,
+            period: _period,
           ),
         ),
         const SizedBox(height: 24),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 28),
-          child: TopPlayersLabel(),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 28),
+          child: TopPlayersLabel(period: _period),
         ),
         const SizedBox(height: 8),
         Expanded(

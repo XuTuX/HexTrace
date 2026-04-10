@@ -12,6 +12,36 @@ class DatabaseService extends GetxService {
     return int.tryParse(value.toString());
   }
 
+  int? _coerceNullableIntResponse(dynamic response) {
+    if (response == null) {
+      return null;
+    }
+    if (response is int) {
+      return response;
+    }
+    return _coerceInt(response);
+  }
+
+  List<Map<String, dynamic>> _mapLeaderboardRows(dynamic response) {
+    final rows = List<Map<String, dynamic>>.from(response as List? ?? []);
+    return rows
+        .map(
+          (row) => {
+            'user_id': row['user_id'],
+            'score': _coerceInt(row['score']) ?? 0,
+            'rank': _coerceInt(row['rank']) ?? 0,
+            'profiles': {
+              'nickname':
+                  (row['nickname'] as String?)?.trim().isNotEmpty == true
+                      ? row['nickname']
+                      : 'Player',
+              'avatar_url': row['avatar_url'],
+            },
+          },
+        )
+        .toList();
+  }
+
   // 특정 게임의 내 최고 점수 가져오기
   Future<int?> getMyBestScore(String gameId) async {
     final userId = _supabase.auth.currentUser?.id;
@@ -22,7 +52,7 @@ class DatabaseService extends GetxService {
       params: {'p_game_id': gameId},
     );
 
-    return _coerceInt(response);
+    return _coerceNullableIntResponse(response);
   }
 
   // 점수 저장 (최고 점수 갱신 로직)
@@ -51,6 +81,31 @@ class DatabaseService extends GetxService {
     return bestScore;
   }
 
+  Future<int> saveWeeklyScore(String gameId, int newScore) async {
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) {
+      throw StateError('로그인이 필요합니다.');
+    }
+
+    final response = await _supabase.rpc(
+      'submit_weekly_score',
+      params: {
+        'p_game_id': gameId,
+        'p_score': newScore,
+      },
+    );
+
+    final bestScore = _coerceInt(response);
+    if (bestScore == null) {
+      throw StateError('submit_weekly_score 응답이 비정상적입니다.');
+    }
+
+    debugPrint(
+      '🟢 [DatabaseService] Weekly score upserted: gameId=$gameId userId=$userId submitted=$newScore best=$bestScore',
+    );
+    return bestScore;
+  }
+
   // 나의 순위 가져오기
   Future<int?> getMyRank(String gameId) async {
     final userId = _supabase.auth.currentUser?.id;
@@ -61,48 +116,129 @@ class DatabaseService extends GetxService {
       params: {'p_game_id': gameId},
     );
 
-    if (response == null) {
-      return null;
-    }
-
-    if (response is int) {
-      return response;
-    }
-
-    return _coerceInt(response);
+    return _coerceNullableIntResponse(response);
   }
 
   // 리더보드 가져오기 (클라이언트 사이드 중복 제거 포함)
-  Future<List<Map<String, dynamic>>> getLeaderboard(String gameId) async {
+  Future<List<Map<String, dynamic>>> getLeaderboard(
+    String gameId, {
+    int limit = 50,
+  }) async {
     try {
       final response = await _supabase.rpc(
         'get_leaderboard',
         params: {
           'p_game_id': gameId,
-          'p_limit': 50,
+          'p_limit': limit,
         },
       );
 
-      final rows = List<Map<String, dynamic>>.from(response as List);
-      return rows
-          .map(
-            (row) => {
-              'user_id': row['user_id'],
-              'score': _coerceInt(row['score']) ?? 0,
-              'rank': _coerceInt(row['rank']) ?? 0,
-              'profiles': {
-                'nickname':
-                    (row['nickname'] as String?)?.trim().isNotEmpty == true
-                        ? row['nickname']
-                        : 'Player',
-                'avatar_url': row['avatar_url'],
-              },
-            },
-          )
-          .toList();
+      return _mapLeaderboardRows(response);
     } catch (e) {
       debugPrint('🔴 Error fetching leaderboard: $e');
       return [];
+    }
+  }
+
+  Future<int?> getMyWeeklyRank(String gameId) async {
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) return null;
+
+    try {
+      final response = await _supabase.rpc(
+        'get_my_weekly_rank',
+        params: {'p_game_id': gameId},
+      );
+      return _coerceNullableIntResponse(response);
+    } catch (e) {
+      debugPrint('🔴 Error fetching weekly rank: $e');
+      return null;
+    }
+  }
+
+  Future<int?> getMyWeeklyBestScore(String gameId) async {
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) return null;
+
+    try {
+      final response = await _supabase.rpc(
+        'get_my_weekly_best_score',
+        params: {'p_game_id': gameId},
+      );
+      return _coerceNullableIntResponse(response);
+    } catch (e) {
+      debugPrint('🔴 Error fetching weekly best score: $e');
+      return null;
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getWeeklyLeaderboard(
+    String gameId, {
+    int limit = 20,
+  }) async {
+    try {
+      final response = await _supabase.rpc(
+        'get_weekly_leaderboard',
+        params: {
+          'p_game_id': gameId,
+          'p_limit': limit,
+        },
+      );
+      return _mapLeaderboardRows(response);
+    } catch (e) {
+      debugPrint('🔴 Error fetching weekly leaderboard: $e');
+      return [];
+    }
+  }
+
+  Future<int?> getMyAllTimeRank(String gameId) async {
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) return null;
+
+    try {
+      final response = await _supabase.rpc(
+        'get_my_all_time_rank',
+        params: {'p_game_id': gameId},
+      );
+      return _coerceNullableIntResponse(response);
+    } catch (e) {
+      debugPrint('🟡 Error fetching all-time rank, falling back: $e');
+      return getMyRank(gameId);
+    }
+  }
+
+  Future<int?> getMyAllTimeBestScore(String gameId) async {
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) return null;
+
+    try {
+      final response = await _supabase.rpc(
+        'get_my_all_time_best_score',
+        params: {'p_game_id': gameId},
+      );
+      return _coerceNullableIntResponse(response);
+    } catch (e) {
+      debugPrint('🟡 Error fetching all-time best score, falling back: $e');
+      return getMyBestScore(gameId);
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getAllTimeLeaderboard(
+    String gameId, {
+    int limit = 20,
+  }) async {
+    try {
+      final response = await _supabase.rpc(
+        'get_all_time_leaderboard',
+        params: {
+          'p_game_id': gameId,
+          'p_limit': limit,
+        },
+      );
+      return _mapLeaderboardRows(response);
+    } catch (e) {
+      debugPrint('🟡 Error fetching all-time leaderboard, falling back: $e');
+      return getLeaderboard(gameId, limit: limit);
     }
   }
 

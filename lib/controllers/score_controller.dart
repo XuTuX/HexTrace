@@ -72,8 +72,8 @@ class ScoreController extends GetxController {
     _checkHighScore(this);
   }
 
-  Future<void> uploadHighScoreToServer() {
-    return _uploadHighScoreToServer(this);
+  Future<void> uploadHighScoreToServer([int? currentScore]) {
+    return _uploadHighScoreToServer(this, currentScore);
   }
 
   Future<void> syncScoreForRanking() {

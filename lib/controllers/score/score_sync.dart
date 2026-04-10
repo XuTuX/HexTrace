@@ -39,22 +39,39 @@ Future<void> _syncWithOnlineScore(
   }
 }
 
-Future<void> _uploadHighScoreToServer(ScoreController controller) async {
+Future<void> _uploadHighScoreToServer(
+  ScoreController controller, [
+  int? currentScore,
+]) async {
   if (controller._currentUserId == null) {
+    return;
+  }
+
+  final scoreToUpload = max(currentScore ?? controller.score.value, 0);
+  if (scoreToUpload <= 0) {
     return;
   }
 
   try {
     final dbService = Get.find<DatabaseService>();
-    final bestScore =
-        await dbService.saveScore(gameId, controller.highscore.value);
+    final bestScore = await dbService.saveScore(gameId, scoreToUpload);
     controller.highscore.value = bestScore;
     await _saveHighScore(controller, bestScore);
     debugPrint(
-      '🟢 [ScoreController] High score uploaded: ${controller.highscore.value}',
+      '🟢 [ScoreController] All-time score synced: submitted=$scoreToUpload best=${controller.highscore.value}',
     );
   } catch (e) {
-    debugPrint('🔴 [ScoreController] High score upload failed: $e');
+    debugPrint('🔴 [ScoreController] All-time score upload failed: $e');
+  }
+
+  try {
+    final dbService = Get.find<DatabaseService>();
+    final weeklyBest = await dbService.saveWeeklyScore(gameId, scoreToUpload);
+    debugPrint(
+      '🟢 [ScoreController] Weekly score synced: submitted=$scoreToUpload best=$weeklyBest',
+    );
+  } catch (e) {
+    debugPrint('🔴 [ScoreController] Weekly score upload failed: $e');
   }
 }
 
