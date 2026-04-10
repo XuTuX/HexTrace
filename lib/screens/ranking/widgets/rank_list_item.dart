@@ -44,16 +44,27 @@ class RankListItem extends StatelessWidget {
     Color itemBgColor = Colors.white;
     Color borderColor = charcoalBlack.withValues(alpha: 0.08);
     double borderWith = 1.0;
+    Color textColor = charcoalBlack;
+    Color suffixColor = charcoalBlack.withValues(alpha: 0.3);
     
     if (isTopThree) {
       itemBgColor = switch (rank) {
-        1 => GamePalette.colorFor(GameColor.amber).withValues(alpha: 0.1),
-        2 => charcoalBlack.withValues(alpha: 0.04),
-        3 => GamePalette.colorFor(GameColor.coral).withValues(alpha: 0.08),
+        1 => GamePalette.colorFor(GameColor.amber),
+        2 => const Color(0xFFE0E0E0), // Light Silver
+        3 => GamePalette.colorFor(GameColor.coral),
         _ => Colors.white,
       };
       borderColor = charcoalBlack;
       borderWith = 2.0;
+
+      // Contrast logic
+      if (rank == 3) {
+        textColor = Colors.white;
+        suffixColor = Colors.white.withValues(alpha: 0.7);
+      } else {
+        textColor = charcoalBlack;
+        suffixColor = charcoalBlack.withValues(alpha: 0.4);
+      }
     }
 
     if (isMe && !isTopThree) {
@@ -91,7 +102,7 @@ class RankListItem extends StatelessWidget {
                   '$rank',
                   style: GoogleFonts.blackHanSans(
                     fontSize: isTopThree ? 22 : 18,
-                    color: isTopThree ? charcoalBlack : charcoalBlack.withValues(alpha: 0.6),
+                    color: textColor,
                   ),
                 ),
                 Text(
@@ -99,7 +110,7 @@ class RankListItem extends StatelessWidget {
                   style: AppTypography.body.copyWith(
                     fontSize: 10,
                     fontWeight: FontWeight.w900,
-                    color: charcoalBlack.withValues(alpha: 0.3),
+                    color: suffixColor,
                   ),
                 ),
               ],
@@ -117,7 +128,7 @@ class RankListItem extends StatelessWidget {
                     fontWeight: isMe || isTopThree
                         ? FontWeight.w900
                         : FontWeight.w600,
-                    color: charcoalBlack,
+                    color: textColor,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -127,32 +138,19 @@ class RankListItem extends StatelessWidget {
                     style: AppTypography.label.copyWith(
                       fontSize: 9,
                       fontWeight: FontWeight.w900,
-                      color: GamePalette.colorFor(GameColor.azure),
+                      color: isTopThree ? textColor : GamePalette.colorFor(GameColor.azure),
                       letterSpacing: 1.0,
                     ),
                   ),
               ],
             ),
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                '$scoreVal',
-                style: GoogleFonts.blackHanSans(
-                  fontSize: isTopThree ? 20 : 16,
-                  color: charcoalBlack,
-                ),
-              ),
-              Text(
-                'PTS',
-                style: AppTypography.label.copyWith(
-                  fontSize: 9,
-                  fontWeight: FontWeight.w900,
-                  color: charcoalBlack.withValues(alpha: 0.3),
-                ),
-              ),
-            ],
+          Text(
+            '$scoreVal',
+            style: GoogleFonts.blackHanSans(
+              fontSize: isTopThree ? 20 : 16,
+              color: textColor,
+            ),
           ),
         ],
       ),

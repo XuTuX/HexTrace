@@ -213,7 +213,20 @@ bool _syncTimerState(
     deadlineAt.difference(DateTime.now()).inMilliseconds / 1000,
   ).toDouble();
   final didChange = (controller.timeRemaining - nextRemaining).abs() >= 0.05;
+  final oldRemaining = controller.timeRemaining;
   controller.timeRemaining = nextRemaining;
+
+  // Haptic warnings at 10s and 5s
+  if (oldRemaining > 10 && nextRemaining <= 10) {
+    unawaited(AppHaptics.warning());
+    // Flash status text for visual cue
+    controller.statusText = '10초 남았어요!';
+    controller.statusTone = GameMessageTone.warning;
+  } else if (oldRemaining > 5 && nextRemaining <= 5) {
+    unawaited(AppHaptics.gameOver()); // Stronger vibration
+    controller.statusText = '마지막 5초!!';
+    controller.statusTone = GameMessageTone.error;
+  }
 
   if (nextRemaining <= 0) {
     _endGame(controller, '시간이 모두 지났어요.');

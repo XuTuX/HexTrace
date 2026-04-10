@@ -45,9 +45,11 @@ class GameHud extends StatelessWidget {
                   child: StatCard(
                     label: '시간',
                     value: '${controller.timeRemaining.ceil()}초',
-                    accent: controller.timeRemaining <= 10
-                        ? const Color(0xFFDC2626) // Red
-                        : const Color(0xFF2563EB), // Blue
+                    accent: controller.timeRemaining <= 5
+                        ? const Color(0xFFFF0000) // Vibrant Red
+                        : controller.timeRemaining <= 10
+                            ? const Color(0xFFF97316) // Orange
+                            : const Color(0xFF2563EB), // Blue
                   ),
                 ),
               ],
