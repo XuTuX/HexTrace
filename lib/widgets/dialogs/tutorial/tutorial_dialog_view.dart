@@ -82,7 +82,7 @@ class _TutorialHeader extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            'HOW TO PLAY',
+            '게임 방법',
             style: AppTypography.label.copyWith(
               fontSize: 14,
               letterSpacing: 2.0,

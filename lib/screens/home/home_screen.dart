@@ -76,13 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return HomeScreenContent(
       scoreController: scoreController,
       authService: authService,
-      onSettingsTap: () {
-        if (authService.user.value != null) {
-          showSettingsScreen(authService);
-        } else {
-          showLoginSheet(authService);
-        }
-      },
+      onSettingsTap: () => showSettingsScreen(authService),
       onStartGame: openGameScreen,
       onRankingTap: () => handleRankingPress(authService),
     );

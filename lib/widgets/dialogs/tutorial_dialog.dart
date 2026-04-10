@@ -20,29 +20,29 @@ class TutorialDialog extends StatefulWidget {
 class _TutorialDialogState extends State<TutorialDialog> {
   static const List<_TutorialStepData> _steps = [
     _TutorialStepData(
-      title: 'Read The Color Bar',
+      title: '컬러 바 확인하기',
       description:
-          'The top bar shows a sequence of colors. You may use any contiguous run from that bar, not only the first slots.',
+          '상단 바에는 색상 시퀀스가 표시됩니다. 첫 번째 칸뿐만 아니라 바의 어느 부분이든 연속된 색상 조합을 사용할 수 있습니다.',
     ),
     _TutorialStepData(
-      title: 'Drag Adjacent Hexes',
+      title: '인접한 타일 드래그',
       description:
-          'Start from any hex tile and drag only through adjacent hexes. The same tile cannot be used twice in one route.',
+          '아무 타일에서 시작하여 인접한 타일로만 드래그하세요. 한 경로에서 같은 타일을 두 번 사용할 수 없습니다.',
     ),
     _TutorialStepData(
-      title: 'Match A Contiguous Run',
+      title: '연속된 색상 맞추기',
       description:
-          'Your dragged tile colors must exactly match one contiguous subsequence from the bar, and every valid path must be at least 3 tiles long.',
+          '드래그한 타일의 색상이 상단 바의 연속된 부분과 정확히 일치해야 하며, 경로는 최소 3개 이상의 타일로 구성되어야 합니다.',
     ),
     _TutorialStepData(
-      title: 'Clear, Refill, Score',
+      title: '제거, 리필, 점수 획득',
       description:
-          'A valid release removes the path, collapses and refills the board, consumes that run from the bar, adds score, and grants bonus time.',
+          '유효한 경로를 선택하면 타일이 제거되고 보드가 채워집니다. 상단 바의 색상이 소모되면서 점수와 추가 시간을 획득합니다.',
     ),
     _TutorialStepData(
-      title: 'Beat The Clock',
+      title: '시간 제한',
       description:
-          'The round ends when the timer reaches zero or when no valid path of length 3 or more remains after your shuffle is gone.',
+          '타이머가 0이 되거나 더 이상 유효한 경로가 없으면 라운드가 종료됩니다.',
     ),
   ];
 

@@ -43,7 +43,7 @@ class _TutorialFooter extends StatelessWidget {
                         ),
                       ),
                       child: Text(
-                        'Back',
+                        '이전',
                         style:
                             AppTypography.button.copyWith(color: charcoalBlack),
                       ),
@@ -67,7 +67,7 @@ class _TutorialFooter extends StatelessWidget {
                       ),
                     ),
                     child: Text(
-                      currentPage == totalPages - 1 ? 'Start' : 'Next',
+                      currentPage == totalPages - 1 ? '시작하기' : '다음',
                       style: AppTypography.button.copyWith(color: Colors.white),
                     ),
                   ),
