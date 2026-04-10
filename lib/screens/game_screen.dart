@@ -162,7 +162,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                                                         .totalReplayMoves >
                                                     0
                                                 ? (_controller
-                                                        .currentReplayIndex /
+                                                         .currentReplayIndex /
                                                     _controller
                                                         .totalReplayMoves)
                                                 : 0.0,
@@ -230,6 +230,35 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                     ),
                   ),
                 ),
+                // Time critical flash overlay
+                if (_controller.lastTimeFlashAt != null)
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: TweenAnimationBuilder<double>(
+                        key: ValueKey(_controller.lastTimeFlashAt),
+                        tween: Tween(begin: 1.0, end: 0.0),
+                        duration: const Duration(milliseconds: 600),
+                        builder: (context, value, child) {
+                          if (value <= 0) return const SizedBox.shrink();
+                          return Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: Colors.red.withValues(alpha: value * 0.4),
+                                width: 20 * value,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.red.withValues(alpha: value * 0.2),
+                                  blurRadius: 40 * value,
+                                  spreadRadius: 10 * value,
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),

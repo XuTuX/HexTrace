@@ -219,13 +219,11 @@ bool _syncTimerState(
   // Haptic warnings at 10s and 5s
   if (oldRemaining > 10 && nextRemaining <= 10) {
     unawaited(AppHaptics.warning());
-    // Flash status text for visual cue
-    controller.statusText = '10초 남았어요!';
-    controller.statusTone = GameMessageTone.warning;
+    // Visual flash cue instead of text
+    controller.triggerTimeFlash();
   } else if (oldRemaining > 5 && nextRemaining <= 5) {
     unawaited(AppHaptics.gameOver()); // Stronger vibration
-    controller.statusText = '마지막 5초!!';
-    controller.statusTone = GameMessageTone.error;
+    controller.triggerTimeFlash();
   }
 
   if (nextRemaining <= 0) {

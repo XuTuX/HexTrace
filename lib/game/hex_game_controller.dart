@@ -59,6 +59,14 @@ class HexGameController extends ChangeNotifier {
   String statusText = '';
   GameMessageTone statusTone = GameMessageTone.info;
 
+  DateTime? _lastTimeFlashAt;
+  DateTime? get lastTimeFlashAt => _lastTimeFlashAt;
+
+  void triggerTimeFlash() {
+    _lastTimeFlashAt = DateTime.now();
+    _notify();
+  }
+
   Timer? _timer;
   DateTime? _timerDeadlineAt;
   // ignore: prefer_final_fields
