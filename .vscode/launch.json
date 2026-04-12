@@ -5,20 +5,20 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Honey Boo",
+            "name": "Bee House",
             "request": "launch",
             "type": "dart",
             "toolArgs": ["--dart-define-from-file", ".env"]
         },
         {
-            "name": "Honey Boo (profile mode)",
+            "name": "Bee House (profile mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "profile",
             "toolArgs": ["--dart-define-from-file", ".env"]
         },
         {
-            "name": "Honey Boo (release mode)",
+            "name": "Bee House (release mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "release",

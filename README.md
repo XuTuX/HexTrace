@@ -1,6 +1,6 @@
-# Honey Boo
+# Bee House
 
-Honey Boo is a Flutter puzzle game with Supabase-backed auth, synced scores, and ranking.
+Bee House is a Flutter puzzle game with Supabase-backed auth, synced scores, and ranking.
 
 ## Runtime Configuration
 

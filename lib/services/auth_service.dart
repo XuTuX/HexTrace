@@ -51,7 +51,7 @@ class AuthService extends GetxController {
 
   Future<void> signOut() => _signOut(this);
 
-  Future<String?> deleteHoneyBooData() => _deleteHoneyBooData(this);
+  Future<String?> deleteBeeHouseData() => _deleteBeeHouseData(this);
 
   Future<String?> deleteAccount() => _deleteAccount(this);
 

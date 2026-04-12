@@ -7,19 +7,19 @@ Future<void> _signOut(AuthService service) async {
   _resetProfileState(service);
 }
 
-Future<String?> _deleteHoneyBooData(AuthService service) async {
+Future<String?> _deleteBeeHouseData(AuthService service) async {
   try {
     service.isLoading.value = true;
-    debugPrint('🔵 [AuthService] Honey Boo data deletion started');
+    debugPrint('🔵 [AuthService] Bee House data deletion started');
     final deletingUserId = service._supabase.auth.currentUser?.id;
 
     try {
       final dbService = Get.find<DatabaseService>();
-      await dbService.deleteMyHoneyBooData();
+      await dbService.deleteMyBeeHouseData();
       debugPrint('🟢 [AuthService] User data deleted from DB');
     } catch (e) {
       debugPrint('🔴 [AuthService] DB data deletion failed: $e');
-      return 'Honey Boo 기록 삭제 중 오류가 발생했습니다. 다시 시도해주세요.';
+      return 'Bee House 기록 삭제 중 오류가 발생했습니다. 다시 시도해주세요.';
     }
 
     if (deletingUserId != null) {
@@ -31,11 +31,11 @@ Future<String?> _deleteHoneyBooData(AuthService service) async {
     service.user.value = null;
     service.userNickname.value = null;
 
-    debugPrint('🟢 [AuthService] Honey Boo data deletion completed');
+    debugPrint('🟢 [AuthService] Bee House data deletion completed');
     return null;
   } catch (e) {
-    debugPrint('🔴 [AuthService] Honey Boo data deletion failed: $e');
-    return 'Honey Boo 기록 삭제 중 오류가 발생했습니다. 다시 시도해주세요.';
+    debugPrint('🔴 [AuthService] Bee House data deletion failed: $e');
+    return 'Bee House 기록 삭제 중 오류가 발생했습니다. 다시 시도해주세요.';
   } finally {
     if (!service.isClosed) {
       service.isLoading.value = false;

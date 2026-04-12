@@ -66,7 +66,7 @@ class HomeLogo extends StatelessWidget {
           textBaseline: TextBaseline.alphabetic,
           children: [
             Text(
-              'HONEY',
+              'BEE',
               style: GoogleFonts.blackHanSans(
                 fontSize: 48,
                 color: charcoalBlack,
@@ -76,7 +76,7 @@ class HomeLogo extends StatelessWidget {
             ),
             const SizedBox(width: 10),
             Text(
-              'BOO',
+              'HOUSE',
               style: GoogleFonts.blackHanSans(
                 fontSize: 48,
                 color: const Color(0xFF0095FF),

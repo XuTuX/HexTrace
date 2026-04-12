@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:linkagon/constant.dart';
 
-/// Unified typography system for Honey Boo.
+/// Unified typography system for Bee House.
 ///
 /// Hierarchy:
 ///   display  (64) → Hero title only ("AREA")

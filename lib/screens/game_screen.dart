@@ -363,13 +363,13 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
 
                 await SharePlus.instance.share(
                   ShareParams(
-                    title: 'Honey Boo 리플레이',
-                    subject: 'Honey Boo 리플레이',
+                    title: 'Bee House 리플레이',
+                    subject: 'Bee House 리플레이',
                     text: shareText,
                     files: shareImage == null ? null : [shareImage],
                     fileNameOverrides: shareImage == null
                         ? null
-                        : const ['honey-boo-replay.png'],
+                        : const ['bee-house-replay.png'],
                     sharePositionOrigin: shareOrigin,
                   ),
                 );
