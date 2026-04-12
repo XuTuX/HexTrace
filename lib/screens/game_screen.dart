@@ -369,7 +369,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                     files: shareImage == null ? null : [shareImage],
                     fileNameOverrides: shareImage == null
                         ? null
-                        : const ['bee-house-replay.png'],
+                        : const ['hexor-replay.png'],
                     sharePositionOrigin: shareOrigin,
                   ),
                 );

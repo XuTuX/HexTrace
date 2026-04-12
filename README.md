@@ -1,6 +1,6 @@
-# Bee House
+# Hexor
 
-Bee House is a Flutter puzzle game with Supabase-backed auth, synced scores, and ranking.
+Hexor is a Flutter puzzle game with Supabase-backed auth, synced scores, and ranking.
 
 ## Runtime Configuration
 

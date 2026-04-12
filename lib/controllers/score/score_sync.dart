@@ -1,4 +1,4 @@
-part of 'package:linkagon/controllers/score_controller.dart';
+part of 'package:hexor/controllers/score_controller.dart';
 
 Future<void> _syncWithOnlineScore(
   ScoreController controller,

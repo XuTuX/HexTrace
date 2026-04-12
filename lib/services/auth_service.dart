@@ -9,8 +9,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'package:linkagon/services/database_service.dart';
-import 'package:linkagon/utils/random_nickname_generator.dart';
+import 'package:hexor/services/database_service.dart';
+import 'package:hexor/utils/random_nickname_generator.dart';
 
 part 'auth/auth_account.dart';
 part 'auth/auth_profile.dart';
@@ -51,7 +51,7 @@ class AuthService extends GetxController {
 
   Future<void> signOut() => _signOut(this);
 
-  Future<String?> deleteBeeHouseData() => _deleteBeeHouseData(this);
+  Future<String?> deleteHexorData() => _deleteHexorData(this);
 
   Future<String?> deleteAccount() => _deleteAccount(this);
 

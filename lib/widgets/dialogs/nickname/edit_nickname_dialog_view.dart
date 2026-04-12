@@ -1,4 +1,4 @@
-part of 'package:linkagon/widgets/dialogs/edit_nickname_dialog.dart';
+part of 'package:hexor/widgets/dialogs/edit_nickname_dialog.dart';
 
 class _EditNicknameDialogView extends StatelessWidget {
   const _EditNicknameDialogView({

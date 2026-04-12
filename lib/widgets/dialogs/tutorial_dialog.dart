@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import 'package:linkagon/constant.dart';
-import 'package:linkagon/theme/app_typography.dart';
+import 'package:hexor/constant.dart';
+import 'package:hexor/theme/app_typography.dart';
 
 part 'tutorial/tutorial_dialog_view.dart';
 part 'tutorial/tutorial_footer.dart';

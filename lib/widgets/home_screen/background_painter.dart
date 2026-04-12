@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:linkagon/constant.dart';
+import 'package:hexor/constant.dart';
 
 // --- Background Painter ---
 class GridPatternPainter extends CustomPainter {

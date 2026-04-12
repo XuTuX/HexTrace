@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:linkagon/constant.dart';
+import 'package:hexor/constant.dart';
 
-/// Unified typography system for Bee House.
+/// Unified typography system for Hexor.
 ///
 /// Hierarchy:
 ///   display  (64) → Hero title only ("AREA")

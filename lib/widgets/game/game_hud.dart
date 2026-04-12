@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:linkagon/constant.dart';
+import 'package:hexor/constant.dart';
 import '../../game/hex_game_controller.dart';
 import 'animated_color_stream.dart';
 

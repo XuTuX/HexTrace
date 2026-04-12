@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import 'package:linkagon/constant.dart';
-import 'package:linkagon/services/database_service.dart';
-import 'package:linkagon/theme/app_typography.dart';
-import 'package:linkagon/utils/random_nickname_generator.dart';
+import 'package:hexor/constant.dart';
+import 'package:hexor/services/database_service.dart';
+import 'package:hexor/theme/app_typography.dart';
+import 'package:hexor/utils/random_nickname_generator.dart';
 
 part 'nickname/edit_nickname_dialog_view.dart';
 

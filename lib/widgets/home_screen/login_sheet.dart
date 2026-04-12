@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'package:linkagon/config/app_config.dart';
-import 'package:linkagon/theme/app_typography.dart';
+import 'package:hexor/config/app_config.dart';
+import 'package:hexor/theme/app_typography.dart';
 
 part 'login/login_sheet_view.dart';
 part 'login/login_sheet_legal.dart';

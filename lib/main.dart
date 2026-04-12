@@ -1,12 +1,12 @@
 import 'dart:ui';
 
-import 'package:linkagon/constant.dart';
-import 'package:linkagon/config/app_config.dart';
-import 'package:linkagon/screens/home_screen.dart';
-import 'package:linkagon/services/auth_service.dart';
-import 'package:linkagon/services/database_service.dart';
-import 'package:linkagon/services/settings_service.dart';
-import 'package:linkagon/services/ad_service.dart';
+import 'package:hexor/constant.dart';
+import 'package:hexor/config/app_config.dart';
+import 'package:hexor/screens/home_screen.dart';
+import 'package:hexor/services/auth_service.dart';
+import 'package:hexor/services/database_service.dart';
+import 'package:hexor/services/settings_service.dart';
+import 'package:hexor/services/ad_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';

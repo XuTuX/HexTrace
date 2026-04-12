@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:get/get.dart';
-import 'package:linkagon/config/app_config.dart';
+import 'package:hexor/config/app_config.dart';
 
 class AdService extends GetxService {
   RewardedAd? _rewardedAd;

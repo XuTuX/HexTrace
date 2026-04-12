@@ -1,4 +1,4 @@
-part of 'package:linkagon/services/auth_service.dart';
+part of 'package:hexor/services/auth_service.dart';
 
 Future<String?> _signInWithGoogle(AuthService service) async {
   try {

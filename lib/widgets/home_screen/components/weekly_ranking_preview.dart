@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'package:linkagon/constant.dart';
-import 'package:linkagon/screens/ranking/weekly_reset_info.dart';
-import 'package:linkagon/services/database_service.dart';
-import 'package:linkagon/game/game_palette.dart';
-import 'package:linkagon/game/hex_game_controller.dart';
+import 'package:hexor/constant.dart';
+import 'package:hexor/screens/ranking/weekly_reset_info.dart';
+import 'package:hexor/services/database_service.dart';
+import 'package:hexor/game/game_palette.dart';
+import 'package:hexor/game/hex_game_controller.dart';
 
 class WeeklyRankingPreview extends StatefulWidget {
   const WeeklyRankingPreview({

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import 'package:linkagon/constant.dart';
-import 'package:linkagon/services/auth_service.dart';
-import 'package:linkagon/theme/app_typography.dart';
+import 'package:hexor/constant.dart';
+import 'package:hexor/services/auth_service.dart';
+import 'package:hexor/theme/app_typography.dart';
 
 void showDeleteAccountDialog(AuthService authService) {
   Get.dialog(

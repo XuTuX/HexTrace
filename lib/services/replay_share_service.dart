@@ -11,7 +11,7 @@ import '../game/hex_game_models.dart';
 class ReplayShareService {
   const ReplayShareService._();
 
-  static const String _shareImageName = 'bee-house-replay.png';
+  static const String _shareImageName = 'hexor-replay.png';
 
   static String buildReplayCode({
     required int seed,

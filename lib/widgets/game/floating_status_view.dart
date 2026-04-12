@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'package:linkagon/constant.dart';
-import 'package:linkagon/game/hex_board_view.dart';
-import 'package:linkagon/game/hex_game_controller.dart';
+import 'package:hexor/constant.dart';
+import 'package:hexor/game/hex_board_view.dart';
+import 'package:hexor/game/hex_game_controller.dart';
 
 class FloatingStatusView extends StatefulWidget {
   const FloatingStatusView({super.key, required this.controller});

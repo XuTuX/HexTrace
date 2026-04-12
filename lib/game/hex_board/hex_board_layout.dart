@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import 'package:linkagon/game/hex_game_controller.dart';
+import 'package:hexor/game/hex_game_controller.dart';
 
 class HexBoardLayout {
   static const double _tileInsetFactor = 0.14;

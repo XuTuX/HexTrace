@@ -1,4 +1,4 @@
-part of 'package:linkagon/widgets/dialogs/tutorial_dialog.dart';
+part of 'package:hexor/widgets/dialogs/tutorial_dialog.dart';
 
 class _TutorialDialogView extends StatelessWidget {
   const _TutorialDialogView({

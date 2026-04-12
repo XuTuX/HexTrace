@@ -1,4 +1,4 @@
-part of 'package:linkagon/services/auth_service.dart';
+part of 'package:hexor/services/auth_service.dart';
 
 Future<void> _signOut(AuthService service) async {
   service._invalidateProfileLoadRequests();
@@ -7,15 +7,15 @@ Future<void> _signOut(AuthService service) async {
   _resetProfileState(service);
 }
 
-Future<String?> _deleteBeeHouseData(AuthService service) async {
+Future<String?> _deleteHexorData(AuthService service) async {
   try {
     service.isLoading.value = true;
-    debugPrint('🔵 [AuthService] Bee House data deletion started');
+    debugPrint('🔵 [AuthService] Hexor data deletion started');
     final deletingUserId = service._supabase.auth.currentUser?.id;
 
     try {
       final dbService = Get.find<DatabaseService>();
-      await dbService.deleteMyBeeHouseData();
+      await dbService.deleteMyHexorData();
       debugPrint('🟢 [AuthService] User data deleted from DB');
     } catch (e) {
       debugPrint('🔴 [AuthService] DB data deletion failed: $e');
@@ -31,10 +31,10 @@ Future<String?> _deleteBeeHouseData(AuthService service) async {
     service.user.value = null;
     service.userNickname.value = null;
 
-    debugPrint('🟢 [AuthService] Bee House data deletion completed');
+    debugPrint('🟢 [AuthService] Hexor data deletion completed');
     return null;
   } catch (e) {
-    debugPrint('🔴 [AuthService] Bee House data deletion failed: $e');
+    debugPrint('🔴 [AuthService] Hexor data deletion failed: $e');
     return 'Bee House 기록 삭제 중 오류가 발생했습니다. 다시 시도해주세요.';
   } finally {
     if (!service.isClosed) {

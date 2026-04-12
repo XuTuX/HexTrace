@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'package:linkagon/constant.dart';
-import 'package:linkagon/services/auth_service.dart';
+import 'package:hexor/constant.dart';
+import 'package:hexor/services/auth_service.dart';
 
 const double _borderWidth = 2.5;
 const double _cardRadius = 20.0;

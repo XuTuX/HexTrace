@@ -5,9 +5,9 @@ import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:linkagon/constant.dart';
-import 'package:linkagon/services/auth_service.dart';
-import 'package:linkagon/services/database_service.dart';
+import 'package:hexor/constant.dart';
+import 'package:hexor/services/auth_service.dart';
+import 'package:hexor/services/database_service.dart';
 
 part 'score/score_auth.dart';
 part 'score/score_gameplay.dart';
