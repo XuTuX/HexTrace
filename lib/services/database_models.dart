@@ -32,27 +32,11 @@ enum SeasonTier {
     }
   }
 
-  static SeasonTier fromRank({
-    required int rank,
-    required int participantCount,
-  }) {
-    if (rank <= 0 || participantCount <= 0) {
-      return SeasonTier.bronze;
-    }
-
-    final percentile = rank / participantCount;
-    if (percentile <= 0.01) {
-      return SeasonTier.diamond;
-    }
-    if (percentile <= 0.05) {
-      return SeasonTier.platinum;
-    }
-    if (percentile <= 0.20) {
-      return SeasonTier.gold;
-    }
-    if (percentile <= 0.50) {
-      return SeasonTier.silver;
-    }
+  static SeasonTier fromScore(int score) {
+    if (score >= 50000) return SeasonTier.diamond;
+    if (score >= 30000) return SeasonTier.platinum;
+    if (score >= 20000) return SeasonTier.gold;
+    if (score >= 10000) return SeasonTier.silver;
     return SeasonTier.bronze;
   }
 }
