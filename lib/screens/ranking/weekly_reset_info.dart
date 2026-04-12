@@ -8,12 +8,18 @@ class WeeklyResetInfo {
   final int hours;
 
   static WeeklyResetInfo current() {
-    const kstOffset = Duration(hours: 9);
+    // 1. Get current time in KST (UTC+9)
     final nowUtc = DateTime.now().toUtc();
-    final nowKst = nowUtc.add(kstOffset);
+    final nowKst = nowUtc.add(const Duration(hours: 9));
 
+    // 2. Find days until next Monday (1)
+    // weekday is 1 for Monday, 7 for Sunday.
+    // At Monday 00:00, we want the count for the next cycle (7 days).
     final daysUntilNextMonday = 8 - nowKst.weekday;
-    final nextResetKst = DateTime(
+
+    // 3. Target next Monday 00:00:00 KST
+    // We use DateTime.utc to stay in the same coordinate system as nowKst.
+    final nextResetKst = DateTime.utc(
       nowKst.year,
       nowKst.month,
       nowKst.day + daysUntilNextMonday,
@@ -28,7 +34,17 @@ class WeeklyResetInfo {
     );
   }
 
-  String get koreanLabel => '종료까지 $days일 $hours시간';
+  String get koreanLabel {
+    if (days > 0) {
+      return '종료까지 $days일 $hours시간';
+    }
+    return '종료까지 $hours시간';
+  }
 
-  String get englishCompactLabel => '${days}D ${hours}H LEFT';
+  String get englishCompactLabel {
+    if (days > 0) {
+      return '${days}D ${hours}H LEFT';
+    }
+    return '${hours}H LEFT';
+  }
 }

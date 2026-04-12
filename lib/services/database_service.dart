@@ -140,14 +140,17 @@ class DatabaseService extends GetxService {
     }
   }
 
-  Future<int?> getMyWeeklyRank(String gameId) async {
+  Future<int?> getMyWeeklyRank(String gameId, {String? weekKey}) async {
     final userId = _supabase.auth.currentUser?.id;
     if (userId == null) return null;
 
     try {
       final response = await _supabase.rpc(
-        'get_my_weekly_rank',
-        params: {'p_game_id': gameId},
+        weekKey == null ? 'get_my_weekly_rank' : 'get_my_weekly_rank_by_week',
+        params: {
+          'p_game_id': gameId,
+          if (weekKey != null) 'p_week_key': weekKey,
+        },
       );
       return _coerceNullableIntResponse(response);
     } catch (e) {
@@ -156,14 +159,19 @@ class DatabaseService extends GetxService {
     }
   }
 
-  Future<int?> getMyWeeklyBestScore(String gameId) async {
+  Future<int?> getMyWeeklyBestScore(String gameId, {String? weekKey}) async {
     final userId = _supabase.auth.currentUser?.id;
     if (userId == null) return null;
 
     try {
       final response = await _supabase.rpc(
-        'get_my_weekly_best_score',
-        params: {'p_game_id': gameId},
+        weekKey == null
+            ? 'get_my_weekly_best_score'
+            : 'get_my_weekly_best_score_by_week',
+        params: {
+          'p_game_id': gameId,
+          if (weekKey != null) 'p_week_key': weekKey,
+        },
       );
       return _coerceNullableIntResponse(response);
     } catch (e) {
@@ -175,13 +183,17 @@ class DatabaseService extends GetxService {
   Future<List<Map<String, dynamic>>> getWeeklyLeaderboard(
     String gameId, {
     int limit = 20,
+    String? weekKey,
   }) async {
     try {
       final response = await _supabase.rpc(
-        'get_weekly_leaderboard',
+        weekKey == null
+            ? 'get_weekly_leaderboard'
+            : 'get_weekly_leaderboard_by_week',
         params: {
           'p_game_id': gameId,
           'p_limit': limit,
+          if (weekKey != null) 'p_week_key': weekKey,
         },
       );
       return _mapLeaderboardRows(response);
