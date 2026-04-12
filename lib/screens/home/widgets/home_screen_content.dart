@@ -12,6 +12,7 @@ class HomeScreenContent extends StatelessWidget {
     required this.authService,
     required this.onSettingsTap,
     required this.onStartGame,
+    required this.onStartDaily,
     required this.onRankingTap,
   });
 
@@ -19,6 +20,7 @@ class HomeScreenContent extends StatelessWidget {
   final AuthService authService;
   final VoidCallback onSettingsTap;
   final VoidCallback onStartGame;
+  final Future<void> Function() onStartDaily;
   final VoidCallback onRankingTap;
 
   @override
@@ -38,49 +40,61 @@ class HomeScreenContent extends StatelessWidget {
             ),
           ),
           SafeArea(
-            child: Center(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: contentMaxWidth),
-                child: Padding(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
                   padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                  child: Column(
-                    children: [
-                      SizedBox(height: isTablet ? 20 : 12),
-                      Row(
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: contentMaxWidth,
+                        minHeight: constraints.maxHeight,
+                      ),
+                      child: Column(
                         children: [
-                          const Spacer(),
-                          TopIconButton(
-                            icon: Icons.settings_rounded,
-                            onTap: onSettingsTap,
+                          SizedBox(height: isTablet ? 20 : 12),
+                          Row(
+                            children: [
+                              const Spacer(),
+                              TopIconButton(
+                                icon: Icons.settings_rounded,
+                                onTap: onSettingsTap,
+                              ),
+                            ],
                           ),
+                          SizedBox(height: isTablet ? 24 : 16),
+                          const HomeLogo(),
+                          SizedBox(height: isTablet ? 32 : 28),
+                          ScoreDisplay(
+                            scoreController: scoreController,
+                            authService: authService,
+                          ),
+                          SizedBox(height: isTablet ? 28 : 24),
+                          PrimaryButton(
+                            label: '게임 시작',
+                            icon: Icons.play_arrow_rounded,
+                            onPressed: onStartGame,
+                          ),
+                          SizedBox(height: isTablet ? 16 : 14),
+                          RankingButton(
+                            onPressed: onRankingTap,
+                          ),
+                          SizedBox(height: isTablet ? 16 : 14),
+                          HomeProgressPanel(
+                            authService: authService,
+                            onStartDaily: onStartDaily,
+                          ),
+                          SizedBox(height: isTablet ? 18 : 16),
+                          WeeklyRankingPreview(
+                            onViewAll: onRankingTap,
+                          ),
+                          SizedBox(height: isTablet ? 28 : 20),
                         ],
                       ),
-                      const Spacer(flex: 2),
-                      const HomeLogo(),
-                      SizedBox(height: isTablet ? 32 : 28),
-                      ScoreDisplay(
-                        scoreController: scoreController,
-                        authService: authService,
-                      ),
-                      SizedBox(height: isTablet ? 40 : 36),
-                      PrimaryButton(
-                        label: '게임 시작',
-                        icon: Icons.play_arrow_rounded,
-                        onPressed: onStartGame,
-                      ),
-                      SizedBox(height: isTablet ? 16 : 14),
-                      RankingButton(
-                        onPressed: onRankingTap,
-                      ),
-                      const Spacer(flex: 3),
-                      WeeklyRankingPreview(
-                        onViewAll: onRankingTap,
-                      ),
-                      SizedBox(height: isTablet ? 28 : 20),
-                    ],
+                    ),
                   ),
-                ),
-              ),
+                );
+              },
             ),
           ),
         ],

@@ -19,8 +19,9 @@ class HexGameController extends ChangeNotifier {
     this.cols = 6,
     this.colorBarSize = 10,
     this.startingSeconds = 60,
+    this.sessionConfig = const GameSessionConfig.normal(),
     int? seed,
-  }) : initialSeed = seed ?? Random().nextInt(1000000) {
+  }) : initialSeed = sessionConfig.seed ?? seed ?? Random().nextInt(1000000) {
     _random = Random(initialSeed);
     _resetGame(this, seed: initialSeed);
   }
@@ -29,6 +30,7 @@ class HexGameController extends ChangeNotifier {
   final int cols;
   final int colorBarSize;
   final int startingSeconds;
+  final GameSessionConfig sessionConfig;
   late Random _random;
   // ignore: prefer_final_fields
   int _nextBarEntryId = 0;
@@ -52,6 +54,11 @@ class HexGameController extends ChangeNotifier {
 
   int score = 0;
   int combo = 0;
+  int maxCombo = 0;
+  int longestPathLength = 0;
+  int matchCount = 0;
+  int invalidAttemptCount = 0;
+  BestMoveSummary? bestMove;
   double timeRemaining = 0;
   bool isGameOver = false;
   bool isResolvingMatch = false;
@@ -105,6 +112,21 @@ class HexGameController extends ChangeNotifier {
     _resetGame(this, seed: initialSeed);
   }
 
+  GameRunSummary get runSummary {
+    return GameRunSummary(
+      mode: isReplaying ? GameMode.replay : sessionConfig.mode,
+      score: score,
+      maxCombo: maxCombo,
+      longestPathLength: longestPathLength,
+      matchCount: matchCount,
+      invalidAttemptCount: invalidAttemptCount,
+      remainingTime: timeRemaining,
+      bestMove: bestMove,
+      dateKey: sessionConfig.dateKey,
+      seed: initialSeed,
+    );
+  }
+
   Future<void> watchReplay() async {
     isReplaying = true;
     final movesToReplay = List<RecordedMove>.from(recordedMoves);
@@ -132,7 +154,7 @@ class HexGameController extends ChangeNotifier {
       currentReplayIndex = i + 1;
       final moveData = movesToReplay[i];
       final fullPath = moveData.path;
-      
+
       // Build the path step-by-step to simulate dragging
       dragPath = [];
       for (final step in fullPath) {
@@ -141,13 +163,13 @@ class HexGameController extends ChangeNotifier {
         unawaited(AppHaptics.selection());
         await Future<void>.delayed(const Duration(milliseconds: 100));
       }
-      
+
       // Pause briefly after the full path is shown (0.5s)
       await Future<void>.delayed(const Duration(milliseconds: 500));
-      
+
       combo = moveData.combo; // Inject the original combo count
       await _resolveCurrentMatch(this);
-      
+
       // Gap between moves (0.4s)
       await Future<void>.delayed(const Duration(milliseconds: 400));
     }

@@ -5,6 +5,7 @@ import 'package:hexor/config/app_config.dart';
 import 'package:hexor/screens/home_screen.dart';
 import 'package:hexor/services/auth_service.dart';
 import 'package:hexor/services/database_service.dart';
+import 'package:hexor/services/progress_service.dart';
 import 'package:hexor/services/settings_service.dart';
 import 'package:hexor/services/ad_service.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +18,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   _installGlobalErrorHandlers();
   final settingsService = await SettingsService().init();
+  final progressService = await ProgressService().init();
   try {
     await dotenv.load(fileName: '.env');
     AppConfig.validateRequired();
@@ -30,7 +32,12 @@ void main() async {
       anonKey: AppConfig.supabaseAnonKey,
     );
 
-    runApp(BeeHouseApp(settingsService: settingsService));
+    runApp(
+      BeeHouseApp(
+        settingsService: settingsService,
+        progressService: progressService,
+      ),
+    );
   } catch (error, stackTrace) {
     debugPrint('Failed to initialize app: $error');
     debugPrintStack(stackTrace: stackTrace);
@@ -58,13 +65,18 @@ void _installGlobalErrorHandlers() {
 
 class AppBinding extends Bindings {
   final SettingsService settingsService;
+  final ProgressService progressService;
 
-  AppBinding({required this.settingsService});
+  AppBinding({
+    required this.settingsService,
+    required this.progressService,
+  });
 
   @override
   void dependencies() {
     Get.put(AuthService(), permanent: true);
     Get.put(DatabaseService(), permanent: true);
+    Get.put<ProgressService>(progressService, permanent: true);
     if (AppConfig.supportsAds) {
       Get.put(AdService(), permanent: true);
     }
@@ -74,15 +86,23 @@ class AppBinding extends Bindings {
 
 class BeeHouseApp extends StatelessWidget {
   final SettingsService settingsService;
+  final ProgressService progressService;
 
-  const BeeHouseApp({super.key, required this.settingsService});
+  const BeeHouseApp({
+    super.key,
+    required this.settingsService,
+    required this.progressService,
+  });
 
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       title: appName,
-      initialBinding: AppBinding(settingsService: settingsService),
+      initialBinding: AppBinding(
+        settingsService: settingsService,
+        progressService: progressService,
+      ),
       navigatorKey: Get.key, // GetX 글로벌 키 설정
       home: const HomeScreen(),
     );

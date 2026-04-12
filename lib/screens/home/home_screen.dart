@@ -77,7 +77,8 @@ class _HomeScreenState extends State<HomeScreen> {
       scoreController: scoreController,
       authService: authService,
       onSettingsTap: () => showSettingsScreen(authService),
-      onStartGame: openGameScreen,
+      onStartGame: () => openGameScreen(),
+      onStartDaily: () => openDailyChallenge(authService),
       onRankingTap: () => handleRankingPress(authService),
     );
   }

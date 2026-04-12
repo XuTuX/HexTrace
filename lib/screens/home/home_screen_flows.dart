@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import 'package:hexor/constant.dart';
+import 'package:hexor/game/daily_challenge_entry.dart';
+import 'package:hexor/game/hex_game_controller.dart';
 import 'package:hexor/screens/game_screen.dart';
 import 'package:hexor/screens/ranking_screen.dart';
 import 'package:hexor/screens/settings_screen.dart';
@@ -17,8 +20,40 @@ void handleRankingPress(AuthService authService) {
   }
 }
 
-void openGameScreen() {
-  Get.off(() => const GameScreen());
+void openGameScreen(
+    [GameSessionConfig sessionConfig = const GameSessionConfig.normal()]) {
+  Get.off(() => GameScreen(sessionConfig: sessionConfig));
+}
+
+Future<void> openDailyChallenge(AuthService authService) async {
+  final dbService = Get.find<DatabaseService>();
+
+  try {
+    final challenge = await dbService.getDailyChallenge(gameId);
+    final decision = resolveDailyChallengeLaunch(
+      challenge: challenge,
+      isLoggedIn: authService.user.value != null,
+    );
+    if (decision.noticeMessage != null) {
+      Get.snackbar(
+        '오늘의 퍼즐',
+        decision.noticeMessage!,
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.black87,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 3),
+      );
+    }
+    openGameScreen(decision.sessionConfig);
+  } catch (_) {
+    Get.snackbar(
+      '로딩 실패',
+      '오늘의 퍼즐을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.',
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Colors.red,
+      colorText: Colors.white,
+    );
+  }
 }
 
 void showLoginSheet(

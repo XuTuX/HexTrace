@@ -16,6 +16,34 @@ class GameHud extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (controller.sessionConfig.isDailyMode && !controller.isReplaying)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: controller.sessionConfig.isOfficialScoreSubmission
+                        ? const Color(0xFFE0F2FE)
+                        : const Color(0xFFF3F4F6),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: charcoalBlack, width: 1.5),
+                  ),
+                  child: Text(
+                    controller.sessionConfig.isOfficialScoreSubmission
+                        ? '오늘의 퍼즐 공식 도전'
+                        : '오늘의 퍼즐 연습 모드',
+                    style: const TextStyle(
+                      color: charcoalBlack,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ),
+            ),
           if (!controller.isReplaying)
             Align(
               alignment: Alignment.centerRight,

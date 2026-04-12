@@ -43,6 +43,20 @@ Future<void> _resolveCurrentMatch(HexGameController controller) async {
   final gainedScore =
       _scoreForLength(controller, matchedPath.length, controller.combo);
   controller.score += gainedScore;
+  controller.matchCount++;
+  controller.maxCombo = max(controller.maxCombo, controller.combo);
+  controller.longestPathLength =
+      max(controller.longestPathLength, matchedPath.length);
+  final candidateBestMove = BestMoveSummary(
+    pathLength: matchedPath.length,
+    scoreGained: gainedScore,
+    combo: controller.combo,
+  );
+  final currentBestMove = controller.bestMove;
+  if (currentBestMove == null ||
+      candidateBestMove.isBetterThan(currentBestMove)) {
+    controller.bestMove = candidateBestMove;
+  }
   if (!controller.isReplaying) {
     final nextRemaining = min(
       controller.startingSeconds.toDouble() + 25,
@@ -164,6 +178,11 @@ void _resetGame(
 
   controller.score = 0;
   controller.combo = 0;
+  controller.maxCombo = 0;
+  controller.longestPathLength = 0;
+  controller.matchCount = 0;
+  controller.invalidAttemptCount = 0;
+  controller.bestMove = null;
   controller.timeRemaining = controller.startingSeconds.toDouble();
   controller.isGameOver = false;
   controller.isResolvingMatch = false;

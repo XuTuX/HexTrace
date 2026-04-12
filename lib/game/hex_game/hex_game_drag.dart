@@ -70,6 +70,7 @@ void _endDrag(HexGameController controller) {
     return;
   }
 
+  controller.invalidAttemptCount++;
   controller.statusText =
       controller.dragState == DragState.invalid ? '현재 경로가 색 흐름과 맞지 않아요.' : '';
   controller.statusTone = GameMessageTone.warning;
@@ -123,6 +124,7 @@ void _updateStatusForDrag(HexGameController controller) {
 }
 
 void _showInvalidPulse(HexGameController controller, String message) {
+  controller.invalidAttemptCount++;
   controller.invalidPulse = true;
   controller.statusText = message;
   controller.statusTone = GameMessageTone.error;

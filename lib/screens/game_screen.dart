@@ -4,10 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../constant.dart';
 import '../controllers/score_controller.dart';
 import '../game/hex_board_view.dart';
 import '../game/hex_game_controller.dart';
 import '../services/app_haptics.dart';
+import '../services/database_service.dart';
+import '../services/progress_service.dart';
 import '../services/replay_share_service.dart';
 import '../utils/browser_back_blocker.dart';
 import '../widgets/dialogs/share_preview_dialog.dart';
@@ -19,7 +22,12 @@ import 'home_screen.dart';
 import 'ranking_screen.dart';
 
 class GameScreen extends StatefulWidget {
-  const GameScreen({super.key});
+  const GameScreen({
+    super.key,
+    this.sessionConfig = const GameSessionConfig.normal(),
+  });
+
+  final GameSessionConfig sessionConfig;
 
   @override
   State<GameScreen> createState() => _GameScreenState();
@@ -32,6 +40,10 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   int _lastSyncedScore = 0;
   bool _didReportGameOver = false;
   bool _isSharingReplay = false;
+  String? _dailyStatusLabel;
+  String? _dailyStatusDetail;
+  List<String> _completedMissionTitles = const [];
+  List<String> _unlockedAchievementTitles = const [];
 
   @override
   void initState() {
@@ -44,7 +56,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     }
 
     _scoreController.resetScore();
-    _controller = HexGameController();
+    _controller = HexGameController(sessionConfig: widget.sessionConfig);
     _controller.addListener(_handleControllerChanged);
     _browserBackBlocker.attach();
   }
@@ -162,7 +174,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                                                         .totalReplayMoves >
                                                     0
                                                 ? (_controller
-                                                         .currentReplayIndex /
+                                                        .currentReplayIndex /
                                                     _controller
                                                         .totalReplayMoves)
                                                 : 0.0,
@@ -212,7 +224,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                           if (_controller.isGameOver)
                             Positioned.fill(
                               child: GameOverOverlay(
-                                score: _controller.score,
+                                runSummary: _controller.runSummary,
                                 bestScore: _scoreController.highscore.value,
                                 isNewHighScore: _scoreController
                                     .hasNewHighScoreThisGame.value,
@@ -223,6 +235,11 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                                     Get.offAll(() => const HomeScreen()),
                                 onRanking: _openRanking,
                                 isSharing: _isSharingReplay,
+                                dailyStatusLabel: _dailyStatusLabel,
+                                dailyStatusDetail: _dailyStatusDetail,
+                                completedMissionTitles: _completedMissionTitles,
+                                unlockedAchievementTitles:
+                                    _unlockedAchievementTitles,
                               ),
                             ),
                         ],
@@ -243,12 +260,14 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                           return Container(
                             decoration: BoxDecoration(
                               border: Border.all(
-                                color: Colors.red.withValues(alpha: value * 0.4),
+                                color:
+                                    Colors.red.withValues(alpha: value * 0.4),
                                 width: 20 * value,
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.red.withValues(alpha: value * 0.2),
+                                  color:
+                                      Colors.red.withValues(alpha: value * 0.2),
                                   blurRadius: 40 * value,
                                   spreadRadius: 10 * value,
                                 ),
@@ -272,6 +291,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       _scoreController.resetScore();
       _lastSyncedScore = _controller.score;
       _didReportGameOver = false;
+      _resetPostGamePresentationState();
       return;
     }
 
@@ -290,9 +310,11 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         !_didReportGameOver &&
         !_controller.isReplaying) {
       _didReportGameOver = true;
+      _primePostGamePresentationState();
       unawaited(AppHaptics.gameOver());
       _scoreController.checkHighScore();
       unawaited(_scoreController.uploadHighScoreToServer(_controller.score));
+      unawaited(_finalizeCompletedRun());
     } else if (!_controller.isGameOver) {
       _didReportGameOver = false;
     }
@@ -302,6 +324,21 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     _scoreController.resetScore();
     _lastSyncedScore = 0;
     _didReportGameOver = false;
+    _resetPostGamePresentationState();
+
+    if (_controller.sessionConfig.isDailyMode) {
+      Get.off(
+        () => GameScreen(
+          sessionConfig: GameSessionConfig(
+            mode: GameMode.dailyPractice,
+            seed: _controller.initialSeed,
+            dateKey: _controller.sessionConfig.dateKey,
+          ),
+        ),
+      );
+      return;
+    }
+
     _controller.playAgain();
   }
 
@@ -309,6 +346,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     _scoreController.resetScore();
     _lastSyncedScore = 0;
     _didReportGameOver = false;
+    _resetPostGamePresentationState();
     unawaited(_controller.watchReplay());
   }
 
@@ -319,6 +357,118 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       backgroundColor: Colors.transparent,
       enterBottomSheetDuration: const Duration(milliseconds: 300),
     );
+  }
+
+  void _primePostGamePresentationState() {
+    final session = _controller.sessionConfig;
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _completedMissionTitles = const [];
+      _unlockedAchievementTitles = const [];
+
+      if (session.mode == GameMode.dailyOfficial) {
+        _dailyStatusLabel = '오늘의 퍼즐 기록 제출 중';
+        _dailyStatusDetail = session.dateKey == null
+            ? '공식 기록을 저장하고 있어요.'
+            : '${session.dateKey} 기록을 저장하고 있어요.';
+      } else if (session.mode == GameMode.dailyPractice) {
+        _dailyStatusLabel = '오늘의 퍼즐 연습';
+        _dailyStatusDetail = '연습 기록은 오늘의 공식 랭킹에 반영되지 않아요.';
+      } else {
+        _dailyStatusLabel = null;
+        _dailyStatusDetail = null;
+      }
+    });
+  }
+
+  void _resetPostGamePresentationState() {
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _dailyStatusLabel = null;
+      _dailyStatusDetail = null;
+      _completedMissionTitles = const [];
+      _unlockedAchievementTitles = const [];
+    });
+  }
+
+  Future<void> _finalizeCompletedRun() async {
+    final summary = _controller.runSummary;
+    final progressService = Get.find<ProgressService>();
+    final dbService = Get.find<DatabaseService>();
+
+    final progressFuture = progressService.registerCompletedRun(summary);
+    final dailyFuture = _submitDailyScoreIfNeeded(
+      dbService: dbService,
+      summary: summary,
+    );
+
+    final progressResult = await progressFuture;
+    final dailyResult = await dailyFuture;
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _completedMissionTitles = progressResult.completedMissionTypes
+          .map((type) => progressService.missionDefinition(type).title)
+          .toList(growable: false);
+      _unlockedAchievementTitles = progressResult.unlockedAchievementTypes
+          .map((type) => progressService.achievementDefinition(type).title)
+          .toList(growable: false);
+      if (dailyResult case (final label, final detail)) {
+        _dailyStatusLabel = label;
+        _dailyStatusDetail = detail;
+      }
+    });
+  }
+
+  Future<(String, String)?> _submitDailyScoreIfNeeded({
+    required DatabaseService dbService,
+    required GameRunSummary summary,
+  }) async {
+    if (!_controller.sessionConfig.isOfficialScoreSubmission ||
+        !_controller.sessionConfig.isDailyMode ||
+        _controller.sessionConfig.dateKey == null) {
+      return null;
+    }
+
+    try {
+      final replayCode = ReplayShareService.buildReplayCode(
+        seed: _controller.initialSeed,
+        recordedMoves: _controller.recordedMoves,
+      );
+      final storedScore = await dbService.submitDailyScore(
+        gameId: gameId,
+        dateKey: _controller.sessionConfig.dateKey!,
+        seed: _controller.initialSeed,
+        score: summary.score,
+        replayCode: replayCode,
+        summary: summary.toJson(),
+      );
+      return (
+        '오늘의 퍼즐 등록 완료',
+        '공식 기록 $storedScore점이 오늘의 랭킹에 반영되었어요.',
+      );
+    } catch (e) {
+      final message = e.toString();
+      if (message.contains('Daily attempt already used')) {
+        return (
+          '오늘의 퍼즐 미등록',
+          '공식 기록은 하루 한 번만 제출할 수 있어요.',
+        );
+      }
+      return (
+        '오늘의 퍼즐 저장 실패',
+        '공식 기록 저장에 실패했어요. 일반 기록과 미션은 정상 반영됐습니다.',
+      );
+    }
   }
 
   Future<void> _shareReplay() async {
@@ -367,9 +517,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                     subject: 'Bee House 리플레이',
                     text: shareText,
                     files: shareImage == null ? null : [shareImage],
-                    fileNameOverrides: shareImage == null
-                        ? null
-                        : const ['hexor-replay.png'],
+                    fileNameOverrides:
+                        shareImage == null ? null : const ['hexor-replay.png'],
                     sharePositionOrigin: shareOrigin,
                   ),
                 );

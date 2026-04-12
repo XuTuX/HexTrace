@@ -1,6 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:get/get.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import 'package:hexor/services/database_models.dart';
+import 'package:hexor/utils/kst_clock.dart';
 
 class DatabaseService extends GetxService {
   final SupabaseClient _supabase = Supabase.instance.client;
@@ -10,6 +15,30 @@ class DatabaseService extends GetxService {
     if (value is int) return value;
     if (value is num) return value.toInt();
     return int.tryParse(value.toString());
+  }
+
+  bool _coerceBool(dynamic value) {
+    if (value is bool) return value;
+    final normalized = value?.toString().toLowerCase().trim();
+    return normalized == 'true' || normalized == 't' || normalized == '1';
+  }
+
+  String? _coerceString(dynamic value) {
+    if (value == null) return null;
+    final text = value.toString().trim();
+    return text.isEmpty ? null : text;
+  }
+
+  Map<String, dynamic> _coerceMap(dynamic value) {
+    if (value is Map<String, dynamic>) {
+      return value;
+    }
+    if (value is Map) {
+      return value.map(
+        (key, dynamic entryValue) => MapEntry(key.toString(), entryValue),
+      );
+    }
+    return <String, dynamic>{};
   }
 
   int? _coerceNullableIntResponse(dynamic response) {
@@ -42,7 +71,45 @@ class DatabaseService extends GetxService {
         .toList();
   }
 
-  // 특정 게임의 내 최고 점수 가져오기
+  DailyChallengeInfo _mapDailyChallenge(dynamic response) {
+    final row = _coerceMap(response);
+    return DailyChallengeInfo(
+      dateKey: _coerceString(row['date_key']) ?? KstClock.currentDateKey(),
+      seed: _coerceInt(row['seed']) ?? 0,
+      hasUsedOfficialAttempt: _coerceBool(row['has_used_official_attempt']),
+      myScore: _coerceInt(row['my_score']),
+    );
+  }
+
+  WeeklySeasonSummary? _mapWeeklySeasonSummary(dynamic response) {
+    if (response == null) {
+      return null;
+    }
+
+    final row = _coerceMap(response);
+    if (row.isEmpty) {
+      return null;
+    }
+
+    final participantCount = _coerceInt(row['participant_count']) ?? 0;
+    final rank = _coerceInt(row['rank']);
+    final tierValue = _coerceString(row['tier']);
+    final tier = tierValue != null
+        ? SeasonTier.fromValue(tierValue)
+        : SeasonTier.fromRank(
+            rank: rank ?? participantCount,
+            participantCount: participantCount,
+          );
+
+    return WeeklySeasonSummary(
+      weekKey: _coerceString(row['week_key']) ?? KstClock.currentWeekKey(),
+      participantCount: participantCount,
+      tier: tier,
+      rank: rank,
+      score: _coerceInt(row['score']),
+    );
+  }
+
   Future<int?> getMyBestScore(String gameId) async {
     final userId = _supabase.auth.currentUser?.id;
     if (userId == null) return null;
@@ -55,7 +122,6 @@ class DatabaseService extends GetxService {
     return _coerceNullableIntResponse(response);
   }
 
-  // 점수 저장 (최고 점수 갱신 로직)
   Future<int> saveScore(String gameId, int newScore) async {
     final userId = _supabase.auth.currentUser?.id;
     if (userId == null) {
@@ -106,7 +172,47 @@ class DatabaseService extends GetxService {
     return bestScore;
   }
 
-  // 나의 순위 가져오기
+  Future<DailyChallengeInfo> getDailyChallenge(String gameId) async {
+    final response = await _supabase.rpc(
+      'get_daily_challenge',
+      params: {'p_game_id': gameId},
+    );
+    return _mapDailyChallenge(response);
+  }
+
+  Future<int> submitDailyScore({
+    required String gameId,
+    required String dateKey,
+    required int seed,
+    required int score,
+    required String replayCode,
+    required Map<String, dynamic> summary,
+  }) async {
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) {
+      throw StateError('로그인이 필요합니다.');
+    }
+
+    final response = await _supabase.rpc(
+      'submit_daily_score',
+      params: {
+        'p_game_id': gameId,
+        'p_date_key': dateKey,
+        'p_seed': seed,
+        'p_score': score,
+        'p_replay_code': replayCode,
+        'p_summary_json': jsonEncode(summary),
+      },
+    );
+
+    final storedScore = _coerceInt(response);
+    if (storedScore == null) {
+      throw StateError('submit_daily_score 응답이 비정상적입니다.');
+    }
+
+    return storedScore;
+  }
+
   Future<int?> getMyRank(String gameId) async {
     final userId = _supabase.auth.currentUser?.id;
     if (userId == null) return null;
@@ -119,7 +225,6 @@ class DatabaseService extends GetxService {
     return _coerceNullableIntResponse(response);
   }
 
-  // 리더보드 가져오기 (클라이언트 사이드 중복 제거 포함)
   Future<List<Map<String, dynamic>>> getLeaderboard(
     String gameId, {
     int limit = 50,
@@ -136,6 +241,65 @@ class DatabaseService extends GetxService {
       return _mapLeaderboardRows(response);
     } catch (e) {
       debugPrint('🔴 Error fetching leaderboard: $e');
+      return [];
+    }
+  }
+
+  Future<int?> getMyDailyRank(String gameId, {String? dateKey}) async {
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) return null;
+
+    try {
+      final response = await _supabase.rpc(
+        'get_my_daily_rank',
+        params: {
+          'p_game_id': gameId,
+          if (dateKey != null) 'p_date_key': dateKey,
+        },
+      );
+      return _coerceNullableIntResponse(response);
+    } catch (e) {
+      debugPrint('🔴 Error fetching daily rank: $e');
+      return null;
+    }
+  }
+
+  Future<int?> getMyDailyBestScore(String gameId, {String? dateKey}) async {
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) return null;
+
+    try {
+      final response = await _supabase.rpc(
+        'get_my_daily_best_score',
+        params: {
+          'p_game_id': gameId,
+          if (dateKey != null) 'p_date_key': dateKey,
+        },
+      );
+      return _coerceNullableIntResponse(response);
+    } catch (e) {
+      debugPrint('🔴 Error fetching daily best score: $e');
+      return null;
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getDailyLeaderboard(
+    String gameId, {
+    int limit = 20,
+    String? dateKey,
+  }) async {
+    try {
+      final response = await _supabase.rpc(
+        'get_daily_leaderboard',
+        params: {
+          'p_game_id': gameId,
+          'p_limit': limit,
+          if (dateKey != null) 'p_date_key': dateKey,
+        },
+      );
+      return _mapLeaderboardRows(response);
+    } catch (e) {
+      debugPrint('🔴 Error fetching daily leaderboard: $e');
       return [];
     }
   }
@@ -203,6 +367,19 @@ class DatabaseService extends GetxService {
     }
   }
 
+  Future<WeeklySeasonSummary?> getWeeklySeasonSummary(String gameId) async {
+    try {
+      final response = await _supabase.rpc(
+        'get_my_weekly_season_summary',
+        params: {'p_game_id': gameId},
+      );
+      return _mapWeeklySeasonSummary(response);
+    } catch (e) {
+      debugPrint('🔴 Error fetching weekly season summary: $e');
+      return null;
+    }
+  }
+
   Future<int?> getMyAllTimeRank(String gameId) async {
     final userId = _supabase.auth.currentUser?.id;
     if (userId == null) return null;
@@ -254,7 +431,6 @@ class DatabaseService extends GetxService {
     }
   }
 
-  // 닉네임 설정/업데이트
   Future<String?> updateNickname(String nickname) async {
     final userId = _supabase.auth.currentUser?.id;
     if (userId == null) return '로그인이 필요합니다.';
@@ -265,18 +441,17 @@ class DatabaseService extends GetxService {
         'nickname': nickname,
         'updated_at': DateTime.now().toIso8601String(),
       });
-      return null; // Success
+      return null;
     } on PostgrestException catch (e) {
       if (e.code == '23505') {
         return '이미 사용 중인 닉네임입니다. \n다른 닉네임을 선택해주세요.';
       }
       return '닉네임 업데이트 중 오류가 발생했습니다: ${e.message}';
-    } catch (e) {
+    } catch (_) {
       return '알 수 없는 오류가 발생했습니다.';
     }
   }
 
-  /// Check if a nickname is available (not taken by another user)
   Future<bool> checkNicknameAvailable(String nickname) async {
     try {
       final response = await _supabase.rpc(
@@ -289,24 +464,18 @@ class DatabaseService extends GetxService {
       }
 
       return response?.toString() == 'true';
-    } catch (e) {
+    } catch (_) {
       return false;
     }
   }
 
-  // 내 프로필 가져오기
   Future<Map<String, dynamic>?> getMyProfile() async {
     final userId = _supabase.auth.currentUser?.id;
     if (userId == null) return null;
 
-    return await _supabase
-        .from('profiles')
-        .select()
-        .eq('id', userId)
-        .maybeSingle();
+    return _supabase.from('profiles').select().eq('id', userId).maybeSingle();
   }
 
-  // Hexor 게임 데이터 삭제
   Future<void> deleteMyHexorData() async {
     final userId = _supabase.auth.currentUser?.id;
     if (userId == null) return;
@@ -314,7 +483,6 @@ class DatabaseService extends GetxService {
     await _supabase.rpc('delete_my_account_data');
   }
 
-  // NEOREO GAMES 계정 완전 삭제 (모든 게임 데이터 + 프로필 + auth 계정)
   Future<void> deleteMyAccount() async {
     final userId = _supabase.auth.currentUser?.id;
     if (userId == null) return;

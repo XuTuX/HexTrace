@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:hexor/constant.dart';
 import 'package:hexor/controllers/score_controller.dart';
 import 'package:hexor/services/auth_service.dart';
+import 'package:hexor/services/database_models.dart';
 import 'package:hexor/services/database_service.dart';
 
 import 'ranking_data_loader.dart';
@@ -26,6 +27,7 @@ class _RankingScreenState extends State<RankingScreen> {
   int? _myRank;
   int? _myScore;
   List<Map<String, dynamic>> _scores = [];
+  WeeklySeasonSummary? _weeklySeasonSummary;
   RankingPeriod _period = RankingPeriod.weekly;
   late final Worker _authWorker;
 
@@ -77,6 +79,7 @@ class _RankingScreenState extends State<RankingScreen> {
         _myRank = snapshot.myRank;
         _myScore = snapshot.myScore;
         _scores = snapshot.scores;
+        _weeklySeasonSummary = snapshot.weeklySeasonSummary;
         _isLoading = false;
       });
 
@@ -173,6 +176,7 @@ class _RankingScreenState extends State<RankingScreen> {
             score: _myScore,
             isLoggedIn: myId != null,
             period: _period,
+            weeklySeasonSummary: _weeklySeasonSummary,
           ),
         ),
         const SizedBox(height: 24),
