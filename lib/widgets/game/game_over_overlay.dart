@@ -154,7 +154,9 @@ class GameOverOverlay extends StatelessWidget {
                         ),
                         const SizedBox(height: 12),
                         PrimaryButton(
-                          label: runSummary.isDailyMode ? '연습 다시하기' : '다시 시작하기',
+                          label: runSummary.isDailyMode
+                              ? '홈으로 돌아가기'
+                              : '다시 시작하기',
                           onPressed: onRestart,
                         ),
                       ],

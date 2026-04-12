@@ -62,18 +62,18 @@ class DailyChallengeInfo {
   const DailyChallengeInfo({
     required this.dateKey,
     required this.seed,
-    required this.hasUsedOfficialAttempt,
+    required this.hasUsedEntry,
     this.myScore,
   });
 
   final String dateKey;
   final int seed;
-  final bool hasUsedOfficialAttempt;
+  final bool hasUsedEntry;
   final int? myScore;
 
   String get displayDateLabel => dateKey.replaceAll('-', '.');
 
-  bool get hasOfficialEntry => myScore != null;
+  bool get hasScoreEntry => myScore != null;
 }
 
 @immutable

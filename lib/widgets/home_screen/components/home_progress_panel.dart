@@ -116,15 +116,18 @@ class _TodayPuzzleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasUsedAttempt = challenge?.hasUsedOfficialAttempt ?? false;
-    final buttonLabel =
-        isLoggedIn && !hasUsedAttempt ? '오늘의 퍼즐 도전' : '오늘의 퍼즐 연습';
+    final hasUsedAttempt = challenge?.hasUsedEntry ?? false;
+    final buttonLabel = switch ((isLoggedIn, hasUsedAttempt)) {
+      (false, _) => '로그인하고 도전하기',
+      (true, false) => '오늘의 퍼즐 도전',
+      (true, true) => '오늘은 종료',
+    };
     final subtitle = switch ((isLoggedIn, hasUsedAttempt, challenge?.myScore)) {
       (true, false, _) => '하루 한 번 모두가 같은 시드로 경쟁해요.',
       (true, true, final int myScore?) =>
-        '오늘 공식 기록 $myScore점 제출 완료. 같은 시드로 계속 연습할 수 있어요.',
-      (true, true, _) => '오늘의 공식 기록은 이미 사용했어요. 같은 시드로 연습할 수 있어요.',
-      (false, _, _) => '로그인하면 오늘의 공식 랭킹에 참가할 수 있어요.',
+        '오늘의 퍼즐은 이미 플레이했어요. 기록은 $myScore점입니다.',
+      (true, true, _) => '오늘의 퍼즐은 이미 입장했어요. 내일 다시 도전해 주세요.',
+      (false, _, _) => '오늘의 퍼즐은 로그인 후 하루 한 번만 참여할 수 있어요.',
     };
 
     return _PanelCard(
@@ -176,12 +179,17 @@ class _TodayPuzzleCard extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
-                  onPressed();
-                },
+                onPressed: hasUsedAttempt
+                    ? null
+                    : () {
+                        onPressed();
+                      },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2563EB),
-                  foregroundColor: Colors.white,
+                  backgroundColor: hasUsedAttempt
+                      ? const Color(0xFFCBD5E1)
+                      : const Color(0xFF2563EB),
+                  foregroundColor:
+                      hasUsedAttempt ? const Color(0xFF475569) : Colors.white,
                   elevation: 0,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(

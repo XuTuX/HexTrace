@@ -3,11 +3,13 @@ import 'package:hexor/services/database_models.dart';
 
 class DailyChallengeLaunchDecision {
   const DailyChallengeLaunchDecision({
-    required this.sessionConfig,
+    required this.canLaunch,
+    this.sessionConfig,
     this.noticeMessage,
   });
 
-  final GameSessionConfig sessionConfig;
+  final bool canLaunch;
+  final GameSessionConfig? sessionConfig;
   final String? noticeMessage;
 }
 
@@ -15,26 +17,29 @@ DailyChallengeLaunchDecision resolveDailyChallengeLaunch({
   required DailyChallengeInfo challenge,
   required bool isLoggedIn,
 }) {
-  if (isLoggedIn && !challenge.hasUsedOfficialAttempt) {
+  if (!isLoggedIn) {
+    return const DailyChallengeLaunchDecision(
+      canLaunch: false,
+      noticeMessage: '오늘의 퍼즐은 로그인 후 하루 한 번만 참여할 수 있어요.',
+    );
+  }
+
+  if (challenge.hasUsedEntry) {
     return DailyChallengeLaunchDecision(
-      sessionConfig: GameSessionConfig(
-        mode: GameMode.dailyOfficial,
-        seed: challenge.seed,
-        dateKey: challenge.dateKey,
-        isOfficialScoreSubmission: true,
-      ),
+      canLaunch: false,
+      noticeMessage: challenge.myScore == null
+          ? '오늘의 퍼즐은 이미 입장했어요. 내일 다시 도전해 주세요.'
+          : '오늘의 퍼즐은 이미 플레이했어요. 내일 다시 도전해 주세요.',
     );
   }
 
   return DailyChallengeLaunchDecision(
+    canLaunch: true,
     sessionConfig: GameSessionConfig(
-      mode: GameMode.dailyPractice,
+      mode: GameMode.dailyOfficial,
       seed: challenge.seed,
       dateKey: challenge.dateKey,
-      isOfficialScoreSubmission: false,
+      isOfficialScoreSubmission: true,
     ),
-    noticeMessage: isLoggedIn
-        ? '오늘의 공식 기록은 이미 제출되어 연습 모드로 시작합니다.'
-        : '로그인하면 오늘의 퍼즐 공식 랭킹에 참여할 수 있어요. 연습 모드로 시작합니다.',
   );
 }

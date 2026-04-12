@@ -327,15 +327,15 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     _resetPostGamePresentationState();
 
     if (_controller.sessionConfig.isDailyMode) {
-      Get.off(
-        () => GameScreen(
-          sessionConfig: GameSessionConfig(
-            mode: GameMode.dailyPractice,
-            seed: _controller.initialSeed,
-            dateKey: _controller.sessionConfig.dateKey,
-          ),
-        ),
+      Get.snackbar(
+        '오늘의 퍼즐',
+        '오늘의 퍼즐은 하루 한 번만 플레이할 수 있어요. 홈으로 돌아갑니다.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.black87,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 3),
       );
+      Get.offAll(() => const HomeScreen());
       return;
     }
 
@@ -375,8 +375,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
             ? '공식 기록을 저장하고 있어요.'
             : '${session.dateKey} 기록을 저장하고 있어요.';
       } else if (session.mode == GameMode.dailyPractice) {
-        _dailyStatusLabel = '오늘의 퍼즐 연습';
-        _dailyStatusDetail = '연습 기록은 오늘의 공식 랭킹에 반영되지 않아요.';
+        _dailyStatusLabel = '오늘의 퍼즐';
+        _dailyStatusDetail = '오늘의 퍼즐은 하루 한 번만 플레이할 수 있어요.';
       } else {
         _dailyStatusLabel = null;
         _dailyStatusDetail = null;
@@ -461,7 +461,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       if (message.contains('Daily attempt already used')) {
         return (
           '오늘의 퍼즐 미등록',
-          '공식 기록은 하루 한 번만 제출할 수 있어요.',
+          '오늘의 퍼즐은 하루 한 번만 플레이할 수 있어요.',
         );
       }
       return (

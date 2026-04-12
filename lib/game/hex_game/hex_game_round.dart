@@ -3,7 +3,6 @@ part of 'package:hexor/game/hex_game_controller.dart';
 void _disposeGame(HexGameController controller) {
   controller._disposed = true;
   controller._timer?.cancel();
-  controller._particleTimer?.cancel();
   controller._timerDeadlineAt = null;
 }
 
@@ -198,9 +197,6 @@ void _resetGame(
   controller._nextBarEntryId = 0;
   controller.statusText = '';
   controller.statusTone = GameMessageTone.info;
-  controller.particles = [];
-  controller._particleTimer?.cancel();
-  controller._particleTimer = null;
   controller._timerDeadlineAt = DateTime.now().add(
     Duration(milliseconds: (controller.timeRemaining * 1000).round()),
   );

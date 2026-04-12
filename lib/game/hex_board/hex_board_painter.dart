@@ -118,8 +118,6 @@ class HexBoardPainter extends CustomPainter {
       );
     }
 
-    }
-
     canvas.restore();
   }
 

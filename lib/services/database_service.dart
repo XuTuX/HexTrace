@@ -79,7 +79,9 @@ class DatabaseService extends GetxService {
     return DailyChallengeInfo(
       dateKey: _coerceString(row['date_key']) ?? KstClock.currentDateKey(),
       seed: _coerceInt(row['seed']) ?? 0,
-      hasUsedOfficialAttempt: _coerceBool(row['has_used_official_attempt']),
+      hasUsedEntry: _coerceBool(
+        row['has_used_entry'] ?? row['has_used_official_attempt'],
+      ),
       myScore: _coerceInt(row['my_score']),
     );
   }
@@ -178,6 +180,19 @@ class DatabaseService extends GetxService {
   Future<DailyChallengeInfo> getDailyChallenge(String gameId) async {
     final response = await _supabase.rpc(
       'get_daily_challenge',
+      params: {'p_game_id': gameId},
+    );
+    return _mapDailyChallenge(response);
+  }
+
+  Future<DailyChallengeInfo> claimDailyChallengeEntry(String gameId) async {
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) {
+      throw StateError('로그인이 필요합니다.');
+    }
+
+    final response = await _supabase.rpc(
+      'claim_daily_challenge_entry',
       params: {'p_game_id': gameId},
     );
     return _mapDailyChallenge(response);

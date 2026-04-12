@@ -28,27 +28,45 @@ void openGameScreen(
 Future<void> openDailyChallenge(AuthService authService) async {
   final dbService = Get.find<DatabaseService>();
 
-  try {
-    final challenge = await dbService.getDailyChallenge(gameId);
-    final decision = resolveDailyChallengeLaunch(
-      challenge: challenge,
-      isLoggedIn: authService.user.value != null,
+  if (authService.user.value == null) {
+    showLoginSheet(
+      authService,
+      initialError: '오늘의 퍼즐은 로그인 후 하루 한 번만 참여할 수 있어요.',
     );
-    if (decision.noticeMessage != null) {
+    return;
+  }
+
+  try {
+    final existingState = await dbService.getDailyChallenge(gameId);
+    final gateDecision = resolveDailyChallengeLaunch(
+      challenge: existingState,
+      isLoggedIn: true,
+    );
+    if (!gateDecision.canLaunch) {
       Get.snackbar(
         '오늘의 퍼즐',
-        decision.noticeMessage!,
+        gateDecision.noticeMessage ?? '오늘의 퍼즐은 오늘 이미 사용했어요.',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.black87,
         colorText: Colors.white,
         duration: const Duration(seconds: 3),
       );
+      return;
     }
-    openGameScreen(decision.sessionConfig);
+
+    final claimedChallenge = await dbService.claimDailyChallengeEntry(gameId);
+    openGameScreen(
+      GameSessionConfig(
+        mode: GameMode.dailyOfficial,
+        seed: claimedChallenge.seed,
+        dateKey: claimedChallenge.dateKey,
+        isOfficialScoreSubmission: true,
+      ),
+    );
   } catch (_) {
     Get.snackbar(
-      '로딩 실패',
-      '오늘의 퍼즐을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.',
+      '입장 실패',
+      '오늘의 퍼즐 입장 처리에 실패했어요. 잠시 후 다시 시도해 주세요.',
       snackPosition: SnackPosition.BOTTOM,
       backgroundColor: Colors.red,
       colorText: Colors.white,

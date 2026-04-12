@@ -33,8 +33,8 @@ class GameHud extends StatelessWidget {
                   ),
                   child: Text(
                     controller.sessionConfig.isOfficialScoreSubmission
-                        ? '오늘의 퍼즐 공식 도전'
-                        : '오늘의 퍼즐 연습 모드',
+                        ? '오늘의 퍼즐 1회 도전'
+                        : '오늘의 퍼즐',
                     style: const TextStyle(
                       color: charcoalBlack,
                       fontWeight: FontWeight.w900,
