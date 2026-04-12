@@ -89,7 +89,7 @@ class SharePreviewDialog extends StatelessWidget {
                           children: [
                             // Brand Identity
                             Text(
-                              'LINKAGON',
+                              'HONEY BOO',
                               style: GoogleFonts.blackHanSans(
                                 fontSize: 26,
                                 color: charcoalBlack,
