@@ -2,10 +2,12 @@ class WeeklyResetInfo {
   const WeeklyResetInfo({
     required this.days,
     required this.hours,
+    required this.minutes,
   });
 
   final int days;
   final int hours;
+  final int minutes;
 
   static WeeklyResetInfo current() {
     // 1. Get current time in KST (UTC+9)
@@ -31,20 +33,27 @@ class WeeklyResetInfo {
     return WeeklyResetInfo(
       days: safeRemaining.inDays,
       hours: safeRemaining.inHours.remainder(24),
+      minutes: safeRemaining.inMinutes.remainder(60),
     );
   }
 
   String get koreanLabel {
     if (days > 0) {
-      return '종료까지 $days일 $hours시간';
+      return '종료까지 $days일 $hours시간 $minutes분';
     }
-    return '종료까지 $hours시간';
+    if (hours > 0) {
+      return '종료까지 $hours시간 $minutes분';
+    }
+    return '종료까지 $minutes분';
   }
 
   String get englishCompactLabel {
     if (days > 0) {
-      return '${days}D ${hours}H LEFT';
+      return '${days}D ${hours}H ${minutes}M LEFT';
     }
-    return '${hours}H LEFT';
+    if (hours > 0) {
+      return '${hours}H ${minutes}M LEFT';
+    }
+    return '${minutes}M LEFT';
   }
 }

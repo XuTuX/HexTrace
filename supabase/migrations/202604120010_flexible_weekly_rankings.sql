@@ -7,8 +7,8 @@
 
 create or replace function public.get_weekly_leaderboard_by_week(
   p_game_id text,
-  p_limit integer default 20,
-  p_week_key text
+  p_week_key text,
+  p_limit integer default 20
 )
 returns table (
   user_id uuid,
@@ -102,12 +102,12 @@ as $$
   limit 1;
 $$;
 
-revoke all on function public.get_weekly_leaderboard_by_week(text, integer, text) from public;
+revoke all on function public.get_weekly_leaderboard_by_week(text, text, integer) from public;
 revoke all on function public.get_my_weekly_rank_by_week(text, text) from public;
 revoke all on function public.get_my_weekly_best_score_by_week(text, text) from public;
 
-grant execute on function public.get_weekly_leaderboard_by_week(text, integer, text) to anon;
-grant execute on function public.get_weekly_leaderboard_by_week(text, integer, text) to authenticated;
+grant execute on function public.get_weekly_leaderboard_by_week(text, text, integer) to anon;
+grant execute on function public.get_weekly_leaderboard_by_week(text, text, integer) to authenticated;
 grant execute on function public.get_my_weekly_rank_by_week(text, text) to authenticated;
 grant execute on function public.get_my_weekly_best_score_by_week(text, text) to authenticated;
 
