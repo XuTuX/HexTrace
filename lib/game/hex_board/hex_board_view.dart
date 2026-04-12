@@ -83,33 +83,12 @@ class _HexBoardViewState extends State<HexBoardView>
 
       if (widget.controller.animatedTiles.isNotEmpty) {
         _refillController.forward(from: 0);
-
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          _spawnMatchParticles();
-        });
       } else {
         _refillController.value = 1;
       }
     }
   }
 
-  HexBoardLayout? _lastLayout;
-
-  void _spawnMatchParticles() {
-    final layout = _lastLayout;
-    if (layout == null) return;
-
-    for (final coord in widget.controller.animatedTiles) {
-      final center = layout.centers[coord];
-      if (center != null) {
-        final color = GamePalette.colorFor(
-          widget.controller.board[coord.row][coord.col],
-        );
-        widget.controller.spawnParticles(center, color);
-      }
-    }
-  }
 
   @override
   void dispose() {
@@ -141,7 +120,6 @@ class _HexBoardViewState extends State<HexBoardView>
           child: AnimatedBuilder(
             animation: Listenable.merge([widget.controller, _refillController]),
             builder: (context, _) {
-              _lastLayout = layout;
               return CustomPaint(
                 painter: HexBoardPainter(
                   layout: layout,
@@ -152,9 +130,6 @@ class _HexBoardViewState extends State<HexBoardView>
                   animatedTiles: widget.controller.animatedTiles,
                   refillProgress: _refillController.value,
                   pressProgress: _pressProgress,
-                  particles: List<Particle>.unmodifiable(
-                    widget.controller.particles,
-                  ),
                 ),
                 size: Size.infinite,
               );

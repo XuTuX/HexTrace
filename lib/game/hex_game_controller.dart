@@ -63,9 +63,6 @@ class HexGameController extends ChangeNotifier {
   bool isGameOver = false;
   bool isResolvingMatch = false;
 
-  List<Particle> particles = [];
-  Timer? _particleTimer;
-
   String statusText = '';
   GameMessageTone statusTone = GameMessageTone.info;
 
@@ -75,48 +72,6 @@ class HexGameController extends ChangeNotifier {
   void triggerTimeFlash() {
     _lastTimeFlashAt = DateTime.now();
     _notify();
-  }
-
-  void spawnParticles(Offset position, Color color) {
-    if (_disposed) return;
-
-    for (int i = 0; i < 5; i++) {
-      final angle = Random().nextDouble() * 2 * pi;
-      final speed = 30.0 + Random().nextDouble() * 40.0;
-      particles.add(Particle(
-        position: position,
-        velocity: Offset(cos(angle) * speed, sin(angle) * speed),
-        color: color,
-        lifeTime: 0.3 + Random().nextDouble() * 0.3,
-        size: 1.5 + Random().nextDouble() * 1.5,
-      ));
-    }
-
-    _startParticleTimer();
-    _notify();
-  }
-
-  void _startParticleTimer() {
-    if (_particleTimer != null && _particleTimer!.isActive) return;
-
-    _particleTimer = Timer.periodic(const Duration(milliseconds: 16), (timer) {
-      if (_disposed || particles.isEmpty) {
-        timer.cancel();
-        _particleTimer = null;
-        return;
-      }
-
-      const dt = 0.016;
-      for (var i = particles.length - 1; i >= 0; i--) {
-        final p = particles[i];
-        p.update(dt);
-        p.velocity *= 0.85; // Friction
-        if (p.remainingLifeTime <= 0) {
-          particles.removeAt(i);
-        }
-      }
-      _notify();
-    });
   }
 
   Timer? _timer;
