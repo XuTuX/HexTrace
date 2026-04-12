@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
+import 'package:hexor/game/game_palette.dart';
 import 'package:hexor/game/hex_game_controller.dart';
 
 import 'hex_board_layout.dart';
@@ -82,8 +83,30 @@ class _HexBoardViewState extends State<HexBoardView>
 
       if (widget.controller.animatedTiles.isNotEmpty) {
         _refillController.forward(from: 0);
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          _spawnMatchParticles();
+        });
       } else {
         _refillController.value = 1;
+      }
+    }
+  }
+
+  HexBoardLayout? _lastLayout;
+
+  void _spawnMatchParticles() {
+    final layout = _lastLayout;
+    if (layout == null) return;
+
+    for (final coord in widget.controller.animatedTiles) {
+      final center = layout.centers[coord];
+      if (center != null) {
+        final color = GamePalette.colorFor(
+          widget.controller.board[coord.row][coord.col],
+        );
+        widget.controller.spawnParticles(center, color);
       }
     }
   }
@@ -115,18 +138,27 @@ class _HexBoardViewState extends State<HexBoardView>
           },
           onPanEnd: (_) => widget.controller.endDrag(),
           onPanCancel: widget.controller.cancelDrag,
-          child: CustomPaint(
-            painter: HexBoardPainter(
-              layout: layout,
-              board: widget.controller.board,
-              dragPath: widget.controller.dragPath,
-              clearingPath: widget.controller.clearingPath,
-              dragState: widget.controller.visibleDragState,
-              animatedTiles: widget.controller.animatedTiles,
-              refillProgress: _refillController.value,
-              pressProgress: _pressProgress,
-            ),
-            size: Size.infinite,
+          child: AnimatedBuilder(
+            animation: Listenable.merge([widget.controller, _refillController]),
+            builder: (context, _) {
+              _lastLayout = layout;
+              return CustomPaint(
+                painter: HexBoardPainter(
+                  layout: layout,
+                  board: widget.controller.board,
+                  dragPath: widget.controller.dragPath,
+                  clearingPath: widget.controller.clearingPath,
+                  dragState: widget.controller.visibleDragState,
+                  animatedTiles: widget.controller.animatedTiles,
+                  refillProgress: _refillController.value,
+                  pressProgress: _pressProgress,
+                  particles: List<Particle>.unmodifiable(
+                    widget.controller.particles,
+                  ),
+                ),
+                size: Size.infinite,
+              );
+            },
           ),
         );
       },

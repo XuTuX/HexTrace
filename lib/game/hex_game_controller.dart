@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 
 import 'hex_game_models.dart';
 import '../services/app_haptics.dart';
+import '../services/app_audio.dart';
 
 export 'hex_game_models.dart';
 
@@ -63,6 +64,9 @@ class HexGameController extends ChangeNotifier {
   bool isGameOver = false;
   bool isResolvingMatch = false;
 
+  List<Particle> particles = [];
+  Timer? _particleTimer;
+
   String statusText = '';
   GameMessageTone statusTone = GameMessageTone.info;
 
@@ -72,6 +76,46 @@ class HexGameController extends ChangeNotifier {
   void triggerTimeFlash() {
     _lastTimeFlashAt = DateTime.now();
     _notify();
+  }
+
+  void spawnParticles(Offset position, Color color) {
+    if (_disposed) return;
+
+    for (int i = 0; i < 8; i++) {
+      final angle = Random().nextDouble() * 2 * pi;
+      final speed = 50.0 + Random().nextDouble() * 100.0;
+      particles.add(Particle(
+        position: position,
+        velocity: Offset(cos(angle) * speed, sin(angle) * speed),
+        color: color,
+        lifeTime: 0.5 + Random().nextDouble() * 0.5,
+        size: 2.0 + Random().nextDouble() * 2.0,
+      ));
+    }
+
+    _startParticleTimer();
+    _notify();
+  }
+
+  void _startParticleTimer() {
+    if (_particleTimer != null && _particleTimer!.isActive) return;
+
+    _particleTimer = Timer.periodic(const Duration(milliseconds: 16), (timer) {
+      if (_disposed || particles.isEmpty) {
+        timer.cancel();
+        _particleTimer = null;
+        return;
+      }
+
+      const dt = 0.016;
+      for (var i = particles.length - 1; i >= 0; i--) {
+        particles[i].update(dt);
+        if (particles[i].remainingLifeTime <= 0) {
+          particles.removeAt(i);
+        }
+      }
+      _notify();
+    });
   }
 
   Timer? _timer;

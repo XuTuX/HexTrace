@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 
 enum GameColor { coral, amber, mint, azure, violet }
 
@@ -174,5 +174,29 @@ class GameRunSummary {
       'seed': seed,
       'best_move': bestMove?.toJson(),
     };
+  }
+}
+
+class Particle {
+  Particle({
+    required this.position,
+    required this.velocity,
+    required this.color,
+    required this.lifeTime,
+    this.size = 2.0,
+  }) : remainingLifeTime = lifeTime;
+
+  Offset position;
+  Offset velocity;
+  final Color color;
+  final double lifeTime;
+  double remainingLifeTime;
+  double size;
+
+  double get opacity => (remainingLifeTime / lifeTime).clamp(0.0, 1.0);
+
+  void update(double dt) {
+    position += velocity * dt;
+    remainingLifeTime -= dt;
   }
 }

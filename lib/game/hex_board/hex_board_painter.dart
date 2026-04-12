@@ -18,6 +18,7 @@ class HexBoardPainter extends CustomPainter {
     required this.animatedTiles,
     required this.refillProgress,
     required this.pressProgress,
+    required this.particles,
   });
 
   final HexBoardLayout layout;
@@ -28,6 +29,7 @@ class HexBoardPainter extends CustomPainter {
   final Set<HexCoord> animatedTiles;
   final double refillProgress;
   final Map<HexCoord, double> pressProgress;
+  final List<Particle> particles;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -118,6 +120,17 @@ class HexBoardPainter extends CustomPainter {
       );
     }
 
+    // Draw Particles
+    for (final particle in particles) {
+      canvas.drawCircle(
+        particle.position,
+        particle.size,
+        Paint()
+          ..color = particle.color.withValues(alpha: particle.opacity)
+          ..style = PaintingStyle.fill,
+      );
+    }
+
     canvas.restore();
   }
 
@@ -199,6 +212,7 @@ class HexBoardPainter extends CustomPainter {
         oldDelegate.dragState != dragState ||
         oldDelegate.layout.radius != layout.radius ||
         oldDelegate.animatedTiles != animatedTiles ||
-        oldDelegate.refillProgress != refillProgress;
+        oldDelegate.refillProgress != refillProgress ||
+        oldDelegate.particles != particles;
   }
 }
