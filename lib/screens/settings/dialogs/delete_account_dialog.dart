@@ -57,7 +57,7 @@ void showDeleteAccountDialog(AuthService authService) {
               ),
               const SizedBox(height: 12),
               Text(
-                'NEOREO GAMES와 관련된 계정인\nOverlap, Fill Your Area, Linkagon 등의\n게임 데이터가 모두 삭제됩니다.\n\n이 작업은 되돌릴 수 없습니다.',
+                'NEOREO GAMES와 관련된 계정인\nOverlap, Fill Your Area, Honey Boo 등의\n게임 데이터가 모두 삭제됩니다.\n\n이 작업은 되돌릴 수 없습니다.',
                 textAlign: TextAlign.center,
                 style: AppTypography.bodySmall.copyWith(
                   color: Colors.grey[500],

@@ -1,6 +1,6 @@
-# Hexor
+# Honey Boo
 
-Hexor is a Flutter puzzle game with Supabase-backed auth, synced scores, and ranking.
+Honey Boo is a Flutter puzzle game with Supabase-backed auth, synced scores, and ranking.
 
 ## Runtime Configuration
 

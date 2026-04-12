@@ -5,20 +5,20 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Linkagon",
+            "name": "Honey Boo",
             "request": "launch",
             "type": "dart",
             "toolArgs": ["--dart-define-from-file", ".env"]
         },
         {
-            "name": "Linkagon (profile mode)",
+            "name": "Honey Boo (profile mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "profile",
             "toolArgs": ["--dart-define-from-file", ".env"]
         },
         {
-            "name": "Linkagon (release mode)",
+            "name": "Honey Boo (release mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "release",

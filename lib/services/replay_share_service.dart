@@ -11,7 +11,7 @@ import '../game/hex_game_models.dart';
 class ReplayShareService {
   const ReplayShareService._();
 
-  static const String _shareImageName = 'linkagon-trace-replay.png';
+  static const String _shareImageName = 'honey-boo-replay.png';
 
   static String buildReplayCode({
     required int seed,
@@ -51,7 +51,7 @@ class ReplayShareService {
         isNewHighScore ? '최고 기록: $bestScore점 (NEW)' : '최고 기록: $bestScore점';
 
     return [
-      'Linkagon 리플레이',
+      'Honey Boo 리플레이',
       '점수: $score점',
       bestScoreLine,
       '매치 수: ${recordedMoves.length}',

@@ -306,8 +306,8 @@ class DatabaseService extends GetxService {
         .maybeSingle();
   }
 
-  // Linkagon 게임 데이터 삭제
-  Future<void> deleteMyLinkagonData() async {
+  // Honey Boo 게임 데이터 삭제
+  Future<void> deleteMyHoneyBooData() async {
     final userId = _supabase.auth.currentUser?.id;
     if (userId == null) return;
 

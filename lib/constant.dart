@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-const String appName = 'Linkagon';
-const String gameTitle = 'Linkagon';
+const String appName = 'Honey Boo';
+const String gameTitle = 'Honey Boo';
 const String gameId = 'hexor';
 
 const Color charcoalBlack = Color(0xFF1A1A1A);

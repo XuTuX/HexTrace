@@ -30,7 +30,7 @@ void main() async {
       anonKey: AppConfig.supabaseAnonKey,
     );
 
-    runApp(LinkagonApp(settingsService: settingsService));
+    runApp(HoneyBooApp(settingsService: settingsService));
   } catch (error, stackTrace) {
     debugPrint('Failed to initialize app: $error');
     debugPrintStack(stackTrace: stackTrace);
@@ -72,10 +72,10 @@ class AppBinding extends Bindings {
   }
 }
 
-class LinkagonApp extends StatelessWidget {
+class HoneyBooApp extends StatelessWidget {
   final SettingsService settingsService;
 
-  const LinkagonApp({super.key, required this.settingsService});
+  const HoneyBooApp({super.key, required this.settingsService});
 
   @override
   Widget build(BuildContext context) {
