@@ -32,7 +32,6 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.8
   get: ^4.6.6
-  audioplayers: ^6.1.0
 
   shared_preferences: ^2.3.2
 
@@ -92,7 +91,6 @@ flutter:
   assets:
     - .env
     - assets/icons/
-    - assets/sounds/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

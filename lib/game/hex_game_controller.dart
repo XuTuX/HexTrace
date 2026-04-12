@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 
 import 'hex_game_models.dart';
 import '../services/app_haptics.dart';
-import '../services/app_audio.dart';
 
 export 'hex_game_models.dart';
 
@@ -81,15 +80,15 @@ class HexGameController extends ChangeNotifier {
   void spawnParticles(Offset position, Color color) {
     if (_disposed) return;
 
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < 5; i++) {
       final angle = Random().nextDouble() * 2 * pi;
-      final speed = 50.0 + Random().nextDouble() * 100.0;
+      final speed = 30.0 + Random().nextDouble() * 40.0;
       particles.add(Particle(
         position: position,
         velocity: Offset(cos(angle) * speed, sin(angle) * speed),
         color: color,
-        lifeTime: 0.5 + Random().nextDouble() * 0.5,
-        size: 2.0 + Random().nextDouble() * 2.0,
+        lifeTime: 0.3 + Random().nextDouble() * 0.3,
+        size: 1.5 + Random().nextDouble() * 1.5,
       ));
     }
 
@@ -109,8 +108,10 @@ class HexGameController extends ChangeNotifier {
 
       const dt = 0.016;
       for (var i = particles.length - 1; i >= 0; i--) {
-        particles[i].update(dt);
-        if (particles[i].remainingLifeTime <= 0) {
+        final p = particles[i];
+        p.update(dt);
+        p.velocity *= 0.85; // Friction
+        if (p.remainingLifeTime <= 0) {
           particles.removeAt(i);
         }
       }

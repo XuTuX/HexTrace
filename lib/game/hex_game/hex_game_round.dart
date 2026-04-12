@@ -76,7 +76,6 @@ Future<void> _resolveCurrentMatch(HexGameController controller) async {
   }
   controller.statusTone = GameMessageTone.success;
   unawaited(AppHaptics.success());
-  unawaited(AppAudio.playMatch(controller.combo));
   controller._notify();
 
   await Future<void>.delayed(const Duration(milliseconds: 180));

@@ -30,6 +30,9 @@ class DatabaseService extends GetxService {
   }
 
   Map<String, dynamic> _coerceMap(dynamic value) {
+    if (value is List && value.isNotEmpty) {
+      return _coerceMap(value.first);
+    }
     if (value is Map<String, dynamic>) {
       return value;
     }
