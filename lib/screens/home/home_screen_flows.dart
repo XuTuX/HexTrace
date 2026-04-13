@@ -13,11 +13,7 @@ import 'package:hexor/widgets/dialogs/edit_nickname_dialog.dart';
 import 'package:hexor/widgets/home_screen/login_sheet.dart';
 
 void handleRankingPress(AuthService authService) {
-  if (authService.user.value != null) {
-    showRankingSheet();
-  } else {
-    showLoginSheet(authService, isRankingAction: true);
-  }
+  showRankingSheet();
 }
 
 void openGameScreen(

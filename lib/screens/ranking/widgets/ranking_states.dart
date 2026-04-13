@@ -16,21 +16,21 @@ class RankingLoadingState extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(
-            width: 40,
-            height: 40,
+          const SizedBox(
+            width: 28,
+            height: 28,
             child: CircularProgressIndicator(
-              color: GamePalette.colorFor(GameColor.azure),
-              strokeWidth: 4,
+              color: charcoalBlack,
+              strokeWidth: 3,
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
           Text(
             'LOADING',
             style: GoogleFonts.blackHanSans(
-              color: charcoalBlack.withValues(alpha: 0.3),
-              fontSize: 20,
-              letterSpacing: 2.0,
+              color: charcoalBlack.withValues(alpha: 0.2),
+              fontSize: 16,
+              letterSpacing: 1.5,
             ),
           ),
         ],
@@ -55,15 +55,15 @@ class EmptyRankingState extends StatelessWidget {
         children: [
           Icon(
             Icons.leaderboard_outlined,
-            size: 64,
-            color: charcoalBlack.withValues(alpha: 0.1),
+            size: 48,
+            color: charcoalBlack.withValues(alpha: 0.08),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
           Text(
             period.emptyMessage,
             style: GoogleFonts.blackHanSans(
-              color: charcoalBlack.withValues(alpha: 0.15),
-              fontSize: 18,
+              color: charcoalBlack.withValues(alpha: 0.12),
+              fontSize: 15,
               letterSpacing: 1.0,
             ),
           ),
@@ -89,47 +89,37 @@ class RankingErrorState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: GamePalette.colorFor(GameColor.coral).withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.error_outline,
-                color: GamePalette.colorFor(GameColor.coral),
-                size: 40,
-              ),
+            Icon(
+              Icons.error_outline,
+              color: charcoalBlack.withValues(alpha: 0.25),
+              size: 36,
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
             Text(
               'FAILED TO LOAD',
               style: GoogleFonts.blackHanSans(
-                color: charcoalBlack,
-                fontSize: 20,
+                color: charcoalBlack.withValues(alpha: 0.6),
+                fontSize: 16,
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             GestureDetector(
               onTap: onRetry,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: charcoalBlack, width: 2),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: charcoalBlack,
-                      offset: Offset(0, 4),
-                    ),
-                  ],
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: charcoalBlack.withValues(alpha: 0.15),
+                    width: 1.5,
+                  ),
                 ),
                 child: Text(
                   '다시 시도',
                   style: GoogleFonts.notoSans(
                     fontWeight: FontWeight.w900,
-                    fontSize: 14,
+                    fontSize: 13,
                     color: charcoalBlack,
                   ),
                 ),

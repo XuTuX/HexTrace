@@ -32,27 +32,23 @@ class MyRankCard extends StatelessWidget {
     if (rank == null || score == null) {
       return Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+        padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 20),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
-          border:
-              Border.all(color: charcoalBlack.withValues(alpha: 0.2), width: 2),
-          boxShadow: [
-            BoxShadow(
-              color: charcoalBlack.withValues(alpha: 0.05),
-              offset: const Offset(4, 4),
-            ),
-          ],
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: charcoalBlack.withValues(alpha: 0.1),
+            width: 1.5,
+          ),
         ),
         child: Column(
           children: [
             Icon(
               Icons.sentiment_dissatisfied_outlined,
-              color: charcoalBlack.withValues(alpha: 0.2),
-              size: 32,
+              color: charcoalBlack.withValues(alpha: 0.15),
+              size: 28,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             Text(
               isLoggedIn
                   ? period.loggedInEmptyMessage
@@ -70,13 +66,13 @@ class MyRankCard extends StatelessWidget {
     }
 
     final accentColor = switch (period) {
-      RankingPeriod.daily => GamePalette.colorFor(GameColor.azure),
+      RankingPeriod.daily => const Color(0xFF2563EB),
       RankingPeriod.weekly => GamePalette.colorFor(GameColor.coral),
       RankingPeriod.allTime => GamePalette.colorFor(GameColor.violet),
     };
 
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
@@ -95,21 +91,13 @@ class MyRankCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: accentColor,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: charcoalBlack, width: 1.5),
-                ),
-                child: Text(
-                  period.tabLabel,
-                  style: AppTypography.label.copyWith(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
-                  ),
+              Text(
+                period.tabLabel,
+                style: AppTypography.label.copyWith(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.5,
+                  color: charcoalBlack.withValues(alpha: 0.42),
                 ),
               ),
               const Spacer(),
@@ -117,14 +105,15 @@ class MyRankCard extends StatelessWidget {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.timer_outlined,
-                        size: 14, color: charcoalBlack),
+                    Icon(Icons.timer_outlined,
+                        size: 12, color: charcoalBlack.withValues(alpha: 0.3)),
                     const SizedBox(width: 4),
                     Text(
                       weeklyResetInfo.koreanLabel,
                       style: AppTypography.caption.copyWith(
+                        fontSize: 10,
                         fontWeight: FontWeight.w800,
-                        color: charcoalBlack.withValues(alpha: 0.6),
+                        color: charcoalBlack.withValues(alpha: 0.3),
                       ),
                     ),
                   ],
@@ -133,18 +122,14 @@ class MyRankCard extends StatelessWidget {
                 Text(
                   period.statusLabel,
                   style: AppTypography.caption.copyWith(
+                    fontSize: 10,
                     fontWeight: FontWeight.w800,
-                    color: charcoalBlack.withValues(alpha: 0.4),
+                    color: charcoalBlack.withValues(alpha: 0.3),
                   ),
                 ),
             ],
           ),
-          const SizedBox(height: 16),
-          Container(
-            height: 2,
-            color: charcoalBlack.withValues(alpha: 0.05),
-          ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 14),
           if (period == RankingPeriod.weekly &&
               weeklySeasonSummary != null) ...[
             Row(
@@ -152,21 +137,21 @@ class MyRankCard extends StatelessWidget {
               children: [
                 Icon(
                   Icons.workspace_premium_rounded,
-                  size: 18,
+                  size: 14,
                   color: _seasonTierColor(weeklySeasonSummary!.tier),
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 4),
                 Text(
                   '${weeklySeasonSummary!.tier.label} TIER',
                   style: AppTypography.bodySmall.copyWith(
-                    fontSize: 13,
+                    fontSize: 11,
                     fontWeight: FontWeight.w900,
                     color: _seasonTierColor(weeklySeasonSummary!.tier),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
           ],
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -176,41 +161,41 @@ class MyRankCard extends StatelessWidget {
               Text(
                 '$rank',
                 style: GoogleFonts.blackHanSans(
-                  fontSize: 48,
+                  fontSize: 36,
                   color: accentColor,
                   height: 1.0,
                 ),
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: 3),
               Text(
                 '위',
                 style: AppTypography.body.copyWith(
-                  fontSize: 18,
-                  color: charcoalBlack,
+                  fontSize: 14,
+                  color: charcoalBlack.withValues(alpha: 0.5),
                   fontWeight: FontWeight.w900,
                 ),
               ),
-              const SizedBox(width: 24),
+              const SizedBox(width: 20),
               Container(
-                width: 2,
-                height: 28,
-                color: charcoalBlack.withValues(alpha: 0.1),
+                width: 1,
+                height: 22,
+                color: charcoalBlack.withValues(alpha: 0.08),
               ),
-              const SizedBox(width: 24),
+              const SizedBox(width: 20),
               Text(
                 '$score',
                 style: GoogleFonts.blackHanSans(
-                  fontSize: 48,
+                  fontSize: 36,
                   color: charcoalBlack,
                   height: 1.0,
                 ),
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: 3),
               Text(
                 '점',
                 style: AppTypography.body.copyWith(
-                  fontSize: 18,
-                  color: charcoalBlack,
+                  fontSize: 14,
+                  color: charcoalBlack.withValues(alpha: 0.5),
                   fontWeight: FontWeight.w900,
                 ),
               ),

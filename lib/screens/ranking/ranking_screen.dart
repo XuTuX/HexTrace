@@ -121,40 +121,42 @@ class _RankingScreenState extends State<RankingScreen> {
     final authService = Get.find<AuthService>();
     final myId = authService.user.value?.id;
 
-    return Container(
-      constraints: BoxConstraints(maxHeight: Get.height * 0.9),
-      decoration: const BoxDecoration(
-        color: Color(0xFFFAFAFA),
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(32),
-          topRight: Radius.circular(32),
+    return Material(
+      color: Colors.transparent,
+      child: Container(
+        constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.9),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8F9FA),
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(28),
+            topRight: Radius.circular(28),
+          ),
+          border: Border.all(
+            color: charcoalBlack.withValues(alpha: 0.12),
+            width: 1.5,
+          ),
         ),
-        border: Border(
-          top: BorderSide(color: charcoalBlack, width: 3),
-          left: BorderSide(color: charcoalBlack, width: 3),
-          right: BorderSide(color: charcoalBlack, width: 3),
-        ),
-      ),
-      child: SafeArea(
-        child: Column(
-          children: [
-            const RankingSheetHandle(),
-            const SizedBox(height: 12),
-            RankingHeader(
-              period: _period,
-              onPeriodChanged: _handlePeriodChanged,
-              isDailyOnly: widget.isDailyOnly,
-            ),
-            const SizedBox(height: 20),
-            Expanded(
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 600),
-                  child: _buildContent(myId),
+        child: SafeArea(
+          child: Column(
+            children: [
+              const RankingSheetHandle(),
+              const SizedBox(height: 12),
+              RankingHeader(
+                period: _period,
+                onPeriodChanged: _handlePeriodChanged,
+                isDailyOnly: widget.isDailyOnly,
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 600),
+                    child: _buildContent(myId),
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -175,7 +177,7 @@ class _RankingScreenState extends State<RankingScreen> {
 
     return Column(
       children: [
-        const SizedBox(height: 16),
+        const SizedBox(height: 8),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: MyRankCard(
@@ -186,7 +188,7 @@ class _RankingScreenState extends State<RankingScreen> {
             weeklySeasonSummary: _weeklySeasonSummary,
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 20),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 28),
           child: TopPlayersLabel(period: _period),

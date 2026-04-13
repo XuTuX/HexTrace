@@ -235,6 +235,17 @@ class _TodayPuzzleCard extends StatelessWidget {
                     height: 1.0,
                   ),
                 ),
+                if (dailyRank != null) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    '내 랭킹은 $dailyRank등이에요!',
+                    style: AppTypography.bodySmall.copyWith(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF2563EB),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -249,7 +260,7 @@ class _TodayPuzzleCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  dailyRank != null ? '$dailyRank등 랭킹 보기' : '랭킹 보기',
+                  '전체 랭킹 보기',
                   style: AppTypography.bodySmall.copyWith(
                     fontSize: 12,
                     fontWeight: FontWeight.w900,

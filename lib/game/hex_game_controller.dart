@@ -68,6 +68,7 @@ class HexGameController extends ChangeNotifier {
 
   DateTime? _lastTimeFlashAt;
   DateTime? get lastTimeFlashAt => _lastTimeFlashAt;
+  bool _hasShownFiveSecondWarning = false;
 
   void triggerTimeFlash() {
     _lastTimeFlashAt = DateTime.now();

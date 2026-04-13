@@ -49,47 +49,39 @@ class RankingHeader extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              width: 10,
+              height: 10,
               decoration: BoxDecoration(
                 color: GamePalette.colorFor(GameColor.amber),
                 shape: BoxShape.circle,
-                border: Border.all(color: charcoalBlack, width: 2),
-              ),
-              child: const Icon(
-                Icons.emoji_events,
-                color: Colors.white,
-                size: 20,
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
             Text(
               isDailyOnly ? '오늘의 퍼즐 랭킹' : 'RANKING',
               style: GoogleFonts.blackHanSans(
-                fontSize: isDailyOnly ? 22 : 28,
-                letterSpacing: isDailyOnly ? 0.0 : 2.0,
+                fontSize: isDailyOnly ? 18 : 20,
+                letterSpacing: isDailyOnly ? 0.0 : 1.0,
                 color: charcoalBlack,
               ),
             ),
           ],
         ),
         if (!isDailyOnly) ...[
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 24),
-            height: 52,
+            height: 44,
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: charcoalBlack, width: 2),
-              boxShadow: const [
-                BoxShadow(
-                  color: charcoalBlack,
-                  offset: Offset(0, 4),
-                ),
-              ],
+              color: const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: charcoalBlack.withValues(alpha: 0.1),
+                width: 1.5,
+              ),
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(12.5),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: RankingPeriod.values
@@ -104,20 +96,29 @@ class RankingHeader extends StatelessWidget {
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 200),
                               curve: Curves.easeOutCubic,
-                              color: isActive
-                                  ? GamePalette.colorFor(GameColor.azure)
-                                  : Colors.transparent,
+                              decoration: BoxDecoration(
+                                color: isActive
+                                    ? Colors.white
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: isActive
+                                      ? charcoalBlack.withValues(alpha: 0.12)
+                                      : Colors.transparent,
+                                  width: 1.5,
+                                ),
+                              ),
                               alignment: Alignment.center,
                               child: Text(
                                 candidate.tabLabel,
                                 style: AppTypography.label.copyWith(
-                                  fontSize: 14,
+                                  fontSize: 13,
                                   fontWeight: isActive
                                       ? FontWeight.w900
                                       : FontWeight.w700,
                                   color: isActive
-                                      ? Colors.white
-                                      : charcoalBlack.withValues(alpha: 0.6),
+                                      ? charcoalBlack
+                                      : charcoalBlack.withValues(alpha: 0.4),
                                 ),
                               ),
                             ),
@@ -125,12 +126,7 @@ class RankingHeader extends StatelessWidget {
                         );
                       },
                     )
-                    .expand((widget) => [
-                          widget,
-                          Container(width: 2, color: charcoalBlack),
-                        ])
-                    .toList()
-                  ..removeLast(),
+                    .toList(),
               ),
             ),
           ),
@@ -155,17 +151,17 @@ class TopPlayersLabel extends StatelessWidget {
         Text(
           period.topPlayersLabel,
           style: AppTypography.label.copyWith(
-            fontSize: 12,
+            fontSize: 11,
             letterSpacing: 1.0,
             fontWeight: FontWeight.w900,
-            color: charcoalBlack.withValues(alpha: 0.8),
+            color: charcoalBlack.withValues(alpha: 0.35),
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: Container(
-            height: 2,
-            color: charcoalBlack.withValues(alpha: 0.1),
+            height: 1,
+            color: charcoalBlack.withValues(alpha: 0.06),
           ),
         ),
       ],

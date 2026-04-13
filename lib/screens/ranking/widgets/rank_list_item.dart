@@ -39,81 +39,43 @@ class RankListItem extends StatelessWidget {
       String value => int.tryParse(value) ?? (index + 1),
       _ => index + 1,
     };
-    final isTopThree = rank <= 3;
 
-    Color itemBgColor = Colors.white;
+    final Color rankColor = switch (rank) {
+      1 => GamePalette.colorFor(GameColor.amber),
+      2 => charcoalBlack.withValues(alpha: 0.4),
+      3 => GamePalette.colorFor(GameColor.coral),
+      _ => charcoalBlack.withValues(alpha: 0.25),
+    };
+
+    Color itemBgColor = const Color(0xFFF8FAFC);
     Color borderColor = charcoalBlack.withValues(alpha: 0.08);
-    double borderWith = 1.0;
-    Color textColor = charcoalBlack;
-    Color suffixColor = charcoalBlack.withValues(alpha: 0.3);
-    
-    if (isTopThree) {
-      itemBgColor = switch (rank) {
-        1 => GamePalette.colorFor(GameColor.amber),
-        2 => const Color(0xFFE0E0E0), // Light Silver
-        3 => GamePalette.colorFor(GameColor.coral),
-        _ => Colors.white,
-      };
-      borderColor = charcoalBlack;
-      borderWith = 2.0;
 
-      // Contrast logic
-      if (rank == 3) {
-        textColor = Colors.white;
-        suffixColor = Colors.white.withValues(alpha: 0.7);
-      } else {
-        textColor = charcoalBlack;
-        suffixColor = charcoalBlack.withValues(alpha: 0.4);
-      }
-    }
-
-    if (isMe && !isTopThree) {
-      itemBgColor = GamePalette.colorFor(GameColor.azure).withValues(alpha: 0.05);
-      borderColor = GamePalette.colorFor(GameColor.azure).withValues(alpha: 0.3);
-      borderWith = 1.5;
+    if (isMe) {
+      itemBgColor = const Color(0xFFEFF6FF);
+      borderColor = const Color(0xFF2563EB).withValues(alpha: 0.2);
     }
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
         color: itemBgColor,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: borderColor,
-          width: borderWith,
+          width: 1,
         ),
-        boxShadow: isTopThree ? [
-          const BoxShadow(
-            color: charcoalBlack,
-            offset: Offset(0, 3),
-          ),
-        ] : null,
       ),
       child: Row(
         children: [
           SizedBox(
-            width: 48,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
-              children: [
-                Text(
-                  '$rank',
-                  style: GoogleFonts.blackHanSans(
-                    fontSize: isTopThree ? 22 : 18,
-                    color: textColor,
-                  ),
-                ),
-                Text(
-                  '위',
-                  style: AppTypography.body.copyWith(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w900,
-                    color: suffixColor,
-                  ),
-                ),
-              ],
+            width: 36,
+            child: Text(
+              '$rank',
+              style: GoogleFonts.blackHanSans(
+                fontSize: 18,
+                color: rankColor,
+              ),
             ),
           ),
           const SizedBox(width: 8),
@@ -124,21 +86,19 @@ class RankListItem extends StatelessWidget {
                 Text(
                   nickname,
                   style: GoogleFonts.notoSans(
-                    fontSize: isTopThree ? 15 : 14,
-                    fontWeight: isMe || isTopThree
-                        ? FontWeight.w900
-                        : FontWeight.w600,
-                    color: textColor,
+                    fontSize: 14,
+                    fontWeight: isMe ? FontWeight.w900 : FontWeight.w700,
+                    color: charcoalBlack,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
-                if (isMe) 
+                if (isMe)
                   Text(
                     'YOU',
                     style: AppTypography.label.copyWith(
                       fontSize: 9,
                       fontWeight: FontWeight.w900,
-                      color: isTopThree ? textColor : GamePalette.colorFor(GameColor.azure),
+                      color: const Color(0xFF2563EB),
                       letterSpacing: 1.0,
                     ),
                   ),
@@ -146,14 +106,41 @@ class RankListItem extends StatelessWidget {
             ),
           ),
           Text(
-            '$scoreVal',
+            _formatScore(scoreVal),
             style: GoogleFonts.blackHanSans(
-              fontSize: isTopThree ? 20 : 16,
-              color: textColor,
+              fontSize: 15,
+              color: charcoalBlack.withValues(alpha: 0.8),
+            ),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            'P',
+            style: GoogleFonts.notoSans(
+              fontSize: 9,
+              fontWeight: FontWeight.w900,
+              color: charcoalBlack.withValues(alpha: 0.2),
             ),
           ),
         ],
       ),
     );
+  }
+
+  String _formatScore(dynamic score) {
+    final value = score is int ? score : int.tryParse(score.toString()) ?? 0;
+    if (value < 1000) {
+      return value.toString();
+    }
+
+    final digits = value.toString();
+    final buffer = StringBuffer();
+    for (var index = 0; index < digits.length; index++) {
+      if (index > 0 && (digits.length - index) % 3 == 0) {
+        buffer.write(',');
+      }
+      buffer.write(digits[index]);
+    }
+
+    return buffer.toString();
   }
 }

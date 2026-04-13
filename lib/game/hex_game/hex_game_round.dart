@@ -197,6 +197,8 @@ void _resetGame(
   controller._nextBarEntryId = 0;
   controller.statusText = '';
   controller.statusTone = GameMessageTone.info;
+  controller._lastTimeFlashAt = null;
+  controller._hasShownFiveSecondWarning = false;
   controller._timerDeadlineAt = DateTime.now().add(
     Duration(milliseconds: (controller.timeRemaining * 1000).round()),
   );
@@ -235,12 +237,10 @@ bool _syncTimerState(
   final oldRemaining = controller.timeRemaining;
   controller.timeRemaining = nextRemaining;
 
-  // Haptic warnings at 10s and 5s
-  if (oldRemaining > 10 && nextRemaining <= 10) {
-    unawaited(AppHaptics.warning());
-    // Visual flash cue instead of text
-    controller.triggerTimeFlash();
-  } else if (oldRemaining > 5 && nextRemaining <= 5) {
+  if (!controller._hasShownFiveSecondWarning &&
+      oldRemaining > 5 &&
+      nextRemaining <= 5) {
+    controller._hasShownFiveSecondWarning = true;
     unawaited(AppHaptics.gameOver()); // Stronger vibration
     controller.triggerTimeFlash();
   }
