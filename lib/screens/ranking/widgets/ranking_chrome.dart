@@ -93,6 +93,7 @@ class RankingHeader extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: RankingPeriod.values
+                    .where((period) => period != RankingPeriod.daily)
                     .map<Widget>(
                       (candidate) {
                         final isActive = candidate == period;

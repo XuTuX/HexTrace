@@ -5,8 +5,7 @@ import 'package:hexor/screens/ranking/ranking_period.dart';
 import 'package:hexor/screens/ranking/widgets/ranking_chrome.dart';
 
 void main() {
-  testWidgets('renders daily, weekly, and all-time ranking tabs',
-      (tester) async {
+  testWidgets('renders weekly and all-time ranking tabs only', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
@@ -18,7 +17,7 @@ void main() {
       ),
     );
 
-    expect(find.text('TODAY'), findsOneWidget);
+    expect(find.text('TODAY'), findsNothing);
     expect(find.text('WEEKLY'), findsOneWidget);
     expect(find.text('명예의 전당'), findsOneWidget);
   });
