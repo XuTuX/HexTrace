@@ -20,6 +20,8 @@ class GameOverOverlay extends StatelessWidget {
     required this.isSharing,
     this.dailyStatusLabel,
     this.dailyStatusDetail,
+    this.completedMissionTitles = const [],
+    this.unlockedAchievementTitles = const [],
   });
 
   final GameRunSummary runSummary;
@@ -33,7 +35,8 @@ class GameOverOverlay extends StatelessWidget {
   final bool isSharing;
   final String? dailyStatusLabel;
   final String? dailyStatusDetail;
-
+  final List<String> completedMissionTitles;
+  final List<String> unlockedAchievementTitles;
 
   @override
   Widget build(BuildContext context) {
@@ -96,7 +99,30 @@ class GameOverOverlay extends StatelessWidget {
                           const SizedBox(height: 20),
                         ],
                         _buildScoreSection(),
-
+                        if (runSummary.bestMove != null) ...[
+                          const SizedBox(height: 16),
+                          _buildBestMoveCard(runSummary.bestMove!),
+                        ],
+                        if (completedMissionTitles.isNotEmpty) ...[
+                          const SizedBox(height: 16),
+                          _buildBadgeSection(
+                            title: '완료한 미션',
+                            icon: Icons.flag_rounded,
+                            items: completedMissionTitles,
+                            backgroundColor: const Color(0xFFF0FDF4),
+                            accentColor: const Color(0xFF16A34A),
+                          ),
+                        ],
+                        if (unlockedAchievementTitles.isNotEmpty) ...[
+                          const SizedBox(height: 16),
+                          _buildBadgeSection(
+                            title: '획득한 업적',
+                            icon: Icons.workspace_premium_rounded,
+                            items: unlockedAchievementTitles,
+                            backgroundColor: const Color(0xFFFFFBEB),
+                            accentColor: const Color(0xFFD97706),
+                          ),
+                        ],
                         const SizedBox(height: 28),
                         Row(
                           children: [
@@ -141,9 +167,8 @@ class GameOverOverlay extends StatelessWidget {
                         ),
                         const SizedBox(height: 12),
                         PrimaryButton(
-                          label: runSummary.isDailyMode
-                              ? '홈으로 돌아가기'
-                              : '다시 시작하기',
+                          label:
+                              runSummary.isDailyMode ? '홈으로 돌아가기' : '다시 시작하기',
                           onPressed: onRestart,
                         ),
                       ],
@@ -254,12 +279,163 @@ class GameOverOverlay extends StatelessWidget {
             ],
           ),
         ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: _SummaryStatCard(
+                label: '최대 콤보',
+                value: '${runSummary.maxCombo}',
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _SummaryStatCard(
+                label: '최장 경로',
+                value: '${runSummary.longestPathLength}',
+              ),
+            ),
+          ],
+        ),
       ],
+    );
+  }
+
+  Widget _buildBestMoveCard(BestMoveSummary bestMove) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: charcoalBlack, width: 2),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '베스트 무브',
+            style: GoogleFonts.blackHanSans(
+              fontSize: 15,
+              color: const Color(0xFF2563EB),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '${bestMove.pathLength}칸 / ${bestMove.scoreGained}점 / x${bestMove.combo}',
+            style: AppTypography.body.copyWith(
+              fontWeight: FontWeight.w800,
+              color: charcoalBlack,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBadgeSection({
+    required String title,
+    required IconData icon,
+    required List<String> items,
+    required Color backgroundColor,
+    required Color accentColor,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: charcoalBlack, width: 2),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 18, color: accentColor),
+              const SizedBox(width: 8),
+              Text(
+                title,
+                style: GoogleFonts.blackHanSans(
+                  fontSize: 14,
+                  color: accentColor,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: items
+                .map(
+                  (item) => Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(color: charcoalBlack, width: 1.5),
+                    ),
+                    child: Text(
+                      item,
+                      style: AppTypography.bodySmall.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: charcoalBlack,
+                      ),
+                    ),
+                  ),
+                )
+                .toList(growable: false),
+          ),
+        ],
+      ),
     );
   }
 }
 
+class _SummaryStatCard extends StatelessWidget {
+  const _SummaryStatCard({
+    required this.label,
+    required this.value,
+  });
 
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: charcoalBlack.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        children: [
+          Text(
+            label,
+            style: AppTypography.bodySmall.copyWith(
+              fontWeight: FontWeight.w700,
+              color: charcoalBlack.withValues(alpha: 0.55),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: GoogleFonts.blackHanSans(
+              fontSize: 24,
+              color: charcoalBlack,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 class _DailyStatusCard extends StatelessWidget {
   const _DailyStatusCard({
@@ -303,8 +479,6 @@ class _DailyStatusCard extends StatelessWidget {
     );
   }
 }
-
-
 
 class _DecorativeHexagon extends StatelessWidget {
   final double size;

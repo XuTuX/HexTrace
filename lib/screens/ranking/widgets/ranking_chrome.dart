@@ -76,10 +76,10 @@ class RankingHeader extends StatelessWidget {
           const SizedBox(height: 24),
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 24),
-            padding: const EdgeInsets.all(6),
+            height: 52,
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(color: charcoalBlack, width: 2),
               boxShadow: const [
                 BoxShadow(
@@ -88,19 +88,49 @@ class RankingHeader extends StatelessWidget {
                 ),
               ],
             ),
-            child: Row(
-              children: RankingPeriod.values
-                  .where((p) => p != RankingPeriod.daily)
-                  .map(
-                    (candidate) => Expanded(
-                      child: _RankingPeriodButton(
-                        label: candidate.tabLabel,
-                        isActive: candidate == period,
-                        onTap: () => onPeriodChanged(candidate),
-                      ),
-                    ),
-                  )
-                  .toList(),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(14),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: RankingPeriod.values
+                    .map<Widget>(
+                      (candidate) {
+                        final isActive = candidate == period;
+                        return Expanded(
+                          child: GestureDetector(
+                            onTap: () => onPeriodChanged(candidate),
+                            behavior: HitTestBehavior.opaque,
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              curve: Curves.easeOutCubic,
+                              color: isActive
+                                  ? GamePalette.colorFor(GameColor.azure)
+                                  : Colors.transparent,
+                              alignment: Alignment.center,
+                              child: Text(
+                                candidate.tabLabel,
+                                style: AppTypography.label.copyWith(
+                                  fontSize: 14,
+                                  fontWeight: isActive
+                                      ? FontWeight.w900
+                                      : FontWeight.w700,
+                                  color: isActive
+                                      ? Colors.white
+                                      : charcoalBlack.withValues(alpha: 0.6),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    )
+                    .expand((widget) => [
+                          widget,
+                          Container(width: 2, color: charcoalBlack),
+                        ])
+                    .toList()
+                  ..removeLast(),
+              ),
             ),
           ),
         ],
@@ -138,44 +168,6 @@ class TopPlayersLabel extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _RankingPeriodButton extends StatelessWidget {
-  const _RankingPeriodButton({
-    required this.label,
-    required this.isActive,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool isActive;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOutBack,
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: isActive ? GamePalette.colorFor(GameColor.azure) : Colors.transparent,
-          borderRadius: BorderRadius.circular(14),
-          border: isActive ? Border.all(color: charcoalBlack, width: 2) : null,
-        ),
-        child: Text(
-          label,
-          textAlign: TextAlign.center,
-          style: AppTypography.label.copyWith(
-            fontSize: 13,
-            fontWeight: isActive ? FontWeight.w900 : FontWeight.w700,
-            color: isActive ? Colors.white : charcoalBlack.withValues(alpha: 0.5),
-          ),
-        ),
-      ),
     );
   }
 }
