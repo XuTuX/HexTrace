@@ -83,7 +83,7 @@ class HexBoardPainter extends CustomPainter {
           canvas: canvas,
           path: layout.paths[coord]!,
           center: layout.centers[coord]!,
-          color: GamePalette.colorFor(board[row][col]),
+          gameColor: board[row][col],
           opacity: isAnimated ? opacity : 1,
           scale: isAnimated ? scale : 1,
           borderColor: charcoalBlack,
@@ -136,7 +136,7 @@ class HexBoardPainter extends CustomPainter {
     required Canvas canvas,
     required Path path,
     required Offset center,
-    required Color color,
+    required GameColor gameColor,
     required double opacity,
     required double scale,
     required Color borderColor,
@@ -154,13 +154,29 @@ class HexBoardPainter extends CustomPainter {
       canvas.translate(0, 6 * pressVal);
     }
 
-    canvas.drawPath(
-      path,
-      Paint()
-        ..color = isClearing
-            ? color.withValues(alpha: 0.28 * opacity)
-            : color.withValues(alpha: opacity),
-    );
+    final Paint fillPaint = Paint();
+    if (gameColor.isRainbow) {
+      fillPaint.shader = SweepGradient(
+        colors: const [
+          Color(0xFFFF4D4D), // Coral
+          Color(0xFFFFB300), // Amber
+          Color(0xFF00D47C), // Mint
+          Color(0xFF0095FF), // Azure
+          Color(0xFF8F00FF), // Violet
+          Color(0xFFFF4D4D), // Cycle
+        ],
+      ).createShader(
+        Rect.fromCircle(center: center, radius: layout.radius),
+      );
+    } else {
+      fillPaint.color = GamePalette.colorFor(gameColor);
+    }
+
+    fillPaint.color = isClearing
+        ? fillPaint.color.withValues(alpha: 0.28 * opacity)
+        : fillPaint.color.withValues(alpha: opacity);
+
+    canvas.drawPath(path, fillPaint);
 
     canvas.drawPath(
       path,

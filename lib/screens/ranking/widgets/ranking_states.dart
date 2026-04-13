@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:hexor/constant.dart';
-import 'package:hexor/game/game_palette.dart';
-import 'package:hexor/game/hex_game_controller.dart';
-
 import '../ranking_period.dart';
 
 class RankingLoadingState extends StatelessWidget {
@@ -106,7 +103,8 @@ class RankingErrorState extends StatelessWidget {
             GestureDetector(
               onTap: onRetry,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(14),

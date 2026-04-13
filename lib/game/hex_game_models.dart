@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-enum GameColor { coral, amber, mint, azure, violet }
+enum GameColor { coral, amber, mint, azure, violet, rainbow }
 
 extension GameColorKey on GameColor {
   String get key => switch (this) {
@@ -9,7 +9,18 @@ extension GameColorKey on GameColor {
         GameColor.mint => 'mint',
         GameColor.azure => 'azure',
         GameColor.violet => 'violet',
+        GameColor.rainbow => 'rainbow',
       };
+
+  bool get isRainbow => this == GameColor.rainbow;
+
+  static List<GameColor> get baseColors => const [
+        GameColor.coral,
+        GameColor.amber,
+        GameColor.mint,
+        GameColor.azure,
+        GameColor.violet,
+      ];
 }
 
 enum DragState { idle, building, valid, invalid }

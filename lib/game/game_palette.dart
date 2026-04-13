@@ -20,6 +20,7 @@ class GamePalette {
       GameColor.mint => const Color(0xFF00D47C), // Bright Green
       GameColor.azure => const Color(0xFF0095FF), // Clear Blue
       GameColor.violet => const Color(0xFF8F00FF), // Strong Purple
+      GameColor.rainbow => const Color(0xFFFFFFFF), // White placeholder for rainbow
     };
   }
 

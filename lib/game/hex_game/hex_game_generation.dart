@@ -39,7 +39,7 @@ double _timeBonusForLength(HexGameController controller, int length) {
 }
 
 GameColor _randomColor(HexGameController controller) {
-  return GameColor.values[controller._random.nextInt(GameColor.values.length)];
+  return GameColorKey.baseColors[controller._random.nextInt(GameColorKey.baseColors.length)];
 }
 
 Map<GameColor, int> _colorCountsFromBoard(
@@ -65,11 +65,11 @@ GameColor _weightedBoardColor(
   Map<GameColor, int> counts,
 ) {
   final totalTiles = counts.values.fold<int>(0, (sum, value) => sum + value);
-  final average = totalTiles / GameColor.values.length;
+  final average = totalTiles / GameColorKey.baseColors.length;
   final weights = <GameColor, double>{};
   var totalWeight = 0.0;
 
-  for (final color in GameColor.values) {
+  for (final color in GameColorKey.baseColors) {
     final count = (counts[color] ?? 0).toDouble();
     final deltaFromAverage = count - average;
     final weight = deltaFromAverage <= 0
@@ -81,14 +81,14 @@ GameColor _weightedBoardColor(
   }
 
   var roll = controller._random.nextDouble() * totalWeight;
-  for (final color in GameColor.values) {
+  for (final color in GameColorKey.baseColors) {
     roll -= weights[color]!;
     if (roll <= 0) {
       return color;
     }
   }
 
-  return GameColor.values.last;
+  return GameColorKey.baseColors.last;
 }
 
 void _refillColorBar(HexGameController controller) {
@@ -106,7 +106,7 @@ GameColor _nextBarColor(
   required List<ColorBarEntry> existingEntries,
 }) {
   final presentColors = existingEntries.map((entry) => entry.color).toSet();
-  final missingColors = GameColor.values
+  final missingColors = GameColorKey.baseColors
       .where((color) => !presentColors.contains(color))
       .toList(growable: false);
 

@@ -39,7 +39,9 @@ List<BarWindow> _matchingBarWindowsForSequence(
     var matched = true;
 
     for (var offset = 0; offset < sequence.length; offset++) {
-      if (controller.colorBar[start + offset].color != sequence[offset]) {
+      final boardColor = sequence[offset];
+      if (!boardColor.isRainbow &&
+          controller.colorBar[start + offset].color != boardColor) {
         matched = false;
         break;
       }
@@ -72,7 +74,8 @@ bool _hasAnyValidMove(HexGameController controller) {
         for (var col = 0; col < controller.cols; col++) {
           final origin = HexCoord(col, row);
 
-          if (controller.board[row][col] == sequence.first &&
+          final boardColor = controller.board[row][col];
+          if ((boardColor == sequence.first || boardColor.isRainbow) &&
               _canTraceSequence(
                 controller,
                 origin,
@@ -106,7 +109,8 @@ bool _canTraceSequence(
       continue;
     }
 
-    if (controller.board[neighbor.row][neighbor.col] != sequence[index + 1]) {
+    final boardColor = controller.board[neighbor.row][neighbor.col];
+    if (!boardColor.isRainbow && boardColor != sequence[index + 1]) {
       continue;
     }
 

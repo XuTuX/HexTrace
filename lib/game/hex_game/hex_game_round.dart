@@ -115,10 +115,32 @@ void _removeMatchedTiles(
   final nextAnimatedTiles = matchedPath.toSet();
   final counts = _colorCountsFromBoard(controller, stagedBoard);
 
+  bool hasRainbow = false;
+  for (var r = 0; r < controller.rows; r++) {
+    for (var c = 0; c < controller.cols; c++) {
+      if (controller.board[r][c].isRainbow &&
+          !nextAnimatedTiles.contains(HexCoord(c, r))) {
+        hasRainbow = true;
+        break;
+      }
+    }
+    if (hasRainbow) break;
+  }
+
   for (final coord in matchedPath) {
-    final nextColor = _weightedBoardColor(controller, counts);
+    GameColor nextColor;
+    if (!hasRainbow && controller._random.nextDouble() < 0.05) {
+      nextColor = GameColor.rainbow;
+      hasRainbow = true;
+    } else {
+      nextColor = _weightedBoardColor(controller, counts);
+    }
+
     stagedBoard[coord.row][coord.col] = nextColor;
-    counts[nextColor] = (counts[nextColor] ?? 0) + 1;
+
+    if (!nextColor.isRainbow) {
+      counts[nextColor] = (counts[nextColor] ?? 0) + 1;
+    }
   }
 
   controller.board = stagedBoard
