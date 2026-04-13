@@ -20,8 +20,6 @@ class GameOverOverlay extends StatelessWidget {
     required this.isSharing,
     this.dailyStatusLabel,
     this.dailyStatusDetail,
-    this.completedMissionTitles = const [],
-    this.unlockedAchievementTitles = const [],
   });
 
   final GameRunSummary runSummary;
@@ -35,8 +33,7 @@ class GameOverOverlay extends StatelessWidget {
   final bool isSharing;
   final String? dailyStatusLabel;
   final String? dailyStatusDetail;
-  final List<String> completedMissionTitles;
-  final List<String> unlockedAchievementTitles;
+
 
   @override
   Widget build(BuildContext context) {
@@ -99,17 +96,7 @@ class GameOverOverlay extends StatelessWidget {
                           const SizedBox(height: 20),
                         ],
                         _buildScoreSection(),
-                        const SizedBox(height: 20),
-                        _SummaryGrid(runSummary: runSummary),
-                        if (completedMissionTitles.isNotEmpty ||
-                            unlockedAchievementTitles.isNotEmpty) ...[
-                          const SizedBox(height: 20),
-                          _ProgressHighlights(
-                            completedMissionTitles: completedMissionTitles,
-                            unlockedAchievementTitles:
-                                unlockedAchievementTitles,
-                          ),
-                        ],
+
                         const SizedBox(height: 28),
                         Row(
                           children: [
@@ -272,115 +259,7 @@ class GameOverOverlay extends StatelessWidget {
   }
 }
 
-class _SummaryGrid extends StatelessWidget {
-  const _SummaryGrid({required this.runSummary});
 
-  final GameRunSummary runSummary;
-
-  @override
-  Widget build(BuildContext context) {
-    final bestMove = runSummary.bestMove;
-    final bestMoveValue = bestMove == null
-        ? '기록 없음'
-        : bestMove.combo > 1
-            ? '${bestMove.pathLength}칸 / ${bestMove.scoreGained}점 / x${bestMove.combo}'
-            : '${bestMove.pathLength}칸 / ${bestMove.scoreGained}점';
-
-    return Column(
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: _SummaryStatCard(
-                label: '최대 콤보',
-                value: '${runSummary.maxCombo}',
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _SummaryStatCard(
-                label: '최장 경로',
-                value: '${runSummary.longestPathLength}칸',
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: _SummaryStatCard(
-                label: '남은 시간',
-                value: '${runSummary.remainingTime.ceil()}초',
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _SummaryStatCard(
-                label: '실수',
-                value: '${runSummary.invalidAttemptCount}회',
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        _SummaryStatCard(
-          label: '베스트 무브',
-          value: bestMoveValue,
-          fullWidth: true,
-        ),
-      ],
-    );
-  }
-}
-
-class _SummaryStatCard extends StatelessWidget {
-  const _SummaryStatCard({
-    required this.label,
-    required this.value,
-    this.fullWidth = false,
-  });
-
-  final String label;
-  final String value;
-  final bool fullWidth;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: fullWidth ? double.infinity : null,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: charcoalBlack.withValues(alpha: 0.1)),
-      ),
-      child: Column(
-        crossAxisAlignment:
-            fullWidth ? CrossAxisAlignment.start : CrossAxisAlignment.center,
-        children: [
-          Text(
-            label,
-            style: AppTypography.label.copyWith(
-              fontSize: 12,
-              color: charcoalBlack.withValues(alpha: 0.45),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            textAlign: fullWidth ? TextAlign.left : TextAlign.center,
-            style: GoogleFonts.blackHanSans(
-              fontSize: fullWidth ? 18 : 22,
-              color: charcoalBlack,
-              height: 1.1,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class _DailyStatusCard extends StatelessWidget {
   const _DailyStatusCard({
@@ -425,105 +304,7 @@ class _DailyStatusCard extends StatelessWidget {
   }
 }
 
-class _ProgressHighlights extends StatelessWidget {
-  const _ProgressHighlights({
-    required this.completedMissionTitles,
-    required this.unlockedAchievementTitles,
-  });
 
-  final List<String> completedMissionTitles;
-  final List<String> unlockedAchievementTitles;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF9FAFB),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: charcoalBlack.withValues(alpha: 0.12)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (completedMissionTitles.isNotEmpty) ...[
-            Text(
-              '오늘의 미션 완료',
-              style: GoogleFonts.blackHanSans(
-                fontSize: 14,
-                color: const Color(0xFF059669),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: completedMissionTitles
-                  .map((title) => _HighlightChip(
-                        label: title,
-                        color: const Color(0xFFDCFCE7),
-                      ))
-                  .toList(growable: false),
-            ),
-          ],
-          if (completedMissionTitles.isNotEmpty &&
-              unlockedAchievementTitles.isNotEmpty)
-            const SizedBox(height: 14),
-          if (unlockedAchievementTitles.isNotEmpty) ...[
-            Text(
-              '새 업적 해금',
-              style: GoogleFonts.blackHanSans(
-                fontSize: 14,
-                color: const Color(0xFFF59E0B),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: unlockedAchievementTitles
-                  .map((title) => _HighlightChip(
-                        label: title,
-                        color: const Color(0xFFFEF3C7),
-                      ))
-                  .toList(growable: false),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _HighlightChip extends StatelessWidget {
-  const _HighlightChip({
-    required this.label,
-    required this.color,
-  });
-
-  final String label;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: charcoalBlack.withValues(alpha: 0.15)),
-      ),
-      child: Text(
-        label,
-        style: AppTypography.bodySmall.copyWith(
-          fontWeight: FontWeight.w900,
-          color: charcoalBlack,
-        ),
-      ),
-    );
-  }
-}
 
 class _DecorativeHexagon extends StatelessWidget {
   final double size;

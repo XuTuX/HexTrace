@@ -6,7 +6,6 @@ import 'package:hexor/constant.dart';
 import 'package:hexor/services/auth_service.dart';
 import 'package:hexor/services/database_models.dart';
 import 'package:hexor/services/database_service.dart';
-import 'package:hexor/services/progress_service.dart';
 import 'package:hexor/theme/app_typography.dart';
 
 class HomeProgressPanel extends StatefulWidget {
@@ -26,7 +25,6 @@ class HomeProgressPanel extends StatefulWidget {
 class _HomeProgressPanelState extends State<HomeProgressPanel> {
   bool _isLoading = true;
   DailyChallengeInfo? _dailyChallenge;
-  WeeklySeasonSummary? _seasonSummary;
   late final Worker _authWorker;
 
   @override
@@ -44,22 +42,16 @@ class _HomeProgressPanelState extends State<HomeProgressPanel> {
 
   Future<void> _load() async {
     final dbService = Get.find<DatabaseService>();
-    await Get.find<ProgressService>().refresh();
 
     try {
-      final dailyFuture = dbService.getDailyChallenge(gameId);
-      final seasonFuture = widget.authService.user.value == null
-          ? Future<WeeklySeasonSummary?>.value(null)
-          : dbService.getWeeklySeasonSummary(gameId);
-      final results = await Future.wait([dailyFuture, seasonFuture]);
+      final daily = await dbService.getDailyChallenge(gameId);
 
       if (!mounted) {
         return;
       }
 
       setState(() {
-        _dailyChallenge = results[0] as DailyChallengeInfo;
-        _seasonSummary = results[1] as WeeklySeasonSummary?;
+        _dailyChallenge = daily;
         _isLoading = false;
       });
     } catch (_) {
@@ -75,8 +67,6 @@ class _HomeProgressPanelState extends State<HomeProgressPanel> {
 
   @override
   Widget build(BuildContext context) {
-    final progressService = Get.find<ProgressService>();
-
     return Column(
       children: [
         _TodayPuzzleCard(
@@ -85,21 +75,14 @@ class _HomeProgressPanelState extends State<HomeProgressPanel> {
           isLoggedIn: widget.authService.user.value != null,
           onPressed: widget.onStartDaily,
         ),
-        const SizedBox(height: 14),
-        Obx(
-          () => _MissionsCard(
-            missions: progressService.dailyMissions.toList(growable: false),
-          ),
-        ),
-        const SizedBox(height: 14),
-        _SeasonTierCard(
-          seasonSummary: _seasonSummary,
-          isLoggedIn: widget.authService.user.value != null,
-        ),
       ],
     );
   }
 }
+
+// ---------------------------------------------------------------------------
+// Today's Puzzle — compact card
+// ---------------------------------------------------------------------------
 
 class _TodayPuzzleCard extends StatelessWidget {
   const _TodayPuzzleCard({
@@ -116,245 +99,180 @@ class _TodayPuzzleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasUsedAttempt = challenge?.hasUsedEntry ?? false;
-    final buttonLabel = switch ((isLoggedIn, hasUsedAttempt)) {
-      (false, _) => '로그인하고 도전하기',
-      (true, false) => '오늘의 퍼즐 도전',
-      (true, true) => '오늘은 종료',
-    };
-    final subtitle = switch ((isLoggedIn, hasUsedAttempt, challenge?.myScore)) {
-      (true, false, _) => '하루 한 번 모두가 같은 시드로 경쟁해요.',
-      (true, true, final int myScore?) =>
-        '오늘의 퍼즐은 이미 플레이했어요. 기록은 $myScore점입니다.',
-      (true, true, _) => '오늘의 퍼즐은 이미 입장했어요. 내일 다시 도전해 주세요.',
-      (false, _, _) => '오늘의 퍼즐은 로그인 후 하루 한 번만 참여할 수 있어요.',
-    };
-
-    return _PanelCard(
-      title: '오늘의 퍼즐',
-      accent: const Color(0xFF2563EB),
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: charcoalBlack, width: 2),
+        boxShadow: const [
+          BoxShadow(
+            color: charcoalBlack,
+            offset: Offset(4, 4),
+          ),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (isLoading)
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 8),
-                child: SizedBox(
-                  width: 22,
-                  height: 22,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 3,
-                    color: charcoalBlack,
-                  ),
-                ),
-              ),
-            )
-          else ...[
-            if (challenge != null)
+          // Header: dot + title + date pill
+          Row(
+            children: [
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEFF6FF),
-                  borderRadius: BorderRadius.circular(999),
+                width: 12,
+                height: 12,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF2563EB),
+                  shape: BoxShape.circle,
                 ),
-                child: Text(
-                  challenge!.displayDateLabel,
-                  style: AppTypography.label.copyWith(
-                    fontSize: 11,
-                    color: const Color(0xFF2563EB),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '오늘의 퍼즐',
+                style: GoogleFonts.blackHanSans(
+                  fontSize: 16,
+                  color: charcoalBlack,
+                ),
+              ),
+              const Spacer(),
+              if (challenge != null)
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    challenge!.displayDateLabel,
+                    style: AppTypography.label.copyWith(
+                      fontSize: 11,
+                      color: const Color(0xFF2563EB),
+                    ),
                   ),
                 ),
-              ),
-            const SizedBox(height: 10),
-            Text(
-              subtitle,
-              style: AppTypography.body.copyWith(
-                fontWeight: FontWeight.w700,
-                color: charcoalBlack.withValues(alpha: 0.72),
-              ),
-            ),
-            const SizedBox(height: 14),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: hasUsedAttempt
-                    ? null
-                    : () {
-                        onPressed();
-                      },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: hasUsedAttempt
-                      ? const Color(0xFFCBD5E1)
-                      : const Color(0xFF2563EB),
-                  foregroundColor:
-                      hasUsedAttempt ? const Color(0xFF475569) : Colors.white,
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-                child: Text(
-                  buttonLabel,
-                  style: GoogleFonts.blackHanSans(fontSize: 16),
-                ),
-              ),
-            ),
-          ],
+            ],
+          ),
+          const SizedBox(height: 14),
+          _buildContent(),
         ],
       ),
     );
   }
-}
 
-class _MissionsCard extends StatelessWidget {
-  const _MissionsCard({required this.missions});
+  Widget _buildContent() {
+    if (isLoading) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 4),
+          child: SizedBox(
+            width: 22,
+            height: 22,
+            child: CircularProgressIndicator(
+              strokeWidth: 3,
+              color: charcoalBlack,
+            ),
+          ),
+        ),
+      );
+    }
 
-  final List<MissionProgress> missions;
+    final hasUsedAttempt = challenge?.hasUsedEntry ?? false;
 
-  @override
-  Widget build(BuildContext context) {
-    return _PanelCard(
-      title: '오늘의 미션',
-      accent: const Color(0xFF059669),
-      child: Column(
-        children: missions
-            .map(
-              (mission) => Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: Row(
-                  children: [
-                    Icon(
-                      mission.isCompleted
-                          ? Icons.check_circle_rounded
-                          : Icons.radio_button_unchecked_rounded,
-                      color: mission.isCompleted
-                          ? const Color(0xFF059669)
-                          : charcoalBlack.withValues(alpha: 0.25),
-                      size: 20,
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            mission.definition.title,
-                            style: AppTypography.body.copyWith(
-                              fontWeight: FontWeight.w900,
-                              color: charcoalBlack,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            mission.definition.description,
-                            style: AppTypography.bodySmall.copyWith(
-                              color: charcoalBlack.withValues(alpha: 0.52),
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+    // Not logged in
+    if (!isLoggedIn) {
+      return Text(
+        '로그인 후 참여할 수 있어요',
+        style: AppTypography.body.copyWith(
+          fontWeight: FontWeight.w700,
+          color: charcoalBlack.withValues(alpha: 0.52),
+        ),
+      );
+    }
+
+    // Completed — compact result row
+    if (hasUsedAttempt) {
+      return Row(
+        children: [
+          if (challenge?.myScore case final int score)
+            Text(
+              '${_formatScore(score)}점 달성',
+              style: GoogleFonts.blackHanSans(
+                fontSize: 15,
+                color: charcoalBlack,
               ),
             )
-            .toList(growable: false),
-      ),
-    );
-  }
-}
-
-class _SeasonTierCard extends StatelessWidget {
-  const _SeasonTierCard({
-    required this.seasonSummary,
-    required this.isLoggedIn,
-  });
-
-  final WeeklySeasonSummary? seasonSummary;
-  final bool isLoggedIn;
-
-  @override
-  Widget build(BuildContext context) {
-    final tier = seasonSummary?.tier;
-    final label = switch ((isLoggedIn, seasonSummary?.rank, tier)) {
-      (false, _, _) => '로그인하면 주간 시즌 티어를 받을 수 있어요.',
-      (true, null, _) => '이번 주 첫 기록을 남기면 시즌 티어가 정해집니다.',
-      (true, final int rank?, final SeasonTier tier?) =>
-        '${tier.label} 티어 · 현재 $rank위',
-      _ => '이번 주 시즌 데이터를 불러오는 중입니다.',
-    };
-
-    return _PanelCard(
-      title: '주간 시즌',
-      accent: const Color(0xFFF59E0B),
-      child: Row(
-        children: [
-          Container(
-            width: 72,
-            height: 72,
-            decoration: BoxDecoration(
-              color: _tierColor(tier).withValues(alpha: 0.14),
-              borderRadius: BorderRadius.circular(20),
+          else
+            Text(
+              '도전 완료',
+              style: AppTypography.body.copyWith(
+                fontWeight: FontWeight.w800,
+                color: charcoalBlack.withValues(alpha: 0.7),
+              ),
             ),
-            child: Icon(
-              Icons.workspace_premium_rounded,
-              size: 34,
-              color: _tierColor(tier),
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  tier?.label ?? 'UNRANKED',
-                  style: GoogleFonts.blackHanSans(
-                    fontSize: 18,
-                    color: charcoalBlack,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  label,
-                  style: AppTypography.body.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: charcoalBlack.withValues(alpha: 0.7),
-                  ),
-                ),
-                if (seasonSummary?.participantCount case final int count
-                    when count > 0) ...[
-                  const SizedBox(height: 6),
-                  Text(
-                    '참가자 $count명',
-                    style: AppTypography.bodySmall.copyWith(
-                      color: charcoalBlack.withValues(alpha: 0.45),
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ],
-              ],
-            ),
+          const Spacer(),
+          const Icon(
+            Icons.check_circle_rounded,
+            color: Color(0xFF059669),
+            size: 20,
           ),
         ],
-      ),
+      );
+    }
+
+    // Available — short description + compact CTA
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '하루 한 번, 같은 시드로 경쟁!',
+          style: AppTypography.bodySmall.copyWith(
+            fontWeight: FontWeight.w700,
+            color: charcoalBlack.withValues(alpha: 0.55),
+          ),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: () => onPressed(),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF2563EB),
+              foregroundColor: Colors.white,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+            child: Text(
+              '도전하기',
+              style: GoogleFonts.blackHanSans(fontSize: 15),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
-  Color _tierColor(SeasonTier? tier) {
-    return switch (tier) {
-      SeasonTier.diamond => const Color(0xFF38BDF8),
-      SeasonTier.platinum => const Color(0xFF64748B),
-      SeasonTier.gold => const Color(0xFFF59E0B),
-      SeasonTier.silver => const Color(0xFF94A3B8),
-      _ => const Color(0xFFB45309),
-    };
+  String _formatScore(int value) {
+    final digits = value.toString();
+    if (digits.length <= 3) return digits;
+    final buffer = StringBuffer();
+    for (var i = 0; i < digits.length; i++) {
+      if (i > 0 && (digits.length - i) % 3 == 0) buffer.write(',');
+      buffer.write(digits[i]);
+    }
+    return buffer.toString();
   }
 }
+
+
+
+// ---------------------------------------------------------------------------
+// Shared card shell
+// ---------------------------------------------------------------------------
 
 class _PanelCard extends StatelessWidget {
   const _PanelCard({

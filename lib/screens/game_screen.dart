@@ -10,7 +10,6 @@ import '../game/hex_board_view.dart';
 import '../game/hex_game_controller.dart';
 import '../services/app_haptics.dart';
 import '../services/database_service.dart';
-import '../services/progress_service.dart';
 import '../services/replay_share_service.dart';
 import '../utils/browser_back_blocker.dart';
 import '../widgets/dialogs/share_preview_dialog.dart';
@@ -42,8 +41,6 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   bool _isSharingReplay = false;
   String? _dailyStatusLabel;
   String? _dailyStatusDetail;
-  List<String> _completedMissionTitles = const [];
-  List<String> _unlockedAchievementTitles = const [];
 
   @override
   void initState() {
@@ -237,9 +234,6 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                                 isSharing: _isSharingReplay,
                                 dailyStatusLabel: _dailyStatusLabel,
                                 dailyStatusDetail: _dailyStatusDetail,
-                                completedMissionTitles: _completedMissionTitles,
-                                unlockedAchievementTitles:
-                                    _unlockedAchievementTitles,
                               ),
                             ),
                         ],
@@ -366,8 +360,6 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     }
 
     setState(() {
-      _completedMissionTitles = const [];
-      _unlockedAchievementTitles = const [];
 
       if (session.mode == GameMode.dailyOfficial) {
         _dailyStatusLabel = '오늘의 퍼즐 기록 제출 중';
@@ -392,23 +384,18 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     setState(() {
       _dailyStatusLabel = null;
       _dailyStatusDetail = null;
-      _completedMissionTitles = const [];
-      _unlockedAchievementTitles = const [];
     });
   }
 
   Future<void> _finalizeCompletedRun() async {
     final summary = _controller.runSummary;
-    final progressService = Get.find<ProgressService>();
     final dbService = Get.find<DatabaseService>();
 
-    final progressFuture = progressService.registerCompletedRun(summary);
     final dailyFuture = _submitDailyScoreIfNeeded(
       dbService: dbService,
       summary: summary,
     );
 
-    final progressResult = await progressFuture;
     final dailyResult = await dailyFuture;
 
     if (!mounted) {
@@ -416,12 +403,6 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     }
 
     setState(() {
-      _completedMissionTitles = progressResult.completedMissionTypes
-          .map((type) => progressService.missionDefinition(type).title)
-          .toList(growable: false);
-      _unlockedAchievementTitles = progressResult.unlockedAchievementTypes
-          .map((type) => progressService.achievementDefinition(type).title)
-          .toList(growable: false);
       if (dailyResult case (final label, final detail)) {
         _dailyStatusLabel = label;
         _dailyStatusDetail = detail;

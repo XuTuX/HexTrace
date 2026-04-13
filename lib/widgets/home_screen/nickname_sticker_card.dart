@@ -11,16 +11,28 @@ class NicknameStickerCard extends StatelessWidget {
     required this.score,
     this.isLoading = false,
     this.onTapNickname,
+    this.tierLabel,
+    this.tierColor,
+    this.tierRank,
   });
 
   final String? nickname;
   final int score;
   final bool isLoading;
   final VoidCallback? onTapNickname;
+  final String? tierLabel;
+  final Color? tierColor;
+  final int? tierRank;
 
   static const Color stickerYellow = Color(0xFFF9D86D);
 
   bool get _hasNickname => nickname?.trim().isNotEmpty ?? false;
+  bool get _hasTier => tierLabel != null && tierColor != null;
+
+  Color get _tierTextColor {
+    if (tierColor == null) return charcoalBlack;
+    return tierColor!.computeLuminance() > 0.3 ? charcoalBlack : Colors.white;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +59,8 @@ class NicknameStickerCard extends StatelessWidget {
         final scoreFontSize = isTablet ? 56.0 : 48.0;
         final cardHorizontalPadding = isTablet ? 32.0 : 24.0;
         final cardVerticalPadding = isTablet ? 32.0 : 28.0;
+        final tierBottom = isTablet ? -16.0 : -12.0;
+        final tierRight = isTablet ? 24.0 : 16.0;
 
         return Center(
           child: ConstrainedBox(
@@ -118,6 +132,7 @@ class NicknameStickerCard extends StatelessWidget {
                     ],
                   ),
                 ),
+                // Nickname sticker — top-left
                 if (_hasNickname)
                   Positioned(
                     top: stickerTop,
@@ -136,56 +151,120 @@ class NicknameStickerCard extends StatelessWidget {
                           ),
                         );
                       },
-                        child: GestureDetector(
-                          onTap: onTapNickname,
-                          behavior: HitTestBehavior.opaque,
-                          child: Container(
-                            constraints: BoxConstraints(maxWidth: stickerMaxWidth),
-                            padding: EdgeInsets.symmetric(
-                              horizontal: stickerHorizontalPadding,
-                              vertical: stickerVerticalPadding,
+                      child: GestureDetector(
+                        onTap: onTapNickname,
+                        behavior: HitTestBehavior.opaque,
+                        child: Container(
+                          constraints:
+                              BoxConstraints(maxWidth: stickerMaxWidth),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: stickerHorizontalPadding,
+                            vertical: stickerVerticalPadding,
+                          ),
+                          decoration: BoxDecoration(
+                            color: stickerYellow,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: charcoalBlack,
+                              width: 2.5,
                             ),
-                            decoration: BoxDecoration(
-                              color: stickerYellow,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
+                            boxShadow: const [
+                              BoxShadow(
                                 color: charcoalBlack,
-                                width: 2.5,
+                                offset: Offset(3, 3),
+                                blurRadius: 0,
                               ),
-                              boxShadow: const [
-                                BoxShadow(
-                                  color: charcoalBlack,
-                                  offset: Offset(3, 3),
-                                  blurRadius: 0,
-                                ),
-                              ],
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.person_rounded,
-                                  size: iconSize,
-                                  color: charcoalBlack,
-                                ),
-                                const SizedBox(width: 8),
-                                Flexible(
-                                  child: Text(
-                                    nickname!.trim(),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: GoogleFonts.blackHanSans(
-                                      fontSize: nicknameFontSize,
-                                      color: charcoalBlack,
-                                      height: 1.0,
-                                      letterSpacing: 0.4,
-                                    ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.person_rounded,
+                                size: iconSize,
+                                color: charcoalBlack,
+                              ),
+                              const SizedBox(width: 8),
+                              Flexible(
+                                child: Text(
+                                  nickname!.trim(),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.blackHanSans(
+                                    fontSize: nicknameFontSize,
+                                    color: charcoalBlack,
+                                    height: 1.0,
+                                    letterSpacing: 0.4,
                                   ),
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ),
+                      ),
+                    ),
+                  ),
+                // Tier badge — bottom-right
+                if (_hasTier)
+                  Positioned(
+                    bottom: tierBottom,
+                    right: tierRight,
+                    child: TweenAnimationBuilder<double>(
+                      tween: Tween<double>(begin: 0, end: 1),
+                      duration: const Duration(milliseconds: 700),
+                      curve: Curves.elasticOut,
+                      builder: (context, value, child) {
+                        return Transform.scale(
+                          alignment: Alignment.bottomRight,
+                          scale: value,
+                          child: Transform.rotate(
+                            angle: 0.04,
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isTablet ? 12.0 : 10.0,
+                          vertical: isTablet ? 7.0 : 5.0,
+                        ),
+                        decoration: BoxDecoration(
+                          color: tierColor,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: charcoalBlack,
+                            width: 2,
+                          ),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: charcoalBlack,
+                              offset: Offset(2, 2),
+                              blurRadius: 0,
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.workspace_premium_rounded,
+                              size: isTablet ? 16.0 : 13.0,
+                              color: _tierTextColor,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              tierRank != null
+                                  ? '${tierLabel!} · ${tierRank}위'
+                                  : tierLabel!,
+                              style: GoogleFonts.blackHanSans(
+                                fontSize: isTablet ? 13.0 : 11.0,
+                                color: _tierTextColor,
+                                height: 1.0,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
               ],
