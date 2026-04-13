@@ -35,13 +35,13 @@ class HomeScreenContent extends StatelessWidget {
     final isTablet = mediaSize.shortestSide >= 600;
     final viewportHeight = mediaSize.height;
     final horizontalPadding = isTablet ? 40.0 : 24.0;
-    final contentMaxWidth = isTablet ? 760.0 : 560.0;
-    final topSpacing = isTablet ? 24.0 : 14.0;
-    final heroGap = isTablet ? 36.0 : 26.0;
-    final sectionGap = isTablet ? 18.0 : 14.0;
+    final contentMaxWidth = isTablet ? 480.0 : 480.0;
+    final topSpacing = isTablet ? 40.0 : 14.0;
+    final heroGap = isTablet ? 56.0 : 26.0;
+    final sectionGap = isTablet ? 32.0 : 14.0;
     final bottomSpacing = viewportHeight > 820
-        ? (isTablet ? 40.0 : 28.0)
-        : (isTablet ? 28.0 : 20.0);
+        ? (isTablet ? 60.0 : 28.0)
+        : (isTablet ? 40.0 : 20.0);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
