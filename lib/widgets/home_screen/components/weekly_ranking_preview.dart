@@ -92,14 +92,14 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
                   child: const Icon(
                     Icons.emoji_events,
                     color: Colors.white,
-                    size: 14,
+                    size: 18,
                   ),
                 ),
                 const SizedBox(width: 8),
                 Text(
                   '주간 랭킹',
                   style: GoogleFonts.blackHanSans(
-                    fontSize: 16,
+                    fontSize: 18,
                     letterSpacing: 0.5,
                     color: charcoalBlack,
                   ),
@@ -255,7 +255,7 @@ class _RankRow extends StatelessWidget {
             child: Text(
               '$rank',
               style: GoogleFonts.blackHanSans(
-                fontSize: 16,
+                fontSize: 18,
                 color: rankColor,
               ),
             ),
@@ -265,7 +265,7 @@ class _RankRow extends StatelessWidget {
             child: Text(
               nickname.toString(),
               style: GoogleFonts.notoSans(
-                fontSize: 13,
+                fontSize: 14,
                 fontWeight: FontWeight.w800,
                 color: charcoalBlack,
               ),
@@ -275,7 +275,7 @@ class _RankRow extends StatelessWidget {
           Text(
             _formatScore(score),
             style: GoogleFonts.blackHanSans(
-              fontSize: 14,
+              fontSize: 15,
               color: charcoalBlack.withValues(alpha: 0.8),
             ),
           ),

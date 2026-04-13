@@ -110,7 +110,7 @@ class _TodayPuzzleCard extends StatelessWidget {
           boxShadow: const [
             BoxShadow(
               color: charcoalBlack,
-              offset: Offset(3, 3),
+              offset: Offset(4, 4),
             ),
           ],
         ),
@@ -134,7 +134,7 @@ class _TodayPuzzleCard extends StatelessWidget {
                   child: Text(
                     '오늘의 퍼즐',
                     style: GoogleFonts.blackHanSans(
-                      fontSize: 14,
+                      fontSize: 16,
                       color: charcoalBlack,
                     ),
                     overflow: TextOverflow.ellipsis,
@@ -222,22 +222,22 @@ class _TodayPuzzleCard extends StatelessWidget {
           child: Text(
             '하루 한 번 도전!',
             style: AppTypography.bodySmall.copyWith(
-              fontSize: 12,
+              fontSize: 13,
               fontWeight: FontWeight.w700,
-              color: charcoalBlack.withValues(alpha: 0.55),
+              color: charcoalBlack.withValues(alpha: 0.7),
             ),
           ),
         ),
         Container(
-          padding: const EdgeInsets.all(6),
+          padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: const Color(0xFF2563EB),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(10),
           ),
           child: const Icon(
             Icons.play_arrow_rounded,
             color: Colors.white,
-            size: 16,
+            size: 20,
           ),
         ),
       ],

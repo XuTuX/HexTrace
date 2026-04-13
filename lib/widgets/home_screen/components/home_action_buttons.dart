@@ -22,14 +22,14 @@ class PrimaryButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      height: 62,
+      height: 72,
       decoration: BoxDecoration(
         color: charcoalBlack,
         borderRadius: BorderRadius.circular(20),
         boxShadow: const [
           BoxShadow(
             color: charcoalBlack,
-            offset: Offset(4, 4),
+            offset: Offset(5, 5),
             blurRadius: 0,
           ),
         ],
@@ -50,14 +50,14 @@ class PrimaryButton extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             if (icon != null) ...[
-              Icon(icon, size: 26, color: Colors.white),
-              const SizedBox(width: 10),
+              Icon(icon, size: 28, color: Colors.white),
+              const SizedBox(width: 12),
             ],
             Text(
               label,
               style: GoogleFonts.blackHanSans(
-                fontSize: 22,
-                letterSpacing: 1.0,
+                fontSize: 24,
+                letterSpacing: 1.2,
                 color: Colors.white,
               ),
             ),
@@ -144,37 +144,37 @@ class RankingCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: const Color(0xFFFFFBEB),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: charcoalBlack, width: 2),
           boxShadow: const [
             BoxShadow(
               color: charcoalBlack,
-              offset: Offset(3, 3),
+              offset: Offset(4, 4),
             ),
           ],
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text('🏆', style: TextStyle(fontSize: 26)),
-            const SizedBox(height: 8),
+            const Text('🏆', style: TextStyle(fontSize: 32)),
+            const SizedBox(height: 10),
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   '랭킹',
                   style: GoogleFonts.blackHanSans(
-                    fontSize: 15,
+                    fontSize: 16,
                     color: charcoalBlack,
                     letterSpacing: 0.5,
                   ),
                 ),
-                const SizedBox(width: 2),
+                const SizedBox(width: 4),
                 Icon(
                   Icons.chevron_right_rounded,
-                  size: 18,
-                  color: charcoalBlack.withValues(alpha: 0.3),
+                  size: 20,
+                  color: charcoalBlack.withValues(alpha: 0.4),
                 ),
               ],
             ),
