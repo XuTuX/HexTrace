@@ -52,9 +52,12 @@ class HomeScreenContent extends StatelessWidget {
                       ),
                       child: Column(
                         children: [
-                          SizedBox(height: isTablet ? 20 : 12),
+                          SizedBox(height: isTablet ? 16 : 8),
+                          // Top bar: compact logo + settings
                           Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
+                              const CompactHomeLogo(),
                               const Spacer(),
                               TopIconButton(
                                 icon: Icons.settings_rounded,
@@ -62,33 +65,48 @@ class HomeScreenContent extends StatelessWidget {
                               ),
                             ],
                           ),
-                          SizedBox(height: isTablet ? 24 : 16),
-                          const HomeLogo(),
-                          SizedBox(height: isTablet ? 32 : 28),
+                          SizedBox(height: isTablet ? 22 : 16),
+                          // Score display
                           ScoreDisplay(
                             scoreController: scoreController,
                             authService: authService,
                           ),
-                          SizedBox(height: isTablet ? 28 : 24),
+                          SizedBox(height: isTablet ? 20 : 14),
+                          // Game start button
                           PrimaryButton(
                             label: '게임 시작',
                             icon: Icons.play_arrow_rounded,
                             onPressed: onStartGame,
                           ),
-                          SizedBox(height: isTablet ? 16 : 14),
-                          RankingButton(
-                            onPressed: onRankingTap,
+                          SizedBox(height: isTablet ? 14 : 10),
+                          // 오늘의 퍼즐 + 랭킹 side by side
+                          IntrinsicHeight(
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Expanded(
+                                  flex: 3,
+                                  child: HomeProgressPanel(
+                                    authService: authService,
+                                    onStartDaily: onStartDaily,
+                                  ),
+                                ),
+                                SizedBox(width: isTablet ? 14 : 10),
+                                Expanded(
+                                  flex: 2,
+                                  child: RankingCard(
+                                    onPressed: onRankingTap,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                          SizedBox(height: isTablet ? 20 : 18),
-                          HomeProgressPanel(
-                            authService: authService,
-                            onStartDaily: onStartDaily,
-                          ),
-                          SizedBox(height: isTablet ? 18 : 16),
+                          SizedBox(height: isTablet ? 14 : 10),
+                          // 주간 랭킹
                           WeeklyRankingPreview(
                             onViewAll: onRankingTap,
                           ),
-                          SizedBox(height: isTablet ? 28 : 20),
+                          SizedBox(height: isTablet ? 24 : 16),
                         ],
                       ),
                     ),

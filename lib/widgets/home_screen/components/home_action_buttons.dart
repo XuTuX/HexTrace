@@ -129,6 +129,62 @@ class RankingButton extends StatelessWidget {
   }
 }
 
+class RankingCard extends StatelessWidget {
+  const RankingCard({
+    super.key,
+    required this.onPressed,
+  });
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: charcoalBlack, width: 2),
+          boxShadow: const [
+            BoxShadow(
+              color: charcoalBlack,
+              offset: Offset(3, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text('🏆', style: TextStyle(fontSize: 26)),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '랭킹',
+                  style: GoogleFonts.blackHanSans(
+                    fontSize: 15,
+                    color: charcoalBlack,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(width: 2),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  size: 18,
+                  color: charcoalBlack.withValues(alpha: 0.3),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class SecondaryButton extends StatelessWidget {
   const SecondaryButton({
     super.key,

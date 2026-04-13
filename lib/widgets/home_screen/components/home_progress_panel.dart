@@ -67,21 +67,17 @@ class _HomeProgressPanelState extends State<HomeProgressPanel> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        _TodayPuzzleCard(
-          isLoading: _isLoading,
-          challenge: _dailyChallenge,
-          isLoggedIn: widget.authService.user.value != null,
-          onPressed: widget.onStartDaily,
-        ),
-      ],
+    return _TodayPuzzleCard(
+      isLoading: _isLoading,
+      challenge: _dailyChallenge,
+      isLoggedIn: widget.authService.user.value != null,
+      onPressed: widget.onStartDaily,
     );
   }
 }
 
 // ---------------------------------------------------------------------------
-// Today's Puzzle — compact card
+// Today's Puzzle — compact card (designed for side-by-side layout)
 // ---------------------------------------------------------------------------
 
 class _TodayPuzzleCard extends StatelessWidget {
@@ -97,66 +93,59 @@ class _TodayPuzzleCard extends StatelessWidget {
   final bool isLoggedIn;
   final Future<void> Function() onPressed;
 
+  bool get _isAvailable =>
+      !isLoading && isLoggedIn && !(challenge?.hasUsedEntry ?? false);
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: charcoalBlack, width: 2),
-        boxShadow: const [
-          BoxShadow(
-            color: charcoalBlack,
-            offset: Offset(4, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header: dot + title + date pill
-          Row(
-            children: [
-              Container(
-                width: 12,
-                height: 12,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF2563EB),
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                '오늘의 퍼즐',
-                style: GoogleFonts.blackHanSans(
-                  fontSize: 16,
-                  color: charcoalBlack,
-                ),
-              ),
-              const Spacer(),
-              if (challenge != null)
+    return GestureDetector(
+      onTap: _isAvailable ? () => onPressed() : null,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: charcoalBlack, width: 2),
+          boxShadow: const [
+            BoxShadow(
+              color: charcoalBlack,
+              offset: Offset(3, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Header: dot + title
+            Row(
+              children: [
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFEFF6FF),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Text(
-                    challenge!.displayDateLabel,
-                    style: AppTypography.label.copyWith(
-                      fontSize: 11,
-                      color: const Color(0xFF2563EB),
-                    ),
+                  width: 10,
+                  height: 10,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF2563EB),
+                    shape: BoxShape.circle,
                   ),
                 ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          _buildContent(),
-        ],
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Text(
+                    '오늘의 퍼즐',
+                    style: GoogleFonts.blackHanSans(
+                      fontSize: 14,
+                      color: charcoalBlack,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            _buildContent(),
+          ],
+        ),
       ),
     );
   }
@@ -165,12 +154,12 @@ class _TodayPuzzleCard extends StatelessWidget {
     if (isLoading) {
       return const Center(
         child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 4),
+          padding: EdgeInsets.symmetric(vertical: 2),
           child: SizedBox(
-            width: 22,
-            height: 22,
+            width: 20,
+            height: 20,
             child: CircularProgressIndicator(
-              strokeWidth: 3,
+              strokeWidth: 2.5,
               color: charcoalBlack,
             ),
           ),
@@ -183,10 +172,11 @@ class _TodayPuzzleCard extends StatelessWidget {
     // Not logged in
     if (!isLoggedIn) {
       return Text(
-        '로그인 후 참여할 수 있어요',
+        '로그인 후 참여 가능',
         style: AppTypography.body.copyWith(
+          fontSize: 12,
           fontWeight: FontWeight.w700,
-          color: charcoalBlack.withValues(alpha: 0.52),
+          color: charcoalBlack.withValues(alpha: 0.45),
         ),
       );
     }
@@ -196,60 +186,58 @@ class _TodayPuzzleCard extends StatelessWidget {
       return Row(
         children: [
           if (challenge?.myScore case final int score)
-            Text(
-              '${_formatScore(score)}점 달성',
-              style: GoogleFonts.blackHanSans(
-                fontSize: 15,
-                color: charcoalBlack,
+            Expanded(
+              child: Text(
+                '${_formatScore(score)}점',
+                style: GoogleFonts.blackHanSans(
+                  fontSize: 14,
+                  color: charcoalBlack,
+                ),
               ),
             )
           else
-            Text(
-              '도전 완료',
-              style: AppTypography.body.copyWith(
-                fontWeight: FontWeight.w800,
-                color: charcoalBlack.withValues(alpha: 0.7),
+            Expanded(
+              child: Text(
+                '도전 완료',
+                style: AppTypography.body.copyWith(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: charcoalBlack.withValues(alpha: 0.7),
+                ),
               ),
             ),
-          const Spacer(),
           const Icon(
             Icons.check_circle_rounded,
             color: Color(0xFF059669),
-            size: 20,
+            size: 18,
           ),
         ],
       );
     }
 
-    // Available — short description + compact CTA
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    // Available — compact with play icon (card is tappable)
+    return Row(
       children: [
-        Text(
-          '하루 한 번, 같은 시드로 경쟁!',
-          style: AppTypography.bodySmall.copyWith(
-            fontWeight: FontWeight.w700,
-            color: charcoalBlack.withValues(alpha: 0.55),
+        Expanded(
+          child: Text(
+            '하루 한 번 도전!',
+            style: AppTypography.bodySmall.copyWith(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: charcoalBlack.withValues(alpha: 0.55),
+            ),
           ),
         ),
-        const SizedBox(height: 12),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: () => onPressed(),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF2563EB),
-              foregroundColor: Colors.white,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
-            ),
-            child: Text(
-              '도전하기',
-              style: GoogleFonts.blackHanSans(fontSize: 15),
-            ),
+        Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: const Color(0xFF2563EB),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: const Icon(
+            Icons.play_arrow_rounded,
+            color: Colors.white,
+            size: 16,
           ),
         ),
       ],

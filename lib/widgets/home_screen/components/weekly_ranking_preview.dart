@@ -79,7 +79,7 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 14),
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
             child: Row(
               children: [
                 Container(
@@ -163,8 +163,8 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
             )
           else ...[
             Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              padding: const EdgeInsets.all(4),
+              margin: const EdgeInsets.symmetric(horizontal: 12),
+              padding: const EdgeInsets.all(3),
               decoration: BoxDecoration(
                 color: charcoalBlack.withValues(alpha: 0.03),
                 borderRadius: BorderRadius.circular(16),
@@ -180,9 +180,9 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
               ),
             ),
           ],
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -199,7 +199,7 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
               ],
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
         ],
       ),
     );
@@ -238,8 +238,8 @@ class _RankRow extends StatelessWidget {
     };
 
     return Container(
-      margin: EdgeInsets.only(bottom: isLast ? 0 : 4),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      margin: EdgeInsets.only(bottom: isLast ? 0 : 3),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
