@@ -22,7 +22,7 @@ class TopIconButton extends StatelessWidget {
         height: 44,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: charcoalBlack.withValues(alpha: 0.12),
             width: 1.5,
@@ -59,7 +59,7 @@ class HomeLogo extends StatelessWidget {
             _MiniHex(color: GamePalette.colorFor(GameColor.violet)),
           ],
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 16),
         Row(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.baseline,

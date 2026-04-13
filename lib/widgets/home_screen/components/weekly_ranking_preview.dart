@@ -79,7 +79,7 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 16, 12),
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 14),
             child: Row(
               children: [
                 Container(
@@ -107,8 +107,9 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
                 const Spacer(),
                 GestureDetector(
                   onTap: widget.onViewAll,
+                  behavior: HitTestBehavior.opaque,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
                       color: charcoalBlack.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(8),

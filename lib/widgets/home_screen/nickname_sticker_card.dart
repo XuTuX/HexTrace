@@ -82,7 +82,7 @@ class NicknameStickerCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: isTablet ? 16 : 14,
                           fontWeight: FontWeight.w800,
-                          color: charcoalBlack.withValues(alpha: 0.52),
+                          color: charcoalBlack.withValues(alpha: 0.55),
                           letterSpacing: 1.5,
                         ),
                       ),
@@ -111,7 +111,7 @@ class NicknameStickerCard extends StatelessWidget {
                                   fontSize: scoreFontSize,
                                   color: charcoalBlack,
                                   height: 1.0,
-                                  letterSpacing: 1.6,
+                                  letterSpacing: 1.2,
                                 ),
                               ),
                       ),

@@ -79,7 +79,7 @@ class HomeScreenContent extends StatelessWidget {
                           RankingButton(
                             onPressed: onRankingTap,
                           ),
-                          SizedBox(height: isTablet ? 16 : 14),
+                          SizedBox(height: isTablet ? 20 : 18),
                           HomeProgressPanel(
                             authService: authService,
                             onStartDaily: onStartDaily,
