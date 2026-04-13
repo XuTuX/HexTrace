@@ -64,7 +64,7 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: charcoalBlack,
           width: 2,
@@ -79,7 +79,7 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
             child: Row(
               children: [
                 Container(
@@ -97,9 +97,9 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  '주간 랭킹',
+                  '주간 랭킹 TOP3',
                   style: GoogleFonts.blackHanSans(
-                    fontSize: 18,
+                    fontSize: 16,
                     letterSpacing: 0.5,
                     color: charcoalBlack,
                   ),
@@ -108,30 +108,23 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
                 GestureDetector(
                   onTap: widget.onViewAll,
                   behavior: HitTestBehavior.opaque,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: charcoalBlack.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          '더 보기',
-                          style: GoogleFonts.notoSans(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w900,
-                            color: charcoalBlack.withValues(alpha: 0.4),
-                          ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '더 보기',
+                        style: GoogleFonts.notoSans(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w900,
+                          color: charcoalBlack.withValues(alpha: 0.4),
                         ),
-                        Icon(
-                          Icons.chevron_right_rounded,
-                          size: 14,
-                          color: charcoalBlack.withValues(alpha: 0.3),
-                        ),
-                      ],
-                    ),
+                      ),
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        size: 14,
+                        color: charcoalBlack.withValues(alpha: 0.3),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -139,7 +132,7 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
           ),
           if (_isLoading)
             const Padding(
-              padding: EdgeInsets.symmetric(vertical: 32),
+              padding: EdgeInsets.symmetric(vertical: 24),
               child: SizedBox(
                 width: 24,
                 height: 24,
@@ -151,7 +144,7 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
             )
           else if (_topScores.isEmpty)
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 32),
+              padding: const EdgeInsets.symmetric(vertical: 24),
               child: Text(
                 'NO DATA',
                 style: GoogleFonts.blackHanSans(
@@ -162,13 +155,8 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
               ),
             )
           else ...[
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 12),
-              padding: const EdgeInsets.all(3),
-              decoration: BoxDecoration(
-                color: charcoalBlack.withValues(alpha: 0.03),
-                borderRadius: BorderRadius.circular(16),
-              ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Column(
                 children: List.generate(_topScores.length, (index) {
                   return _RankRow(
@@ -180,7 +168,7 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
               ),
             ),
           ],
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
@@ -199,7 +187,7 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
               ],
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
         ],
       ),
     );
@@ -238,13 +226,13 @@ class _RankRow extends StatelessWidget {
     };
 
     return Container(
-      margin: EdgeInsets.only(bottom: isLast ? 0 : 3),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      margin: EdgeInsets.only(bottom: isLast ? 0 : 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: charcoalBlack.withValues(alpha: 0.05),
+          color: charcoalBlack.withValues(alpha: 0.08),
           width: 1,
         ),
       ),
