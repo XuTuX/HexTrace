@@ -99,10 +99,7 @@ class DatabaseService extends GetxService {
     final participantCount = _coerceInt(row['participant_count']) ?? 0;
     final rank = _coerceInt(row['rank']);
     final score = _coerceInt(row['score']) ?? 0;
-    final tierValue = _coerceString(row['tier']);
-    final tier = tierValue != null
-        ? SeasonTier.fromValue(tierValue)
-        : SeasonTier.fromScore(score);
+    final tier = SeasonTier.fromScore(score);
 
     return WeeklySeasonSummary(
       weekKey: _coerceString(row['week_key']) ?? KstClock.currentWeekKey(),

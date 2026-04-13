@@ -129,7 +129,7 @@ void _removeMatchedTiles(
 
   for (final coord in matchedPath) {
     GameColor nextColor;
-    if (!hasRainbow && controller._random.nextDouble() < 0.05) {
+    if (!hasRainbow && controller._random.nextDouble() < 0.06) {
       nextColor = GameColor.rainbow;
       hasRainbow = true;
     } else {
