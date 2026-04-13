@@ -34,10 +34,12 @@ class RankingHeader extends StatelessWidget {
     super.key,
     required this.period,
     required this.onPeriodChanged,
+    this.isDailyOnly = false,
   });
 
   final RankingPeriod period;
   final ValueChanged<RankingPeriod> onPeriodChanged;
+  final bool isDailyOnly;
 
   @override
   Widget build(BuildContext context) {
@@ -61,44 +63,47 @@ class RankingHeader extends StatelessWidget {
             ),
             const SizedBox(width: 12),
             Text(
-              'RANKING',
+              isDailyOnly ? '오늘의 퍼즐 랭킹' : 'RANKING',
               style: GoogleFonts.blackHanSans(
-                fontSize: 28,
-                letterSpacing: 2.0,
+                fontSize: isDailyOnly ? 22 : 28,
+                letterSpacing: isDailyOnly ? 0.0 : 2.0,
                 color: charcoalBlack,
               ),
             ),
           ],
         ),
-        const SizedBox(height: 24),
-        Container(
-          margin: const EdgeInsets.symmetric(horizontal: 24),
-          padding: const EdgeInsets.all(6),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: charcoalBlack, width: 2),
-            boxShadow: const [
-              BoxShadow(
-                color: charcoalBlack,
-                offset: Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Row(
-            children: RankingPeriod.values
-                .map(
-                  (candidate) => Expanded(
-                    child: _RankingPeriodButton(
-                      label: candidate.tabLabel,
-                      isActive: candidate == period,
-                      onTap: () => onPeriodChanged(candidate),
+        if (!isDailyOnly) ...[
+          const SizedBox(height: 24),
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 24),
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: charcoalBlack, width: 2),
+              boxShadow: const [
+                BoxShadow(
+                  color: charcoalBlack,
+                  offset: Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              children: RankingPeriod.values
+                  .where((p) => p != RankingPeriod.daily)
+                  .map(
+                    (candidate) => Expanded(
+                      child: _RankingPeriodButton(
+                        label: candidate.tabLabel,
+                        isActive: candidate == period,
+                        onTap: () => onPeriodChanged(candidate),
+                      ),
                     ),
-                  ),
-                )
-                .toList(),
+                  )
+                  .toList(),
+            ),
           ),
-        ),
+        ],
       ],
     );
   }

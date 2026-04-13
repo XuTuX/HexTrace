@@ -121,6 +121,15 @@ void showRankingSheet() {
   );
 }
 
+void showDailyRankingSheet() {
+  Get.bottomSheet(
+    const RankingScreen(isDailyOnly: true),
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    enterBottomSheetDuration: const Duration(milliseconds: 300),
+  );
+}
+
 Future<void> showInitialNicknameDialog(AuthService authService) async {
   await Get.dialog(
     EditNicknameDialog(

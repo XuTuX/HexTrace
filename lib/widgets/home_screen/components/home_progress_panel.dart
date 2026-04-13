@@ -13,10 +13,12 @@ class HomeProgressPanel extends StatefulWidget {
     super.key,
     required this.authService,
     required this.onStartDaily,
+    required this.onShowDailyRanking,
   });
 
   final AuthService authService;
   final Future<void> Function() onStartDaily;
+  final VoidCallback onShowDailyRanking;
 
   @override
   State<HomeProgressPanel> createState() => _HomeProgressPanelState();
@@ -72,6 +74,7 @@ class _HomeProgressPanelState extends State<HomeProgressPanel> {
       challenge: _dailyChallenge,
       isLoggedIn: widget.authService.user.value != null,
       onPressed: widget.onStartDaily,
+      onShowRanking: widget.onShowDailyRanking,
     );
   }
 }
@@ -86,20 +89,32 @@ class _TodayPuzzleCard extends StatelessWidget {
     required this.challenge,
     required this.isLoggedIn,
     required this.onPressed,
+    required this.onShowRanking,
   });
 
   final bool isLoading;
   final DailyChallengeInfo? challenge;
   final bool isLoggedIn;
   final Future<void> Function() onPressed;
+  final VoidCallback onShowRanking;
 
-  bool get _isAvailable =>
+  bool get _isPlayable =>
       !isLoading && isLoggedIn && !(challenge?.hasUsedEntry ?? false);
 
   @override
   Widget build(BuildContext context) {
+    final hasUsedAttempt = challenge?.hasUsedEntry ?? false;
+    
     return GestureDetector(
-      onTap: _isAvailable ? () => onPressed() : null,
+      onTap: isLoading
+          ? null
+          : () {
+              if (hasUsedAttempt) {
+                onShowRanking();
+              } else {
+                onPressed();
+              }
+            },
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.all(16),
@@ -181,37 +196,46 @@ class _TodayPuzzleCard extends StatelessWidget {
       );
     }
 
-    // Completed — compact result row
+    // Completed — compact result row with 'View Ranking' button style
     if (hasUsedAttempt) {
-      return Row(
-        children: [
-          if (challenge?.myScore case final int score)
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFACC15), // Vibrant yellow for ranking context
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: charcoalBlack, width: 2),
+        ),
+        child: Row(
+          children: [
             Expanded(
               child: Text(
-                '${_formatScore(score)}점',
+                challenge?.myScore != null
+                    ? '${_formatScore(challenge!.myScore!)}점'
+                    : '도전 완료',
                 style: GoogleFonts.blackHanSans(
                   fontSize: 14,
                   color: charcoalBlack,
                 ),
-              ),
-            )
-          else
-            Expanded(
-              child: Text(
-                '도전 완료',
-                style: AppTypography.body.copyWith(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                  color: charcoalBlack.withValues(alpha: 0.7),
-                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
-          const Icon(
-            Icons.check_circle_rounded,
-            color: Color(0xFF059669),
-            size: 18,
-          ),
-        ],
+            const SizedBox(width: 4),
+            Text(
+              '랭킹',
+              style: AppTypography.bodySmall.copyWith(
+                fontSize: 12,
+                fontWeight: FontWeight.w900,
+                color: charcoalBlack,
+              ),
+            ),
+            const Icon(
+              Icons.chevron_right_rounded,
+              color: charcoalBlack,
+              size: 18,
+            ),
+          ],
+        ),
       );
     }
 

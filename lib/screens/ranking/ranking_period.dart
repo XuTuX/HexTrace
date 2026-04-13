@@ -12,13 +12,13 @@ extension RankingPeriodX on RankingPeriod {
       };
 
   String get topPlayersLabel => switch (this) {
-        RankingPeriod.daily => 'TODAY TOP 20',
+        RankingPeriod.daily => '오늘의 퍼즐 TOP 20',
         RankingPeriod.weekly => 'WEEKLY TOP 20',
         RankingPeriod.allTime => '명예의 전당 TOP 20',
       };
 
   String get emptyMessage => switch (this) {
-        RankingPeriod.daily => '오늘의 기록이 아직 없어요',
+        RankingPeriod.daily => '오늘의 퍼즐 기록이 아직 없어요',
         RankingPeriod.weekly => 'NO WEEKLY DATA YET',
         RankingPeriod.allTime => '아직 기록이 없습니다',
       };

@@ -15,7 +15,12 @@ import 'widgets/rank_list_item.dart';
 import 'widgets/ranking_states.dart';
 
 class RankingScreen extends StatefulWidget {
-  const RankingScreen({super.key});
+  const RankingScreen({
+    super.key,
+    this.isDailyOnly = false,
+  });
+
+  final bool isDailyOnly;
 
   @override
   State<RankingScreen> createState() => _RankingScreenState();
@@ -28,12 +33,13 @@ class _RankingScreenState extends State<RankingScreen> {
   int? _myScore;
   List<Map<String, dynamic>> _scores = [];
   WeeklySeasonSummary? _weeklySeasonSummary;
-  RankingPeriod _period = RankingPeriod.weekly;
+  late RankingPeriod _period;
   late final Worker _authWorker;
 
   @override
   void initState() {
     super.initState();
+    _period = widget.isDailyOnly ? RankingPeriod.daily : RankingPeriod.weekly;
     _loadRankingData();
 
     final authService = Get.find<AuthService>();
@@ -137,6 +143,7 @@ class _RankingScreenState extends State<RankingScreen> {
             RankingHeader(
               period: _period,
               onPeriodChanged: _handlePeriodChanged,
+              isDailyOnly: widget.isDailyOnly,
             ),
             const SizedBox(height: 20),
             Expanded(

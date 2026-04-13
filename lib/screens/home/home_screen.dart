@@ -79,6 +79,13 @@ class _HomeScreenState extends State<HomeScreen> {
       onSettingsTap: () => showSettingsScreen(authService),
       onStartGame: () => openGameScreen(),
       onStartDaily: () => openDailyChallenge(authService),
+      onShowDailyRanking: () {
+        if (authService.user.value != null) {
+          showDailyRankingSheet();
+        } else {
+          showLoginSheet(authService, isRankingAction: true);
+        }
+      },
       onRankingTap: () => handleRankingPress(authService),
     );
   }

@@ -13,6 +13,7 @@ class HomeScreenContent extends StatelessWidget {
     required this.onSettingsTap,
     required this.onStartGame,
     required this.onStartDaily,
+    required this.onShowDailyRanking,
     required this.onRankingTap,
   });
 
@@ -21,6 +22,7 @@ class HomeScreenContent extends StatelessWidget {
   final VoidCallback onSettingsTap;
   final VoidCallback onStartGame;
   final Future<void> Function() onStartDaily;
+  final VoidCallback onShowDailyRanking;
   final VoidCallback onRankingTap;
 
   @override
@@ -89,6 +91,7 @@ class HomeScreenContent extends StatelessWidget {
                                   child: HomeProgressPanel(
                                     authService: authService,
                                     onStartDaily: onStartDaily,
+                                    onShowDailyRanking: onShowDailyRanking,
                                   ),
                                 ),
                                 SizedBox(width: isTablet ? 14 : 10),
