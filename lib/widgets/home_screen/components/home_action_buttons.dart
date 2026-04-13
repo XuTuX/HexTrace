@@ -20,12 +20,14 @@ class PrimaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isTablet = MediaQuery.sizeOf(context).shortestSide >= 600;
+
     return Container(
       width: double.infinity,
-      height: 72,
+      height: isTablet ? 88 : 80,
       decoration: BoxDecoration(
         color: charcoalBlack,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: const [
           BoxShadow(
             color: charcoalBlack,
@@ -42,7 +44,7 @@ class PrimaryButton extends StatelessWidget {
           elevation: 0,
           side: const BorderSide(color: charcoalBlack, width: _borderWidth),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(24),
           ),
           padding: EdgeInsets.zero,
         ),
@@ -50,13 +52,13 @@ class PrimaryButton extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             if (icon != null) ...[
-              Icon(icon, size: 28, color: Colors.white),
-              const SizedBox(width: 12),
+              Icon(icon, size: isTablet ? 32 : 30, color: Colors.white),
+              SizedBox(width: isTablet ? 14 : 12),
             ],
             Text(
               label,
               style: GoogleFonts.blackHanSans(
-                fontSize: 24,
+                fontSize: isTablet ? 28 : 25,
                 letterSpacing: 1.2,
                 color: Colors.white,
               ),

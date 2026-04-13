@@ -64,7 +64,7 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(
           color: charcoalBlack,
           width: 2,
@@ -79,7 +79,7 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+            padding: const EdgeInsets.fromLTRB(18, 18, 18, 10),
             child: Row(
               children: [
                 Container(
@@ -99,7 +99,7 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
                 Text(
                   '주간 랭킹 TOP3',
                   style: GoogleFonts.blackHanSans(
-                    fontSize: 16,
+                    fontSize: 17,
                     letterSpacing: 0.5,
                     color: charcoalBlack,
                   ),
@@ -132,7 +132,7 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
           ),
           if (_isLoading)
             const Padding(
-              padding: EdgeInsets.symmetric(vertical: 24),
+              padding: EdgeInsets.symmetric(vertical: 32),
               child: SizedBox(
                 width: 24,
                 height: 24,
@@ -144,7 +144,7 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
             )
           else if (_topScores.isEmpty)
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 24),
+              padding: const EdgeInsets.symmetric(vertical: 30),
               child: Text(
                 'NO DATA',
                 style: GoogleFonts.blackHanSans(
@@ -156,7 +156,7 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
             )
           else ...[
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 14),
               child: Column(
                 children: List.generate(_topScores.length, (index) {
                   return _RankRow(
@@ -168,9 +168,9 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
               ),
             ),
           ],
-          const SizedBox(height: 6),
+          const SizedBox(height: 10),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 18),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -187,7 +187,7 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
               ],
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 14),
         ],
       ),
     );
@@ -226,11 +226,11 @@ class _RankRow extends StatelessWidget {
     };
 
     return Container(
-      margin: EdgeInsets.only(bottom: isLast ? 0 : 6),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      margin: EdgeInsets.only(bottom: isLast ? 0 : 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: charcoalBlack.withValues(alpha: 0.08),
           width: 1,

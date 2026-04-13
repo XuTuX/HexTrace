@@ -47,9 +47,9 @@ class NicknameStickerCard extends StatelessWidget {
         final effectiveCardWidth = maxCardWidth.isFinite
             ? math.min(availableWidth, maxCardWidth)
             : availableWidth;
-        final scoreFontSize = isTablet ? 34.0 : 30.0;
-        final cardHorizontalPadding = isTablet ? 22.0 : 18.0;
-        final cardVerticalPadding = isTablet ? 18.0 : 16.0;
+        final scoreFontSize = isTablet ? 42.0 : 36.0;
+        final cardHorizontalPadding = isTablet ? 28.0 : 22.0;
+        final cardVerticalPadding = isTablet ? 22.0 : 18.0;
 
         return Center(
           child: ConstrainedBox(
@@ -62,7 +62,7 @@ class NicknameStickerCard extends StatelessWidget {
               ),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(24),
                 border: Border.all(color: charcoalBlack, width: 2),
                 boxShadow: const [
                   BoxShadow(
@@ -83,23 +83,23 @@ class NicknameStickerCard extends StatelessWidget {
                         Text(
                           'BEST',
                           style: TextStyle(
-                            fontSize: isTablet ? 14 : 12,
+                            fontSize: isTablet ? 15 : 12,
                             fontWeight: FontWeight.w900,
                             color: charcoalBlack.withValues(alpha: 0.42),
                             letterSpacing: 1.4,
                           ),
                         ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 8),
                         AnimatedSwitcher(
                           duration: const Duration(milliseconds: 220),
                           child: isLoading
                               ? const SizedBox(
                                   key: ValueKey('loading'),
-                                  height: 30,
+                                  height: 36,
                                   child: Center(
                                     child: SizedBox(
-                                      width: 18,
-                                      height: 18,
+                                      width: 20,
+                                      height: 20,
                                       child: CircularProgressIndicator(
                                         color: charcoalBlack,
                                         strokeWidth: 2.5,
@@ -127,12 +127,12 @@ class NicknameStickerCard extends StatelessWidget {
                         maxWidth: effectiveCardWidth * 0.34,
                       ),
                       padding: EdgeInsets.symmetric(
-                        horizontal: isTablet ? 12.0 : 10.0,
-                        vertical: isTablet ? 8.0 : 7.0,
+                        horizontal: isTablet ? 14.0 : 11.0,
+                        vertical: isTablet ? 10.0 : 8.0,
                       ),
                       decoration: BoxDecoration(
                         color: tierColor,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(14),
                         border: Border.all(
                           color: charcoalBlack,
                           width: 2,
@@ -143,7 +143,7 @@ class NicknameStickerCard extends StatelessWidget {
                         children: [
                           Icon(
                             Icons.workspace_premium_rounded,
-                            size: isTablet ? 16.0 : 14.0,
+                            size: isTablet ? 18.0 : 14.0,
                             color: _tierTextColor,
                           ),
                           const SizedBox(width: 4),
@@ -155,7 +155,7 @@ class NicknameStickerCard extends StatelessWidget {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.blackHanSans(
-                                fontSize: isTablet ? 13.0 : 11.0,
+                                fontSize: isTablet ? 14.0 : 11.0,
                                 color: _tierTextColor,
                                 height: 1.0,
                               ),

@@ -27,6 +27,7 @@ class HomeProgressPanel extends StatefulWidget {
 class _HomeProgressPanelState extends State<HomeProgressPanel> {
   bool _isLoading = true;
   DailyChallengeInfo? _dailyChallenge;
+  int? _dailyRank;
   late final Worker _authWorker;
 
   @override
@@ -47,6 +48,12 @@ class _HomeProgressPanelState extends State<HomeProgressPanel> {
 
     try {
       final daily = await dbService.getDailyChallenge(gameId);
+      int? dailyRank;
+
+      if (daily.hasScoreEntry && widget.authService.user.value != null) {
+        dailyRank =
+            await dbService.getMyDailyRank(gameId, dateKey: daily.dateKey);
+      }
 
       if (!mounted) {
         return;
@@ -54,6 +61,7 @@ class _HomeProgressPanelState extends State<HomeProgressPanel> {
 
       setState(() {
         _dailyChallenge = daily;
+        _dailyRank = dailyRank;
         _isLoading = false;
       });
     } catch (_) {
@@ -72,6 +80,7 @@ class _HomeProgressPanelState extends State<HomeProgressPanel> {
     return _TodayPuzzleCard(
       isLoading: _isLoading,
       challenge: _dailyChallenge,
+      dailyRank: _dailyRank,
       isLoggedIn: widget.authService.user.value != null,
       onPressed: widget.onStartDaily,
       onShowRanking: widget.onShowDailyRanking,
@@ -83,6 +92,7 @@ class _TodayPuzzleCard extends StatelessWidget {
   const _TodayPuzzleCard({
     required this.isLoading,
     required this.challenge,
+    required this.dailyRank,
     required this.isLoggedIn,
     required this.onPressed,
     required this.onShowRanking,
@@ -90,6 +100,7 @@ class _TodayPuzzleCard extends StatelessWidget {
 
   final bool isLoading;
   final DailyChallengeInfo? challenge;
+  final int? dailyRank;
   final bool isLoggedIn;
   final Future<void> Function() onPressed;
   final VoidCallback onShowRanking;
@@ -113,10 +124,10 @@ class _TodayPuzzleCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         child: Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(24),
             border: Border.all(color: charcoalBlack, width: 2),
             boxShadow: const [
               BoxShadow(
@@ -142,17 +153,13 @@ class _TodayPuzzleCard extends StatelessWidget {
                   Text(
                     '오늘의 퍼즐',
                     style: GoogleFonts.blackHanSans(
-                      fontSize: 16,
+                      fontSize: 17,
                       color: charcoalBlack,
                     ),
                   ),
-                  const Spacer(),
-                  _RankingShortcut(
-                    onTap: onShowRanking,
-                  ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
               _buildContent(),
             ],
           ),
@@ -223,7 +230,7 @@ class _TodayPuzzleCard extends StatelessWidget {
                       ? '${_formatScore(challenge!.myScore!)}점'
                       : '도전 완료',
                   style: GoogleFonts.blackHanSans(
-                    fontSize: 24,
+                    fontSize: 28,
                     color: charcoalBlack,
                     height: 1.0,
                   ),
@@ -242,7 +249,7 @@ class _TodayPuzzleCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  '랭킹 보기',
+                  dailyRank != null ? '$dailyRank등 랭킹 보기' : '랭킹 보기',
                   style: AppTypography.bodySmall.copyWith(
                     fontSize: 12,
                     fontWeight: FontWeight.w900,
@@ -271,11 +278,11 @@ class _TodayPuzzleCard extends StatelessWidget {
               Text(
                 '하루 한 번 도전',
                 style: GoogleFonts.blackHanSans(
-                  fontSize: 22,
+                  fontSize: 26,
                   color: charcoalBlack,
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 6),
               Text(
                 '공식 기록이 오늘 랭킹에 반영돼요',
                 style: AppTypography.bodySmall.copyWith(
@@ -289,10 +296,10 @@ class _TodayPuzzleCard extends StatelessWidget {
         ),
         const SizedBox(width: 12),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
           decoration: BoxDecoration(
             color: const Color(0xFF2563EB),
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(16),
           ),
           child: const Row(
             mainAxisSize: MainAxisSize.min,
@@ -332,47 +339,5 @@ class _TodayPuzzleCard extends StatelessWidget {
       buffer.write(digits[i]);
     }
     return buffer.toString();
-  }
-}
-
-class _RankingShortcut extends StatelessWidget {
-  const _RankingShortcut({
-    required this.onTap,
-  });
-
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-        decoration: BoxDecoration(
-          color: charcoalBlack.withValues(alpha: 0.05),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              '랭킹',
-              style: AppTypography.bodySmall.copyWith(
-                fontSize: 11,
-                fontWeight: FontWeight.w900,
-                color: charcoalBlack.withValues(alpha: 0.55),
-              ),
-            ),
-            const SizedBox(width: 2),
-            Icon(
-              Icons.chevron_right_rounded,
-              size: 16,
-              color: charcoalBlack.withValues(alpha: 0.35),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

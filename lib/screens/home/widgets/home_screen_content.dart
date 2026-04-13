@@ -33,8 +33,15 @@ class HomeScreenContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final mediaSize = MediaQuery.sizeOf(context);
     final isTablet = mediaSize.shortestSide >= 600;
-    final horizontalPadding = isTablet ? 32.0 : 24.0;
-    final contentMaxWidth = isTablet ? 640.0 : 520.0;
+    final viewportHeight = mediaSize.height;
+    final horizontalPadding = isTablet ? 40.0 : 24.0;
+    final contentMaxWidth = isTablet ? 760.0 : 560.0;
+    final topSpacing = isTablet ? 24.0 : 14.0;
+    final heroGap = isTablet ? 36.0 : 26.0;
+    final sectionGap = isTablet ? 18.0 : 14.0;
+    final bottomSpacing = viewportHeight > 820
+        ? (isTablet ? 40.0 : 28.0)
+        : (isTablet ? 28.0 : 20.0);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
@@ -58,7 +65,7 @@ class HomeScreenContent extends StatelessWidget {
                       ),
                       child: Column(
                         children: [
-                          SizedBox(height: isTablet ? 18 : 10),
+                          SizedBox(height: topSpacing),
                           Row(
                             children: [
                               Expanded(
@@ -73,28 +80,28 @@ class HomeScreenContent extends StatelessWidget {
                               ),
                             ],
                           ),
-                          SizedBox(height: isTablet ? 28 : 20),
-                          PrimaryButton(
-                            label: '게임 시작',
-                            icon: Icons.play_arrow_rounded,
-                            onPressed: onStartGame,
-                          ),
-                          SizedBox(height: isTablet ? 18 : 14),
+                          SizedBox(height: heroGap),
                           ScoreDisplay(
                             scoreController: scoreController,
                             authService: authService,
                           ),
-                          SizedBox(height: isTablet ? 12 : 10),
+                          SizedBox(height: sectionGap),
+                          WeeklyRankingPreview(
+                            onViewAll: onRankingTap,
+                          ),
+                          SizedBox(height: sectionGap),
                           HomeProgressPanel(
                             authService: authService,
                             onStartDaily: onStartDaily,
                             onShowDailyRanking: onShowDailyRanking,
                           ),
-                          SizedBox(height: isTablet ? 12 : 10),
-                          WeeklyRankingPreview(
-                            onViewAll: onRankingTap,
+                          SizedBox(height: sectionGap),
+                          PrimaryButton(
+                            label: '게임 시작',
+                            icon: Icons.play_arrow_rounded,
+                            onPressed: onStartGame,
                           ),
-                          SizedBox(height: isTablet ? 24 : 16),
+                          SizedBox(height: bottomSpacing),
                         ],
                       ),
                     ),
@@ -137,11 +144,11 @@ class _HomeProfileChip extends StatelessWidget {
               }
             : null,
         child: Container(
-          height: 52,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          height: 58,
+          padding: const EdgeInsets.symmetric(horizontal: 18),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(18),
             border: Border.all(
               color: charcoalBlack.withValues(alpha: 0.12),
               width: 1.5,
@@ -150,19 +157,19 @@ class _HomeProfileChip extends StatelessWidget {
           child: Row(
             children: [
               Container(
-                width: 32,
-                height: 32,
+                width: 36,
+                height: 36,
                 decoration: BoxDecoration(
                   color: const Color(0xFFE0F2FE),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(
                   Icons.person_rounded,
-                  size: 18,
+                  size: 20,
                   color: Color(0xFF0369A1),
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -181,7 +188,7 @@ class _HomeProfileChip extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.blackHanSans(
-                        fontSize: 16,
+                        fontSize: 17,
                         color: charcoalBlack,
                         height: 1.0,
                       ),
