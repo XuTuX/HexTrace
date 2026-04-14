@@ -96,7 +96,9 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                 SafeArea(
                   child: Center(
                     child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 480),
+                      constraints: BoxConstraints(
+                        maxWidth: MediaQuery.sizeOf(context).shortestSide >= 600 ? 680 : 480,
+                      ),
                       child: Stack(
                         children: [
                           Column(

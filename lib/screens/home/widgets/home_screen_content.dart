@@ -35,7 +35,7 @@ class HomeScreenContent extends StatelessWidget {
     final isTablet = mediaSize.shortestSide >= 600;
     final viewportHeight = mediaSize.height;
     final horizontalPadding = isTablet ? 40.0 : 24.0;
-    final contentMaxWidth = isTablet ? 480.0 : 480.0;
+    final contentMaxWidth = isTablet ? 680.0 : 480.0;
     final topSpacing = isTablet ? 40.0 : 14.0;
     final heroGap = isTablet ? 56.0 : 26.0;
     final sectionGap = isTablet ? 32.0 : 14.0;

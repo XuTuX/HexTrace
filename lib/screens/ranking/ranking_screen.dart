@@ -150,7 +150,9 @@ class _RankingScreenState extends State<RankingScreen> {
               Expanded(
                 child: Center(
                   child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 480),
+                    constraints: BoxConstraints(
+                      maxWidth: MediaQuery.sizeOf(context).shortestSide >= 600 ? 680 : 480,
+                    ),
                     child: _buildContent(myId),
                   ),
                 ),

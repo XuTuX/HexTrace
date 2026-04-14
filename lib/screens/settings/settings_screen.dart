@@ -37,7 +37,9 @@ class SettingsScreen extends StatelessWidget {
           SafeArea(
             child: Center(
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 600),
+                constraints: BoxConstraints(
+                  maxWidth: MediaQuery.sizeOf(context).shortestSide >= 600 ? 680 : 600,
+                ),
                 child: Column(
                   children: [
                     const SettingsHeader(),
