@@ -6,6 +6,7 @@ import 'package:hexor/constant.dart';
 import 'package:hexor/services/auth_service.dart';
 import 'package:hexor/services/database_models.dart';
 import 'package:hexor/services/database_service.dart';
+import 'package:hexor/services/daily_submission_service.dart';
 import 'package:hexor/theme/app_typography.dart';
 
 class HomeProgressPanel extends StatefulWidget {
@@ -45,9 +46,27 @@ class _HomeProgressPanelState extends State<HomeProgressPanel> {
 
   Future<void> _load() async {
     final dbService = Get.find<DatabaseService>();
+    final dailySubmissionService = Get.find<DailySubmissionService>();
 
     try {
-      final daily = await dbService.getDailyChallenge(gameId);
+      var daily = await dbService.getDailyChallenge(gameId);
+      if (widget.authService.user.value != null &&
+          daily.hasUsedEntry &&
+          !daily.hasScoreEntry) {
+        try {
+          final retried =
+              await dailySubmissionService.retryPendingSubmissionIfMatches(
+            gameId: gameId,
+            dateKey: daily.dateKey,
+          );
+          if (retried != null) {
+            daily = await dbService.getDailyChallenge(gameId);
+          }
+        } catch (_) {}
+      } else if (daily.hasScoreEntry) {
+        await dailySubmissionService.clearPendingSubmission();
+      }
+
       int? dailyRank;
 
       if (daily.hasScoreEntry && widget.authService.user.value != null) {
@@ -108,6 +127,7 @@ class _TodayPuzzleCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasUsedAttempt = challenge?.hasUsedEntry ?? false;
+    final hasScoreEntry = challenge?.hasScoreEntry ?? false;
 
     return Material(
       color: Colors.transparent,
@@ -115,7 +135,7 @@ class _TodayPuzzleCard extends StatelessWidget {
         onTap: isLoading
             ? null
             : () {
-                if (hasUsedAttempt) {
+                if (hasUsedAttempt && hasScoreEntry) {
                   onShowRanking();
                 } else {
                   onPressed();
@@ -228,14 +248,24 @@ class _TodayPuzzleCard extends StatelessWidget {
                 Text(
                   challenge?.myScore != null
                       ? '${_formatScore(challenge!.myScore!)}점'
-                      : '도전 완료',
+                      : '기록 미반영',
                   style: GoogleFonts.blackHanSans(
                     fontSize: 28,
                     color: charcoalBlack,
                     height: 1.0,
                   ),
                 ),
-                if (dailyRank != null) ...[
+                if (challenge?.myScore == null) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    '기록이 누락돼 다시 들어가서 제출할 수 있어요.',
+                    style: AppTypography.bodySmall.copyWith(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFFDC2626),
+                    ),
+                  ),
+                ] else if (dailyRank != null) ...[
                   const SizedBox(height: 6),
                   Text(
                     '내 랭킹은 $dailyRank등이에요!',
@@ -253,24 +283,30 @@ class _TodayPuzzleCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
-              color: const Color(0xFFE0F2FE),
+              color: challenge?.myScore == null
+                  ? const Color(0xFFFEF2F2)
+                  : const Color(0xFFE0F2FE),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  '전체 랭킹 보기',
+                  challenge?.myScore == null ? '다시 들어가기' : '전체 랭킹 보기',
                   style: AppTypography.bodySmall.copyWith(
                     fontSize: 12,
                     fontWeight: FontWeight.w900,
-                    color: const Color(0xFF0369A1),
+                    color: challenge?.myScore == null
+                        ? const Color(0xFFB91C1C)
+                        : const Color(0xFF0369A1),
                   ),
                 ),
                 const SizedBox(width: 4),
-                const Icon(
+                Icon(
                   Icons.chevron_right_rounded,
-                  color: Color(0xFF0369A1),
+                  color: challenge?.myScore == null
+                      ? const Color(0xFFB91C1C)
+                      : const Color(0xFF0369A1),
                   size: 18,
                 ),
               ],

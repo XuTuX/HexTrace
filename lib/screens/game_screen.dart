@@ -10,6 +10,7 @@ import '../game/hex_board_view.dart';
 import '../game/hex_game_controller.dart';
 import '../services/app_haptics.dart';
 import '../services/database_service.dart';
+import '../services/daily_submission_service.dart';
 import '../services/replay_share_service.dart';
 import '../utils/browser_back_blocker.dart';
 import '../widgets/dialogs/share_preview_dialog.dart';
@@ -346,7 +347,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
 
   void _openRanking() {
     Get.bottomSheet(
-      const RankingScreen(),
+      RankingScreen(isDailyOnly: _controller.sessionConfig.isDailyMode),
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       enterBottomSheetDuration: const Duration(milliseconds: 300),
@@ -360,7 +361,6 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     }
 
     setState(() {
-
       if (session.mode == GameMode.dailyOfficial) {
         _dailyStatusLabel = '오늘의 퍼즐 기록 제출 중';
         _dailyStatusDetail = session.dateKey == null
@@ -425,6 +425,15 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         seed: _controller.initialSeed,
         recordedMoves: _controller.recordedMoves,
       );
+      final dailySubmissionService = Get.find<DailySubmissionService>();
+      await dailySubmissionService.savePendingSubmission(
+        gameId: gameId,
+        dateKey: _controller.sessionConfig.dateKey!,
+        seed: _controller.initialSeed,
+        score: summary.score,
+        replayCode: replayCode,
+        summary: summary.toJson(),
+      );
       final storedScore = await dbService.submitDailyScore(
         gameId: gameId,
         dateKey: _controller.sessionConfig.dateKey!,
@@ -433,6 +442,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         replayCode: replayCode,
         summary: summary.toJson(),
       );
+      await dailySubmissionService.clearPendingSubmission();
       return (
         '오늘의 퍼즐 등록 완료',
         '공식 기록 $storedScore점이 오늘의 랭킹에 반영되었어요.',
@@ -445,9 +455,33 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
           '오늘의 퍼즐은 하루 한 번만 플레이할 수 있어요.',
         );
       }
+      if (message.contains('Daily challenge is only valid for today')) {
+        return (
+          '오늘의 퍼즐 저장 실패',
+          '날짜가 바뀌어 오늘 랭킹에 기록을 등록하지 못했어요.',
+        );
+      }
+      if (message.contains('Daily challenge entry not claimed')) {
+        return (
+          '오늘의 퍼즐 저장 실패',
+          '입장 정보가 확인되지 않아 오늘 랭킹에 반영되지 않았어요.',
+        );
+      }
+      if (message.contains('Invalid daily challenge seed')) {
+        return (
+          '오늘의 퍼즐 저장 실패',
+          '퍼즐 정보가 맞지 않아 오늘 랭킹에 반영되지 않았어요.',
+        );
+      }
+      if (message.contains('Not authenticated')) {
+        return (
+          '오늘의 퍼즐 저장 실패',
+          '로그인 정보가 만료되어 오늘 랭킹에 반영되지 않았어요.',
+        );
+      }
       return (
         '오늘의 퍼즐 저장 실패',
-        '공식 기록 저장에 실패했어요. 일반 기록과 미션은 정상 반영됐습니다.',
+        '공식 기록 저장에 실패했어요. 홈 화면에서 자동으로 다시 제출을 시도합니다.',
       );
     }
   }
