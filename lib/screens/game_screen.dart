@@ -9,6 +9,7 @@ import '../controllers/score_controller.dart';
 import '../game/hex_board_view.dart';
 import '../game/hex_game_controller.dart';
 import '../services/app_haptics.dart';
+import '../services/audio_service.dart';
 import '../services/database_service.dart';
 import '../services/daily_submission_service.dart';
 import '../services/replay_share_service.dart';
@@ -65,6 +66,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     _browserBackBlocker.detach();
     _controller.removeListener(_handleControllerChanged);
     _controller.dispose();
+    unawaited(AudioService().stopBGM());
     super.dispose();
   }
 

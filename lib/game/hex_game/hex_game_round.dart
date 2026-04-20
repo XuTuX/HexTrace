@@ -75,6 +75,7 @@ Future<void> _resolveCurrentMatch(HexGameController controller) async {
   }
   controller.statusTone = GameMessageTone.success;
   unawaited(AppHaptics.success());
+  unawaited(AudioService().playClearSound());
   controller._notify();
 
   await Future<void>.delayed(const Duration(milliseconds: 180));
@@ -188,6 +189,7 @@ void _endGame(HexGameController controller, String message) {
   controller.clearingPath = const [];
   controller.statusText = message;
   controller.statusTone = GameMessageTone.error;
+  unawaited(AudioService().stopBGM());
 }
 
 void _resetGame(
@@ -238,6 +240,7 @@ void _resetGame(
   _refillColorBar(controller);
   _randomizeBoardUntilPlayable(controller);
   _startTimer(controller);
+  unawaited(AudioService().startBGM());
   controller._notify();
 }
 

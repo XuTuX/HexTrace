@@ -156,8 +156,8 @@ class HexBoardPainter extends CustomPainter {
 
     final Paint fillPaint = Paint();
     if (gameColor.isRainbow) {
-      fillPaint.shader = SweepGradient(
-        colors: const [
+      fillPaint.shader = const SweepGradient(
+        colors: [
           Color(0xFFFF4D4D), // Coral
           Color(0xFFFFB300), // Amber
           Color(0xFF00D47C), // Mint
@@ -214,7 +214,11 @@ class HexBoardPainter extends CustomPainter {
         oldDelegate.clearingPath != clearingPath ||
         oldDelegate.dragState != dragState ||
         oldDelegate.layout.radius != layout.radius ||
+        oldDelegate.layout.origin != layout.origin ||
+        oldDelegate.layout.width != layout.width ||
+        oldDelegate.layout.height != layout.height ||
         oldDelegate.animatedTiles != animatedTiles ||
-        oldDelegate.refillProgress != refillProgress;
+        oldDelegate.refillProgress != refillProgress ||
+        oldDelegate.pressProgress != pressProgress;
   }
 }

@@ -8,6 +8,7 @@ import 'package:hexor/services/database_service.dart';
 import 'package:hexor/services/daily_submission_service.dart';
 import 'package:hexor/services/settings_service.dart';
 import 'package:hexor/services/ad_service.dart';
+import 'package:hexor/services/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -18,6 +19,10 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   _installGlobalErrorHandlers();
   final settingsService = await SettingsService().init();
+  await AudioService().initialize(
+    isBgmEnabled: settingsService.isBgmOn.value,
+    isSfxEnabled: settingsService.isSfxOn.value,
+  );
   try {
     await dotenv.load(fileName: '.env');
     AppConfig.validateRequired();

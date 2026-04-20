@@ -71,6 +71,24 @@ class SettingsGeneralSection extends StatelessWidget {
             children: [
               Obx(() {
                 return SettingsSwitchRow(
+                  icon: Icons.music_note_rounded,
+                  title: '배경음악',
+                  value: settingsService.isBgmOn.value,
+                  onChanged: (_) => settingsService.toggleBgm(),
+                );
+              }),
+              const SettingsDivider(),
+              Obx(() {
+                return SettingsSwitchRow(
+                  icon: Icons.graphic_eq_rounded,
+                  title: '효과음',
+                  value: settingsService.isSfxOn.value,
+                  onChanged: (_) => settingsService.toggleSfx(),
+                );
+              }),
+              const SettingsDivider(),
+              Obx(() {
+                return SettingsSwitchRow(
                   icon: Icons.vibration_rounded,
                   title: '진동 피드백',
                   value: settingsService.isHapticsOn.value,
