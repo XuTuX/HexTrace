@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
@@ -22,6 +24,7 @@ class _HexBoardViewState extends State<HexBoardView>
   late final AnimationController _refillController;
   late final Ticker _pressTicker;
   final Map<HexCoord, double> _pressProgress = {};
+  Offset? _lastDragPosition;
   Duration _lastTick = Duration.zero;
   int _lastBoardAnimationTick = 0;
 
@@ -95,6 +98,67 @@ class _HexBoardViewState extends State<HexBoardView>
     super.dispose();
   }
 
+  HexCoord? _resolveTouch(HexBoardLayout layout, Offset position) {
+    final directHit = layout.hitTest(position);
+    if (directHit != null) {
+      return directHit;
+    }
+
+    final lastCoord = widget.controller.dragPath.isNotEmpty
+        ? widget.controller.dragPath.last
+        : null;
+
+    if (lastCoord != null) {
+      final adjacentHit = layout.nearestCoord(
+        position,
+        maxDistance: layout.radius * 1.15,
+        where: (coord) =>
+            coord == lastCoord ||
+            widget.controller.isAdjacent(lastCoord, coord),
+      );
+      if (adjacentHit != null) {
+        return adjacentHit;
+      }
+    }
+
+    return layout.nearestCoord(
+      position,
+      maxDistance: layout.radius * 0.95,
+    );
+  }
+
+  void _handlePanStart(HexBoardLayout layout, DragStartDetails details) {
+    _lastDragPosition = details.localPosition;
+    widget.controller.beginDrag(_resolveTouch(layout, details.localPosition));
+  }
+
+  void _handlePanUpdate(HexBoardLayout layout, DragUpdateDetails details) {
+    final currentPosition = details.localPosition;
+    final previousPosition = _lastDragPosition ?? currentPosition;
+    final distance = (currentPosition - previousPosition).distance;
+    final sampleStep = math.max(8.0, layout.radius * 0.45);
+    final sampleCount = math.max(1, (distance / sampleStep).ceil());
+
+    for (var index = 1; index <= sampleCount; index++) {
+      final t = index / sampleCount;
+      final samplePosition =
+          Offset.lerp(previousPosition, currentPosition, t) ?? currentPosition;
+      widget.controller.extendDrag(_resolveTouch(layout, samplePosition));
+    }
+
+    _lastDragPosition = currentPosition;
+  }
+
+  void _handlePanEnd(DragEndDetails details) {
+    _lastDragPosition = null;
+    widget.controller.endDrag();
+  }
+
+  void _handlePanCancel() {
+    _lastDragPosition = null;
+    widget.controller.cancelDrag();
+  }
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -107,14 +171,10 @@ class _HexBoardViewState extends State<HexBoardView>
 
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onPanStart: (details) {
-            widget.controller.beginDrag(layout.hitTest(details.localPosition));
-          },
-          onPanUpdate: (details) {
-            widget.controller.extendDrag(layout.hitTest(details.localPosition));
-          },
-          onPanEnd: (_) => widget.controller.endDrag(),
-          onPanCancel: widget.controller.cancelDrag,
+          onPanStart: (details) => _handlePanStart(layout, details),
+          onPanUpdate: (details) => _handlePanUpdate(layout, details),
+          onPanEnd: _handlePanEnd,
+          onPanCancel: _handlePanCancel,
           child: AnimatedBuilder(
             animation: Listenable.merge([widget.controller, _refillController]),
             builder: (context, _) {

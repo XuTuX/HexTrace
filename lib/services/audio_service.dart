@@ -3,6 +3,9 @@ import 'package:audioplayers/audioplayers.dart';
 class AudioService {
   static const String _backgroundBgmAsset = 'bgm/background_bgm.mp3';
   static const String _clearSfxAsset = 'bgm/clear_bgm.mp3';
+  static const double _bgmVolume = 0.24;
+  static const double _clearSfxVolume = 0.42;
+  static const double _noteSfxVolume = 0.28;
 
   static final AudioService _instance = AudioService._internal();
   factory AudioService() => _instance;
@@ -34,6 +37,8 @@ class AudioService {
     _isBgmEnabled = isBgmEnabled;
     _isSfxEnabled = isSfxEnabled;
     await _bgmPlayer.setReleaseMode(ReleaseMode.loop);
+    await _bgmPlayer.setVolume(_bgmVolume);
+    await _sfxPlayer.setVolume(_clearSfxVolume);
   }
 
   Future<void> startBGM() async {
@@ -44,6 +49,7 @@ class AudioService {
     }
 
     await _bgmPlayer.stop();
+    await _bgmPlayer.setVolume(_bgmVolume);
     await _bgmPlayer.play(AssetSource(_backgroundBgmAsset));
   }
 
@@ -58,6 +64,7 @@ class AudioService {
     }
 
     await _sfxPlayer.stop();
+    await _sfxPlayer.setVolume(_clearSfxVolume);
     await _sfxPlayer.play(AssetSource(_clearSfxAsset));
   }
 
@@ -73,6 +80,7 @@ class AudioService {
       _notePlayers.remove(player);
       player.dispose();
     });
+    await player.setVolume(_noteSfxVolume);
     await player.play(AssetSource(_scaleNotes[noteIndex]));
   }
 
@@ -85,6 +93,7 @@ class AudioService {
 
     if (_shouldPlayBgm) {
       await _bgmPlayer.stop();
+      await _bgmPlayer.setVolume(_bgmVolume);
       await _bgmPlayer.play(AssetSource(_backgroundBgmAsset));
     }
   }

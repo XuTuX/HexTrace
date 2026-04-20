@@ -7,8 +7,6 @@ import 'package:hexor/game/hex_game_controller.dart';
 class HexBoardLayout {
   static const double _tileInsetFactor = 0.14;
   static const double _cornerRadiusFactor = 0.28;
-  static const double _horizontalArcFactor = 0.24;
-  static const double _verticalArcFactor = 0.12;
 
   HexBoardLayout._({
     required this.radius,
@@ -49,17 +47,13 @@ class HexBoardLayout {
       (size.width - boardWidth) / 2,
       (size.height - boardHeight) / 2,
     );
-    final boardCenter = Offset(
-      origin.dx + (boardWidth / 2),
-      origin.dy + (boardHeight / 2),
-    );
 
     final centers = <HexCoord, Offset>{};
     final paths = <HexCoord, Path>{};
 
     for (var row = 0; row < rows; row++) {
       for (var col = 0; col < cols; col++) {
-        final baseCenter = Offset(
+        final center = Offset(
           origin.dx +
               (tileWidth / 2) +
               (col * tileWidth) +
@@ -67,12 +61,6 @@ class HexBoardLayout {
           origin.dy + radius + (row * verticalStep),
         );
         final coord = HexCoord(col, row);
-        final center = _warpTowardCircle(
-          center: baseCenter,
-          boardCenter: boardCenter,
-          boardWidth: boardWidth,
-          boardHeight: boardHeight,
-        );
 
         centers[coord] = center;
         paths[coord] = _buildHexPath(center, radius);
@@ -98,6 +86,38 @@ class HexBoardLayout {
     }
 
     return null;
+  }
+
+  HexCoord? nearestCoord(
+    Offset position, {
+    double? maxDistance,
+    bool Function(HexCoord coord)? where,
+  }) {
+    HexCoord? closest;
+    double closestDistance = double.infinity;
+
+    for (final entry in centers.entries) {
+      final coord = entry.key;
+      if (where != null && !where(coord)) {
+        continue;
+      }
+
+      final distance = (entry.value - position).distance;
+      if (distance < closestDistance) {
+        closest = coord;
+        closestDistance = distance;
+      }
+    }
+
+    if (closest == null) {
+      return null;
+    }
+
+    if (maxDistance != null && closestDistance > maxDistance) {
+      return null;
+    }
+
+    return closest;
   }
 
   static Path _buildHexPath(Offset center, double radius) {
@@ -143,27 +163,6 @@ class HexBoardLayout {
 
     path.close();
     return path;
-  }
-
-  static Offset _warpTowardCircle({
-    required Offset center,
-    required Offset boardCenter,
-    required double boardWidth,
-    required double boardHeight,
-  }) {
-    final dx = center.dx - boardCenter.dx;
-    final dy = center.dy - boardCenter.dy;
-    final normalizedX = boardWidth <= 0 ? 0.0 : dx / (boardWidth / 2);
-    final normalizedY = boardHeight <= 0 ? 0.0 : dy / (boardHeight / 2);
-    final rowCurve =
-        math.pow(normalizedY.abs().clamp(0.0, 1.0), 1.6).toDouble();
-    final columnCurve =
-        math.pow(normalizedX.abs().clamp(0.0, 1.0), 1.6).toDouble();
-
-    return Offset(
-      boardCenter.dx + (dx * (1 - (_horizontalArcFactor * rowCurve))),
-      boardCenter.dy + (dy * (1 - (_verticalArcFactor * columnCurve))),
-    );
   }
 
   static Offset _pointToward(Offset from, Offset to, double distance) {

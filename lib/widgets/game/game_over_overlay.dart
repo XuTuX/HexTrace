@@ -238,7 +238,6 @@ class GameOverOverlay extends StatelessWidget {
       ],
     );
   }
-
 }
 
 class _DailyStatusCard extends StatelessWidget {
@@ -283,4 +282,3 @@ class _DailyStatusCard extends StatelessWidget {
     );
   }
 }
-
