@@ -7,7 +7,7 @@ class AudioService {
   static const String _clearSfxAsset = 'bgm/clear_bgm.mp3';
   static const String _clickSfxAsset = 'bgm/click.mp3';
   static const double _gameBgmVolume = 0.18;
-  static const double _homeBgmVolume = 0.22;
+  static const double _homeBgmVolume = 0.18;
   static const double _clearSfxVolume = 0.42;
   static const double _clickSfxVolume = 0.42;
 
