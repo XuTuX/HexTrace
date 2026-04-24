@@ -157,13 +157,26 @@ class _DailyRankingCalendarPageState extends State<DailyRankingCalendarPage> {
   Widget build(BuildContext context) {
     final mediaSize = MediaQuery.sizeOf(context);
     final isTablet = mediaSize.shortestSide >= 600;
-    final horizontalPadding = isTablet ? 40.0 : 24.0;
+    final sw = mediaSize.width;
+    final sh = mediaSize.height;
+    final horizontalPadding = isTablet
+        ? (sw * 0.06).clamp(32.0, 60.0)
+        : (sw * 0.06).clamp(16.0, 28.0);
     final maxWidth = isTablet ? 680.0 : 480.0;
     final myId = widget.authService.user.value?.id;
+    final topPad = isTablet
+        ? (sh * 0.03).clamp(24.0, 44.0)
+        : (sh * 0.02).clamp(12.0, 22.0);
+    final bottomPad = isTablet
+        ? (sh * 0.03).clamp(24.0, 44.0)
+        : (sh * 0.025).clamp(14.0, 26.0);
+    final sectionGap = isTablet
+        ? (sh * 0.02).clamp(14.0, 24.0)
+        : (sh * 0.02).clamp(10.0, 20.0);
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(horizontalPadding, isTablet ? 36 : 18,
-          horizontalPadding, isTablet ? 36 : 22),
+      padding: EdgeInsets.fromLTRB(
+          horizontalPadding, topPad, horizontalPadding, bottomPad),
       child: Center(
         child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: maxWidth),
@@ -177,7 +190,7 @@ class _DailyRankingCalendarPageState extends State<DailyRankingCalendarPage> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       const _CalendarHeader(),
-                      const SizedBox(height: 12),
+                      SizedBox(height: sectionGap * 0.7),
                       _MonthlyCalendar(
                         cells: _calendarCells,
                         selectableDateKeys: _selectableDateKeys,
@@ -186,7 +199,7 @@ class _DailyRankingCalendarPageState extends State<DailyRankingCalendarPage> {
                         isRankLoading: _isRankLoading,
                         onDateSelected: _selectDate,
                       ),
-                      const SizedBox(height: 18),
+                      SizedBox(height: sectionGap),
                       _InlineDailyRankingPanel(
                         dateKey: _selectedDateKey,
                         scores: _selectedScores,
@@ -199,7 +212,7 @@ class _DailyRankingCalendarPageState extends State<DailyRankingCalendarPage> {
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: sectionGap * 0.8),
               _DailyPlayButton(
                 onPressed: () {
                   widget.onStartDaily();
@@ -270,14 +283,22 @@ class _DailyPlayButtonState extends State<_DailyPlayButton>
 
   @override
   Widget build(BuildContext context) {
-    final isTablet = MediaQuery.sizeOf(context).shortestSide >= 600;
+    final ms = MediaQuery.sizeOf(context);
+    final isTablet = ms.shortestSide >= 600;
+    final btnH = isTablet
+        ? (ms.height * 0.07).clamp(64.0, 88.0)
+        : (ms.height * 0.078).clamp(52.0, 72.0);
+    final btnFs = isTablet
+        ? (ms.width * 0.032).clamp(22.0, 30.0)
+        : (ms.width * 0.06).clamp(18.0, 26.0);
+    final br = isTablet ? 28.0 : (ms.width * 0.06).clamp(18.0, 26.0);
 
     return Container(
       width: double.infinity,
-      height: isTablet ? 80 : 68,
+      height: btnH,
       decoration: BoxDecoration(
         color: charcoalBlack,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(br),
         boxShadow: const [
           BoxShadow(
             color: charcoalBlack,
@@ -297,7 +318,7 @@ class _DailyPlayButtonState extends State<_DailyPlayButton>
               elevation: 0,
               side: const BorderSide(color: charcoalBlack, width: 2.0),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(br),
               ),
               padding: EdgeInsets.zero,
             ),
@@ -318,7 +339,7 @@ class _DailyPlayButtonState extends State<_DailyPlayButton>
               child: Text(
                 '오늘의 도전',
                 style: GoogleFonts.blackHanSans(
-                  fontSize: isTablet ? 28 : 25,
+                  fontSize: btnFs,
                   letterSpacing: 0,
                   color: charcoalBlack,
                 ),
@@ -336,6 +357,9 @@ class _CalendarHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final sw = MediaQuery.sizeOf(context).width;
+    final headerFs = (sw * 0.055).clamp(17.0, 26.0);
+    final subFs = (sw * 0.035).clamp(11.0, 16.0);
     final today = KstClock.nowInKst();
     final monthLabel = '${today.year}.${today.month.toString().padLeft(2, '0')}';
 
@@ -346,7 +370,7 @@ class _CalendarHeader extends StatelessWidget {
         Text(
           '오늘의 퍼즐',
           style: GoogleFonts.blackHanSans(
-            fontSize: 22,
+            fontSize: headerFs,
             color: charcoalBlack,
             letterSpacing: -0.5,
           ),
@@ -355,7 +379,7 @@ class _CalendarHeader extends StatelessWidget {
         Text(
           monthLabel,
           style: GoogleFonts.notoSans(
-            fontSize: 14,
+            fontSize: subFs,
             fontWeight: FontWeight.w800,
             color: charcoalBlack.withValues(alpha: 0.2),
           ),
@@ -387,6 +411,9 @@ class _MonthlyCalendar extends StatelessWidget {
     final todayKey = KstClock.currentDateKey();
     const columns = 7;
     const gap = 4.0;
+    final sh = MediaQuery.sizeOf(context).height;
+    // Proportional cell height
+    final cellH = (sh * 0.055).clamp(36.0, 56.0);
 
     return Container(
       padding: const EdgeInsets.all(10),
@@ -413,12 +440,13 @@ class _MonthlyCalendar extends StatelessWidget {
                 children: cells.map((cell) {
                   final dateKey = cell.dateKey;
                   if (dateKey == null) {
-                    return SizedBox(width: chipWidth, height: 42);
+                    return SizedBox(width: chipWidth, height: cellH);
                   }
 
                   final isEnabled = selectableDateKeys.contains(dateKey);
                   return _DateChip(
                     width: chipWidth,
+                    height: cellH,
                     day: cell.day,
                     rank: myDailyRanks[dateKey],
                     isSelected: dateKey == selectedDateKey,
@@ -440,6 +468,7 @@ class _MonthlyCalendar extends StatelessWidget {
 class _DateChip extends StatelessWidget {
   const _DateChip({
     required this.width,
+    required this.height,
     required this.day,
     required this.rank,
     required this.isSelected,
@@ -450,6 +479,7 @@ class _DateChip extends StatelessWidget {
   });
 
   final double width;
+  final double height;
   final int day;
   final int? rank;
   final bool isSelected;
@@ -489,7 +519,7 @@ class _DateChip extends StatelessWidget {
         duration: const Duration(milliseconds: 180),
         curve: Curves.easeOutCubic,
         width: width,
-        height: 48,
+        height: height,
         padding: const EdgeInsets.symmetric(horizontal: 3),
         decoration: BoxDecoration(
           color: backgroundColor,
@@ -577,8 +607,17 @@ class _InlineDailyRankingPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final sw = MediaQuery.sizeOf(context).width;
+    final isTablet = MediaQuery.sizeOf(context).shortestSide >= 600;
+    final panelPad = isTablet
+        ? (sw * 0.02).clamp(12.0, 20.0)
+        : (sw * 0.036).clamp(12.0, 18.0);
+    final headerFs = isTablet
+        ? (sw * 0.02).clamp(14.0, 18.0)
+        : (sw * 0.042).clamp(13.0, 17.0);
+
     return Container(
-      padding: const EdgeInsets.fromLTRB(14, 14, 14, 6),
+      padding: EdgeInsets.fromLTRB(panelPad, panelPad, panelPad, panelPad * 0.4),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(22),
@@ -597,14 +636,14 @@ class _InlineDailyRankingPanel extends StatelessWidget {
             children: [
               Icon(
                 Icons.emoji_events_rounded,
-                size: 15,
+                size: headerFs - 1,
                 color: charcoalBlack.withValues(alpha: 0.35),
               ),
               const SizedBox(width: 8),
               Text(
                 '${_formatDate(dateKey)} 랭킹',
                 style: GoogleFonts.blackHanSans(
-                  fontSize: 16,
+                  fontSize: headerFs,
                   color: charcoalBlack,
                   letterSpacing: 0,
                 ),
@@ -618,7 +657,7 @@ class _InlineDailyRankingPanel extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: panelPad * 0.85),
           if (isLoading)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 18),

@@ -35,8 +35,20 @@ class NicknameStickerCard extends StatelessWidget {
       builder: (context, constraints) {
         final mediaSize = MediaQuery.sizeOf(context);
         final isTablet = mediaSize.shortestSide >= 600;
+        final sw = mediaSize.width;
         final maxCardWidth = isTablet ? 720.0 : double.infinity;
-        final scoreFontSize = isTablet ? 52.0 : 44.0;
+        final scoreFontSize = isTablet
+            ? (sw * 0.055).clamp(40.0, 60.0)
+            : (sw * 0.11).clamp(32.0, 48.0);
+        final cardPadH = isTablet
+            ? (sw * 0.035).clamp(22.0, 34.0)
+            : (sw * 0.06).clamp(18.0, 28.0);
+        final cardPadV = isTablet
+            ? (mediaSize.height * 0.028).clamp(24.0, 38.0)
+            : (mediaSize.height * 0.03).clamp(20.0, 32.0);
+        final tierFs = isTablet
+            ? (sw * 0.016).clamp(11.0, 15.0)
+            : (sw * 0.03).clamp(10.0, 13.0);
 
         return Center(
           child: ConstrainedBox(
@@ -44,8 +56,8 @@ class NicknameStickerCard extends StatelessWidget {
             child: Container(
               width: double.infinity,
               padding: EdgeInsets.symmetric(
-                horizontal: isTablet ? 28.0 : 24.0,
-                vertical: isTablet ? 32.0 : 28.0,
+                horizontal: cardPadH,
+                vertical: cardPadV,
               ),
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -82,7 +94,7 @@ class NicknameStickerCard extends StatelessWidget {
                               .withValues(alpha: 0.4)),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: cardPadV * 0.7),
                   // Score — big, centered, hero element
                   AnimatedSwitcher(
                     duration: const Duration(milliseconds: 220),
@@ -111,7 +123,7 @@ class NicknameStickerCard extends StatelessWidget {
                             ),
                           ),
                   ),
-                  const SizedBox(height: 14),
+                  SizedBox(height: cardPadV * 0.5),
                   // Tier + Rank — subtle text row
                   if (_hasTier)
                     Row(
@@ -132,7 +144,7 @@ class NicknameStickerCard extends StatelessWidget {
                               ? '$tierLabel · $tierRank위'
                               : tierLabel!,
                           style: GoogleFonts.notoSans(
-                            fontSize: isTablet ? 13 : 12,
+                            fontSize: tierFs,
                             fontWeight: FontWeight.w800,
                             color: charcoalBlack.withValues(alpha: 0.4),
                           ),

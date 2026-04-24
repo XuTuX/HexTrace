@@ -20,11 +20,18 @@ class PrimaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isTablet = MediaQuery.sizeOf(context).shortestSide >= 600;
+    final ms = MediaQuery.sizeOf(context);
+    final isTablet = ms.shortestSide >= 600;
+    final btnH = isTablet
+        ? (ms.height * 0.07).clamp(64.0, 88.0)
+        : (ms.height * 0.078).clamp(52.0, 72.0);
+    final btnFs = isTablet
+        ? (ms.width * 0.032).clamp(22.0, 30.0)
+        : (ms.width * 0.06).clamp(18.0, 26.0);
 
     return Container(
       width: double.infinity,
-      height: isTablet ? 80 : 68,
+      height: btnH,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
         boxShadow: const [
@@ -57,7 +64,7 @@ class PrimaryButton extends StatelessWidget {
             Text(
               label,
               style: GoogleFonts.blackHanSans(
-                fontSize: isTablet ? 28 : 25,
+                fontSize: btnFs,
                 letterSpacing: 0,
                 color: Colors.white,
               ),

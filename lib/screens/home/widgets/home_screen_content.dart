@@ -128,10 +128,21 @@ class _HomeDashboardPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final mediaSize = MediaQuery.sizeOf(context);
     final isTablet = mediaSize.shortestSide >= 600;
-    final horizontalPadding = isTablet ? 40.0 : 24.0;
+    final sw = mediaSize.width;
+    final sh = mediaSize.height;
+    final horizontalPadding = isTablet
+        ? (sw * 0.06).clamp(32.0, 60.0)
+        : (sw * 0.06).clamp(16.0, 28.0);
     final contentMaxWidth = isTablet ? 680.0 : 480.0;
-    final topSpacing = isTablet ? 30.0 : 16.0;
-    final sectionGap = isTablet ? 22.0 : 18.0;
+    final topSpacing = isTablet
+        ? (sh * 0.025).clamp(20.0, 40.0)
+        : (sh * 0.018).clamp(8.0, 20.0);
+    final sectionGap = isTablet
+        ? (sh * 0.022).clamp(16.0, 28.0)
+        : (sh * 0.02).clamp(12.0, 22.0);
+    final bottomPad = isTablet
+        ? (sh * 0.03).clamp(24.0, 44.0)
+        : (sh * 0.025).clamp(14.0, 26.0);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -140,7 +151,7 @@ class _HomeDashboardPage extends StatelessWidget {
             horizontalPadding,
             0,
             horizontalPadding,
-            isTablet ? 36 : 22,
+            bottomPad,
           ),
           child: Center(
             child: ConstrainedBox(
@@ -172,12 +183,12 @@ class _HomeDashboardPage extends StatelessWidget {
                             isAllTime: true,
                             onViewAll: onRankingTap,
                           ),
-                          const SizedBox(height: 16),
+                          SizedBox(height: sectionGap * 0.8),
                         ],
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: sectionGap * 0.8),
                   _AnimatedPlayButton(
                     onPressed: onStartGame,
                   ),
@@ -202,6 +213,9 @@ class _TopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final sw = MediaQuery.sizeOf(context).width;
+    final titleFs = (sw * 0.052).clamp(16.0, 24.0);
+
     return Obx(() {
       final nickname = authService.userNickname.value?.trim();
       final hasNickname = nickname != null && nickname.isNotEmpty;
@@ -225,13 +239,16 @@ class _TopBar extends StatelessWidget {
                   : null,
               child: Row(
                 children: [
-                  Text(
-                    hasNickname ? nickname : 'BEE HOUSE',
-                    style: GoogleFonts.blackHanSans(
-                      fontSize: 20,
-                      color: charcoalBlack,
-                      height: 1.0,
-                      letterSpacing: 0,
+                  Flexible(
+                    child: Text(
+                      hasNickname ? nickname : 'BEE HOUSE',
+                      style: GoogleFonts.blackHanSans(
+                        fontSize: titleFs,
+                        color: charcoalBlack,
+                        height: 1.0,
+                        letterSpacing: 0,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   if (hasNickname) ...[
@@ -292,7 +309,15 @@ class _AnimatedPlayButtonState extends State<_AnimatedPlayButton>
 
   @override
   Widget build(BuildContext context) {
-    final isTablet = MediaQuery.sizeOf(context).shortestSide >= 600;
+    final ms = MediaQuery.sizeOf(context);
+    final isTablet = ms.shortestSide >= 600;
+    final btnH = isTablet
+        ? (ms.height * 0.07).clamp(64.0, 88.0)
+        : (ms.height * 0.078).clamp(52.0, 72.0);
+    final btnFs = isTablet
+        ? (ms.width * 0.032).clamp(22.0, 30.0)
+        : (ms.width * 0.06).clamp(18.0, 26.0);
+    final br = isTablet ? 28.0 : (ms.width * 0.06).clamp(18.0, 26.0);
 
     return AnimatedBuilder(
       animation: _scaleAnim,
@@ -304,9 +329,9 @@ class _AnimatedPlayButtonState extends State<_AnimatedPlayButton>
       },
       child: Container(
         width: double.infinity,
-        height: isTablet ? 80 : 68,
+        height: btnH,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(br),
           boxShadow: const [
             BoxShadow(
               color: charcoalBlack,
@@ -323,14 +348,14 @@ class _AnimatedPlayButtonState extends State<_AnimatedPlayButton>
             elevation: 0,
             side: const BorderSide(color: charcoalBlack, width: 2.0),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(br),
             ),
             padding: EdgeInsets.zero,
           ),
           child: Text(
             '게임 시작',
             style: GoogleFonts.blackHanSans(
-              fontSize: isTablet ? 28 : 25,
+              fontSize: btnFs,
               letterSpacing: 0,
               color: Colors.white,
             ),
@@ -352,14 +377,18 @@ class _HomePageTabs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isTablet = MediaQuery.sizeOf(context).shortestSide >= 600;
+    final ms = MediaQuery.sizeOf(context);
+    final isTablet = ms.shortestSide >= 600;
     final maxWidth = isTablet ? 360.0 : double.infinity;
+    final hMargin = isTablet
+        ? (ms.width * 0.04).clamp(20.0, 40.0)
+        : (ms.width * 0.06).clamp(16.0, 28.0);
 
     return Center(
       child: ConstrainedBox(
         constraints: BoxConstraints(maxWidth: maxWidth),
         child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 24),
+          margin: EdgeInsets.symmetric(horizontal: hMargin),
           padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
             color: Colors.white,

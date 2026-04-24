@@ -61,8 +61,22 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
 
   @override
   Widget build(BuildContext context) {
+    final ms = MediaQuery.sizeOf(context);
+    final isTablet = ms.shortestSide >= 600;
+    final sw = ms.width;
+    final containerPad = isTablet
+        ? (sw * 0.03).clamp(16.0, 24.0)
+        : (sw * 0.045).clamp(14.0, 22.0);
+    final headerFs = isTablet
+        ? (sw * 0.02).clamp(14.0, 18.0)
+        : (sw * 0.042).clamp(13.0, 17.0);
+    final viewAllFs = isTablet
+        ? (sw * 0.014).clamp(10.0, 13.0)
+        : (sw * 0.028).clamp(9.0, 12.0);
+    final headerGap = isTablet ? 16.0 : (ms.height * 0.016).clamp(10.0, 16.0);
+
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: EdgeInsets.all(containerPad),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(22),
@@ -85,7 +99,7 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
                 Text(
                   '랭킹',
                   style: GoogleFonts.blackHanSans(
-                    fontSize: 16,
+                    fontSize: headerFs,
                     color: charcoalBlack,
                     letterSpacing: 0,
                   ),
@@ -94,20 +108,20 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
                 Text(
                   '전체 보기',
                   style: GoogleFonts.notoSans(
-                    fontSize: 11,
+                    fontSize: viewAllFs,
                     fontWeight: FontWeight.w700,
                     color: charcoalBlack.withValues(alpha: 0.32),
                   ),
                 ),
                 Icon(
                   Icons.chevron_right_rounded,
-                  size: 14,
+                  size: viewAllFs + 3,
                   color: charcoalBlack.withValues(alpha: 0.28),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 14),
+          SizedBox(height: headerGap),
           // Content
           if (_isLoading)
             Padding(
@@ -160,6 +174,23 @@ class _CleanRankRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ms = MediaQuery.sizeOf(context);
+    final isTablet = ms.shortestSide >= 600;
+    final sw = ms.width;
+    final sh = ms.height;
+    final rankFs = isTablet
+        ? (sw * 0.02).clamp(14.0, 18.0)
+        : (sw * 0.042).clamp(12.0, 17.0);
+    final nameFs = isTablet
+        ? (sw * 0.018).clamp(12.0, 16.0)
+        : (sw * 0.036).clamp(11.0, 15.0);
+    final scoreFs = isTablet
+        ? (sw * 0.019).clamp(13.0, 17.0)
+        : (sw * 0.039).clamp(12.0, 16.0);
+    final rowGap = isTablet
+        ? (sh * 0.018).clamp(12.0, 22.0)
+        : (sh * 0.02).clamp(10.0, 20.0);
+
     final profileData = data['profiles'];
     Map<String, dynamic> profiles = {};
     if (profileData is Map<String, dynamic>) {
@@ -179,25 +210,25 @@ class _CleanRankRow extends StatelessWidget {
     };
 
     return Padding(
-      padding: EdgeInsets.only(bottom: isLast ? 0 : 18),
+      padding: EdgeInsets.only(bottom: isLast ? 0 : rowGap),
       child: Row(
         children: [
           SizedBox(
-            width: 22,
+            width: rankFs + 8,
             child: Text(
               '$rank',
               style: GoogleFonts.blackHanSans(
-                fontSize: 16,
+                fontSize: rankFs,
                 color: rankColor,
               ),
             ),
           ),
-          const SizedBox(width: 10),
+          SizedBox(width: (sw * 0.025).clamp(6.0, 12.0)),
           Expanded(
             child: Text(
               nickname.toString(),
               style: GoogleFonts.notoSans(
-                fontSize: 14,
+                fontSize: nameFs,
                 fontWeight: FontWeight.w700,
                 color: charcoalBlack.withValues(alpha: 0.65),
               ),
@@ -208,7 +239,7 @@ class _CleanRankRow extends StatelessWidget {
           Text(
             _formatScore(score),
             style: GoogleFonts.blackHanSans(
-              fontSize: 15,
+              fontSize: scoreFs,
               color: charcoalBlack.withValues(alpha: 0.4),
             ),
           ),
