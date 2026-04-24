@@ -5,7 +5,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hexor/constant.dart';
 import 'package:hexor/game/game_palette.dart';
 import 'package:hexor/game/hex_game_controller.dart';
-import 'package:hexor/screens/ranking/weekly_reset_info.dart';
 import 'package:hexor/services/database_service.dart';
 
 class WeeklyRankingPreview extends StatefulWidget {
@@ -62,159 +61,94 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
 
   @override
   Widget build(BuildContext context) {
-    final weeklyResetInfo = WeeklyResetInfo.current();
-    final title = widget.isAllTime ? '전체 랭킹 TOP3' : '주간 랭킹 TOP3';
-
     return Container(
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(
-          color: charcoalBlack.withValues(alpha: 0.08),
-          width: 1.5,
-        ),
+        border: Border.all(color: charcoalBlack, width: 2),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x10000000),
-            offset: Offset(0, 8),
-            blurRadius: 22,
+            color: charcoalBlack,
+            offset: Offset(3, 3),
           ),
         ],
       ),
       child: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(18, 18, 18, 10),
+          // Header
+          GestureDetector(
+            onTap: widget.onViewAll,
+            behavior: HitTestBehavior.opaque,
             child: Row(
               children: [
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: GamePalette.colorFor(GameColor.amber)
-                        .withValues(alpha: 0.16),
-                    borderRadius: BorderRadius.circular(11),
-                  ),
-                  child: Icon(
-                    Icons.emoji_events,
-                    color: GamePalette.colorFor(GameColor.amber),
-                    size: 18,
-                  ),
-                ),
-                const SizedBox(width: 10),
                 Text(
-                  title,
+                  '랭킹',
                   style: GoogleFonts.blackHanSans(
-                    fontSize: 17,
-                    letterSpacing: 0,
+                    fontSize: 16,
                     color: charcoalBlack,
+                    letterSpacing: 0,
                   ),
                 ),
                 const Spacer(),
-                GestureDetector(
-                  onTap: widget.onViewAll,
-                  behavior: HitTestBehavior.opaque,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        '더 보기',
-                        style: GoogleFonts.notoSans(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: charcoalBlack.withValues(alpha: 0.62),
-                        ),
-                      ),
-                      Icon(
-                        Icons.chevron_right_rounded,
-                        size: 14,
-                        color: charcoalBlack.withValues(alpha: 0.48),
-                      ),
-                    ],
+                Text(
+                  '전체 보기',
+                  style: GoogleFonts.notoSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: charcoalBlack.withValues(alpha: 0.32),
                   ),
+                ),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  size: 14,
+                  color: charcoalBlack.withValues(alpha: 0.28),
                 ),
               ],
             ),
           ),
+          const SizedBox(height: 14),
+          // Content
           if (_isLoading)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 32),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
               child: SizedBox(
-                width: 24,
-                height: 24,
+                width: 20,
+                height: 20,
                 child: CircularProgressIndicator(
-                  color: charcoalBlack,
-                  strokeWidth: 3,
+                  color: charcoalBlack.withValues(alpha: 0.2),
+                  strokeWidth: 2.5,
                 ),
               ),
             )
           else if (_topScores.isEmpty)
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 30),
+              padding: const EdgeInsets.symmetric(vertical: 16),
               child: Text(
-                'NO DATA',
-                style: GoogleFonts.blackHanSans(
-                  fontSize: 14,
-                  color: charcoalBlack.withValues(alpha: 0.1),
-                  letterSpacing: 2.0,
-                ),
-              ),
-            )
-          else ...[
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              child: Column(
-                children: List.generate(_topScores.length, (index) {
-                  return _RankRow(
-                    rank: index + 1,
-                    data: _topScores[index],
-                    isLast: index == _topScores.length - 1,
-                  );
-                }),
-              ),
-            ),
-          ],
-          const SizedBox(height: 10),
-          if (widget.isAllTime)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 18),
-              child: Text(
-                '누적 최고 기록 기준',
+                '아직 기록이 없습니다',
                 style: GoogleFonts.notoSans(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w800,
-                  color: charcoalBlack.withValues(alpha: 0.3),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: charcoalBlack.withValues(alpha: 0.18),
                 ),
               ),
             )
           else
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 18),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.timer_outlined, size: 12, color: charcoalBlack38),
-                  const SizedBox(width: 4),
-                  Text(
-                    weeklyResetInfo.koreanLabel,
-                    style: GoogleFonts.notoSans(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                      color: charcoalBlack.withValues(alpha: 0.3),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          const SizedBox(height: 14),
+            ...List.generate(_topScores.length, (index) {
+              return _CleanRankRow(
+                rank: index + 1,
+                data: _topScores[index],
+                isLast: index == _topScores.length - 1,
+              );
+            }),
         ],
       ),
     );
   }
 }
 
-class _RankRow extends StatelessWidget {
-  const _RankRow({
+class _CleanRankRow extends StatelessWidget {
+  const _CleanRankRow({
     required this.rank,
     required this.data,
     this.isLast = false,
@@ -239,60 +173,43 @@ class _RankRow extends StatelessWidget {
 
     final Color rankColor = switch (rank) {
       1 => GamePalette.colorFor(GameColor.amber),
-      2 => charcoalBlack.withValues(alpha: 0.4),
-      3 => GamePalette.colorFor(GameColor.coral),
+      2 => charcoalBlack.withValues(alpha: 0.35),
+      3 => charcoalBlack.withValues(alpha: 0.25),
       _ => charcoalBlack.withValues(alpha: 0.2),
     };
 
-    return Container(
-      margin: EdgeInsets.only(bottom: isLast ? 0 : 8),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(13),
-        border: Border.all(
-          color: charcoalBlack.withValues(alpha: 0.06),
-          width: 1,
-        ),
-      ),
+    return Padding(
+      padding: EdgeInsets.only(bottom: isLast ? 0 : 10),
       child: Row(
         children: [
           SizedBox(
-            width: 24,
+            width: 22,
             child: Text(
               '$rank',
               style: GoogleFonts.blackHanSans(
-                fontSize: 18,
+                fontSize: 16,
                 color: rankColor,
               ),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 10),
           Expanded(
             child: Text(
               nickname.toString(),
               style: GoogleFonts.notoSans(
-                fontSize: 14,
-                fontWeight: FontWeight.w800,
-                color: charcoalBlack,
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: charcoalBlack.withValues(alpha: 0.65),
               ),
               overflow: TextOverflow.ellipsis,
             ),
           ),
+          const SizedBox(width: 8),
           Text(
             _formatScore(score),
             style: GoogleFonts.blackHanSans(
-              fontSize: 15,
-              color: charcoalBlack.withValues(alpha: 0.8),
-            ),
-          ),
-          const SizedBox(width: 4),
-          Text(
-            'P',
-            style: GoogleFonts.notoSans(
-              fontSize: 9,
-              fontWeight: FontWeight.w900,
-              color: charcoalBlack.withValues(alpha: 0.2),
+              fontSize: 14,
+              color: charcoalBlack.withValues(alpha: 0.4),
             ),
           ),
         ],

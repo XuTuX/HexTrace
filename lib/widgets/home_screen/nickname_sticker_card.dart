@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:hexor/constant.dart';
+import 'package:hexor/game/game_palette.dart';
+import 'package:hexor/game/hex_game_controller.dart';
 
 class NicknameStickerCard extends StatelessWidget {
   const NicknameStickerCard({
@@ -27,29 +29,14 @@ class NicknameStickerCard extends StatelessWidget {
 
   bool get _hasTier => tierLabel != null && tierColor != null;
 
-  Color get _tierTextColor {
-    if (tierColor == null) {
-      return charcoalBlack;
-    }
-    return tierColor!.computeLuminance() > 0.3 ? charcoalBlack : Colors.white;
-  }
-
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final mediaSize = MediaQuery.sizeOf(context);
-        final screenWidth = mediaSize.width;
         final isTablet = mediaSize.shortestSide >= 600;
         final maxCardWidth = isTablet ? 720.0 : double.infinity;
-        final availableWidth =
-            constraints.maxWidth.isFinite ? constraints.maxWidth : screenWidth;
-        final effectiveCardWidth = maxCardWidth.isFinite
-            ? math.min(availableWidth, maxCardWidth)
-            : availableWidth;
-        final scoreFontSize = isTablet ? 42.0 : 34.0;
-        final cardHorizontalPadding = isTablet ? 26.0 : 20.0;
-        final cardVerticalPadding = isTablet ? 20.0 : 16.0;
+        final scoreFontSize = isTablet ? 52.0 : 44.0;
 
         return Center(
           child: ConstrainedBox(
@@ -57,8 +44,8 @@ class NicknameStickerCard extends StatelessWidget {
             child: Container(
               width: double.infinity,
               padding: EdgeInsets.symmetric(
-                horizontal: cardHorizontalPadding,
-                vertical: cardVerticalPadding,
+                horizontal: isTablet ? 28.0 : 24.0,
+                vertical: isTablet ? 32.0 : 28.0,
               ),
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -72,99 +59,86 @@ class NicknameStickerCard extends StatelessWidget {
                   ),
                 ],
               ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
+              child: Column(
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  // Mini hex decorations
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _TinyHex(
+                          color: GamePalette.colorFor(GameColor.coral)
+                              .withValues(alpha: 0.4)),
+                      const SizedBox(width: 4),
+                      _TinyHex(
+                          color: GamePalette.colorFor(GameColor.azure)
+                              .withValues(alpha: 0.4)),
+                      const SizedBox(width: 4),
+                      _TinyHex(
+                          color: GamePalette.colorFor(GameColor.mint)
+                              .withValues(alpha: 0.4)),
+                      const SizedBox(width: 4),
+                      _TinyHex(
+                          color: GamePalette.colorFor(GameColor.amber)
+                              .withValues(alpha: 0.4)),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  // Score — big, centered, hero element
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 220),
+                    child: isLoading
+                        ? SizedBox(
+                            key: const ValueKey('loading'),
+                            height: scoreFontSize,
+                            child: const Center(
+                              child: SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  color: charcoalBlack,
+                                  strokeWidth: 2.5,
+                                ),
+                              ),
+                            ),
+                          )
+                        : Text(
+                            _formatScore(score),
+                            key: const ValueKey('score'),
+                            style: GoogleFonts.blackHanSans(
+                              fontSize: scoreFontSize,
+                              color: charcoalBlack,
+                              height: 1.0,
+                            ),
+                          ),
+                  ),
+                  const SizedBox(height: 14),
+                  // Tier + Rank — subtle text row
+                  if (_hasTier)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          'BEST SCORE',
-                          style: TextStyle(
-                            fontSize: isTablet ? 15 : 12,
-                            fontWeight: FontWeight.w900,
-                            color: charcoalBlack.withValues(alpha: 0.38),
-                            letterSpacing: 0,
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: tierColor,
+                            shape: BoxShape.circle,
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 220),
-                          child: isLoading
-                              ? const SizedBox(
-                                  key: ValueKey('loading'),
-                                  height: 32,
-                                  child: Center(
-                                    child: SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(
-                                        color: charcoalBlack,
-                                        strokeWidth: 2.5,
-                                      ),
-                                    ),
-                                  ),
-                                )
-                              : Text(
-                                  _formatScore(score),
-                                  key: const ValueKey('score'),
-                                  style: GoogleFonts.blackHanSans(
-                                    fontSize: scoreFontSize,
-                                    color: charcoalBlack,
-                                    height: 1.0,
-                                  ),
-                                ),
+                        const SizedBox(width: 6),
+                        Text(
+                          tierRank != null
+                              ? '$tierLabel · $tierRank위'
+                              : tierLabel!,
+                          style: GoogleFonts.notoSans(
+                            fontSize: isTablet ? 13 : 12,
+                            fontWeight: FontWeight.w800,
+                            color: charcoalBlack.withValues(alpha: 0.4),
+                          ),
                         ),
                       ],
                     ),
-                  ),
-                  if (_hasTier) ...[
-                    const SizedBox(width: 12),
-                    Container(
-                      constraints: BoxConstraints(
-                        maxWidth: effectiveCardWidth * 0.34,
-                      ),
-                      padding: EdgeInsets.symmetric(
-                        horizontal: isTablet ? 12.0 : 9.0,
-                        vertical: isTablet ? 8.0 : 6.0,
-                      ),
-                      decoration: BoxDecoration(
-                        color: tierColor,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: charcoalBlack,
-                          width: 2,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.workspace_premium_rounded,
-                            size: isTablet ? 18.0 : 14.0,
-                            color: _tierTextColor,
-                          ),
-                          const SizedBox(width: 4),
-                          Flexible(
-                            child: Text(
-                              tierRank != null
-                                  ? '$tierLabel · $tierRank위'
-                                  : tierLabel!,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.blackHanSans(
-                                fontSize: isTablet ? 14.0 : 11.0,
-                                color: _tierTextColor,
-                                height: 1.0,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
                 ],
               ),
             ),
@@ -189,4 +163,55 @@ class NicknameStickerCard extends StatelessWidget {
     }
     return buffer.toString();
   }
+}
+
+class _TinyHex extends StatelessWidget {
+  const _TinyHex({required this.color});
+
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 10,
+      height: 10,
+      child: CustomPaint(painter: _TinyHexPainter(color)),
+    );
+  }
+}
+
+class _TinyHexPainter extends CustomPainter {
+  _TinyHexPainter(this.color);
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final cx = size.width / 2;
+    final cy = size.height / 2;
+    final r = size.width / 2;
+    final path = Path();
+
+    for (int i = 0; i < 6; i++) {
+      final angle = (math.pi / 180) * (60 * i - 30);
+      final x = cx + r * math.cos(angle);
+      final y = cy + r * math.sin(angle);
+      if (i == 0) {
+        path.moveTo(x, y);
+      } else {
+        path.lineTo(x, y);
+      }
+    }
+    path.close();
+
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = color
+        ..style = PaintingStyle.fill,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

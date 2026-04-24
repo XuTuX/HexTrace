@@ -318,32 +318,13 @@ class _DailyPlayButtonState extends State<_DailyPlayButton>
                   stops: const [0.0, 0.5, 1.0],
                 ).createShader(bounds);
               },
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: isTablet ? 40 : 36,
-                    height: isTablet ? 40 : 36,
-                    decoration: BoxDecoration(
-                      color: charcoalBlack.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      Icons.auto_awesome_rounded,
-                      size: isTablet ? 24 : 20,
-                      color: charcoalBlack,
-                    ),
-                  ),
-                  SizedBox(width: isTablet ? 14 : 12),
-                  Text(
-                    '오늘의 도전',
-                    style: GoogleFonts.blackHanSans(
-                      fontSize: isTablet ? 28 : 25,
-                      letterSpacing: 0,
-                      color: charcoalBlack,
-                    ),
-                  ),
-                ],
+              child: Text(
+                '오늘의 도전',
+                style: GoogleFonts.blackHanSans(
+                  fontSize: isTablet ? 28 : 25,
+                  letterSpacing: 0,
+                  color: charcoalBlack,
+                ),
               ),
             ),
           );
@@ -405,22 +386,12 @@ class _CalendarHeader extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 4),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 2,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF59E0B).withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  monthLabel,
-                  style: GoogleFonts.notoSans(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                    color: const Color(0xFFB45309),
-                  ),
+              Text(
+                monthLabel,
+                style: GoogleFonts.notoSans(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: charcoalBlack.withValues(alpha: 0.35),
                 ),
               ),
             ],
@@ -550,13 +521,14 @@ class _DateChip extends StatelessWidget {
   final bool isRankLoading;
   final VoidCallback? onTap;
 
-  Color get _rankColor {
+  /// Subtle dot color based on rank tier — no text, just a small indicator.
+  Color get _rankDotColor {
     if (rank == null) return Colors.transparent;
     return switch (rank!) {
       1 => GamePalette.colorFor(GameColor.amber),
-      2 => const Color(0xFF64748B),
+      2 => const Color(0xFF94A3B8),
       3 => GamePalette.colorFor(GameColor.coral),
-      _ => const Color(0xFF2563EB),
+      _ => const Color(0xFF93C5FD),
     };
   }
 
@@ -565,7 +537,7 @@ class _DateChip extends StatelessWidget {
     final backgroundColor = isSelected
         ? charcoalBlack
         : isToday
-            ? const Color(0xFFFEF3C7)
+            ? const Color(0xFFF8FAFC)
             : const Color(0xFFF8FAFC);
     final foregroundColor = isSelected
         ? Colors.white
@@ -589,9 +561,13 @@ class _DateChip extends StatelessWidget {
             color: isSelected
                 ? charcoalBlack
                 : isToday
-                    ? const Color(0xFFF59E0B).withValues(alpha: 0.4)
+                    ? charcoalBlack.withValues(alpha: 0.25)
                     : charcoalBlack.withValues(alpha: isEnabled ? 0.08 : 0.03),
-            width: isSelected ? 2 : 1.5,
+            width: isSelected
+                ? 2
+                : isToday
+                    ? 1.8
+                    : 1.5,
           ),
           boxShadow: isSelected
               ? const [
@@ -613,30 +589,17 @@ class _DateChip extends StatelessWidget {
                 height: 1.0,
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 6),
             if (rank != null)
+              // Subtle small dot for rank — no text
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 4,
-                  vertical: 1,
-                ),
+                width: 6,
+                height: 6,
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? Colors.white.withValues(alpha: 0.2)
-                      : _rankColor.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(5),
-                ),
-                child: Text(
-                  '$rank등',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTypography.tiny.copyWith(
-                    fontSize: 9,
-                    fontWeight: FontWeight.w900,
-                    color: isSelected
-                        ? Colors.white.withValues(alpha: 0.86)
-                        : _rankColor,
-                  ),
+                      ? Colors.white.withValues(alpha: 0.6)
+                      : _rankDotColor.withValues(alpha: 0.7),
+                  shape: BoxShape.circle,
                 ),
               )
             else if (isToday)
@@ -646,16 +609,8 @@ class _DateChip extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: isSelected
                       ? Colors.white
-                      : const Color(0xFFF59E0B),
+                      : charcoalBlack.withValues(alpha: 0.4),
                   shape: BoxShape.circle,
-                  boxShadow: [
-                    if (!isSelected)
-                      BoxShadow(
-                        color: const Color(0xFFF59E0B).withValues(alpha: 0.3),
-                        blurRadius: 4,
-                        spreadRadius: 1,
-                      ),
-                  ],
                 ),
               )
             else if (isRankLoading && isEnabled)
@@ -713,18 +668,10 @@ class _InlineDailyRankingPanel extends StatelessWidget {
         children: [
           Row(
             children: [
-              Container(
-                width: 28,
-                height: 28,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF59E0B).withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(9),
-                ),
-                child: Icon(
-                  Icons.emoji_events_rounded,
-                  size: 15,
-                  color: GamePalette.colorFor(GameColor.amber),
-                ),
+              Icon(
+                Icons.emoji_events_rounded,
+                size: 15,
+                color: charcoalBlack.withValues(alpha: 0.35),
               ),
               const SizedBox(width: 8),
               Text(

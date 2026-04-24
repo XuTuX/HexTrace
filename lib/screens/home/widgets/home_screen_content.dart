@@ -128,14 +128,11 @@ class _HomeDashboardPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final mediaSize = MediaQuery.sizeOf(context);
     final isTablet = mediaSize.shortestSide >= 600;
-    final viewportHeight = mediaSize.height;
     final horizontalPadding = isTablet ? 40.0 : 24.0;
     final contentMaxWidth = isTablet ? 680.0 : 480.0;
     final topSpacing = isTablet ? 30.0 : 16.0;
-    final sectionGap = isTablet ? 20.0 : 16.0;
-    final compactVertical = viewportHeight < 760;
-    final heroGap = compactVertical ? 18.0 : (isTablet ? 38.0 : 28.0);
-    final actionGap = compactVertical ? 12.0 : 16.0;
+    final sectionGap = isTablet ? 22.0 : 18.0;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         return Padding(
@@ -158,30 +155,24 @@ class _HomeDashboardPage extends StatelessWidget {
                       child: Column(
                         children: [
                           SizedBox(height: topSpacing),
-                          Row(
-                            children: [
-                              Expanded(
-                                child:
-                                    _HomeProfileChip(authService: authService),
-                              ),
-                              const SizedBox(width: 12),
-                              TopIconButton(
-                                icon: Icons.settings_rounded,
-                                onTap: onSettingsTap,
-                              ),
-                            ],
+                          // Top bar: nickname + settings
+                          _TopBar(
+                            authService: authService,
+                            onSettingsTap: onSettingsTap,
                           ),
-                          SizedBox(height: heroGap),
-                          _HomeHero(
+                          SizedBox(height: sectionGap + 6),
+                          // Score hero card
+                          ScoreDisplay(
                             scoreController: scoreController,
                             authService: authService,
                           ),
                           SizedBox(height: sectionGap),
+                          // Ranking TOP 3
                           WeeklyRankingPreview(
                             isAllTime: true,
                             onViewAll: onRankingTap,
                           ),
-                          SizedBox(height: actionGap),
+                          const SizedBox(height: 16),
                         ],
                       ),
                     ),
@@ -197,6 +188,71 @@ class _HomeDashboardPage extends StatelessWidget {
         );
       },
     );
+  }
+}
+
+class _TopBar extends StatelessWidget {
+  const _TopBar({
+    required this.authService,
+    required this.onSettingsTap,
+  });
+
+  final AuthService authService;
+  final VoidCallback onSettingsTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final nickname = authService.userNickname.value?.trim();
+      final hasNickname = nickname != null && nickname.isNotEmpty;
+
+      return Row(
+        children: [
+          Expanded(
+            child: GestureDetector(
+              onTap: hasNickname
+                  ? () {
+                      Get.dialog(
+                        EditNicknameDialog(
+                          currentNickname: nickname,
+                          onSave: (newNickname) async {
+                            return authService.updateNickname(newNickname);
+                          },
+                        ),
+                        barrierDismissible: false,
+                      );
+                    }
+                  : null,
+              child: Row(
+                children: [
+                  Text(
+                    hasNickname ? nickname : 'BEE HOUSE',
+                    style: GoogleFonts.blackHanSans(
+                      fontSize: 20,
+                      color: charcoalBlack,
+                      height: 1.0,
+                      letterSpacing: 0,
+                    ),
+                  ),
+                  if (hasNickname) ...[
+                    const SizedBox(width: 6),
+                    Icon(
+                      Icons.edit_rounded,
+                      size: 14,
+                      color: charcoalBlack.withValues(alpha: 0.2),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          TopIconButton(
+            icon: Icons.settings_rounded,
+            onTap: onSettingsTap,
+          ),
+        ],
+      );
+    });
   }
 }
 
@@ -272,59 +328,16 @@ class _AnimatedPlayButtonState extends State<_AnimatedPlayButton>
             ),
             padding: EdgeInsets.zero,
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: isTablet ? 40 : 36,
-                height: isTablet ? 40 : 36,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.play_arrow_rounded,
-                  size: isTablet ? 28 : 24,
-                  color: Colors.white,
-                ),
-              ),
-              SizedBox(width: isTablet ? 14 : 12),
-              Text(
-                '게임 시작',
-                style: GoogleFonts.blackHanSans(
-                  fontSize: isTablet ? 28 : 25,
-                  letterSpacing: 0,
-                  color: Colors.white,
-                ),
-              ),
-            ],
+          child: Text(
+            '게임 시작',
+            style: GoogleFonts.blackHanSans(
+              fontSize: isTablet ? 28 : 25,
+              letterSpacing: 0,
+              color: Colors.white,
+            ),
           ),
         ),
       ),
-    );
-  }
-}
-
-class _HomeHero extends StatelessWidget {
-  const _HomeHero({
-    required this.scoreController,
-    required this.authService,
-  });
-
-  final ScoreController scoreController;
-  final AuthService authService;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        const CompactHomeLogo(),
-        const SizedBox(height: 18),
-        ScoreDisplay(
-          scoreController: scoreController,
-          authService: authService,
-        ),
-      ],
     );
   }
 }
@@ -362,7 +375,7 @@ class _HomePageTabs extends StatelessWidget {
           ),
           child: Row(
             children: List.generate(2, (index) {
-              final labels = ['플레이', '오늘의 창'];
+              final labels = ['플레이', '오늘의 도전'];
               final icons = [
                 Icons.sports_esports_rounded,
                 Icons.auto_awesome_rounded,
@@ -429,114 +442,5 @@ class _HomePageTabs extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-class _HomeProfileChip extends StatelessWidget {
-  const _HomeProfileChip({
-    required this.authService,
-  });
-
-  final AuthService authService;
-
-  @override
-  Widget build(BuildContext context) {
-    return Obx(() {
-      final nickname = authService.userNickname.value?.trim();
-      final hasNickname = nickname != null && nickname.isNotEmpty;
-
-      return GestureDetector(
-        onTap: hasNickname
-            ? () {
-                Get.dialog(
-                  EditNicknameDialog(
-                    currentNickname: nickname,
-                    onSave: (newNickname) async {
-                      return authService.updateNickname(newNickname);
-                    },
-                  ),
-                  barrierDismissible: false,
-                );
-              }
-            : null,
-        child: Container(
-          height: 56,
-          padding: const EdgeInsets.symmetric(horizontal: 18),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: charcoalBlack, width: 2),
-            boxShadow: const [
-              BoxShadow(
-                color: charcoalBlack,
-                offset: Offset(3, 3),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Color(0xFFE0F2FE),
-                      Color(0xFFBAE6FD),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: const Color(0xFF0369A1).withValues(alpha: 0.15),
-                    width: 1,
-                  ),
-                ),
-                child: const Icon(
-                  Icons.person_rounded,
-                  size: 20,
-                  color: Color(0xFF0369A1),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '플레이어',
-                      style: GoogleFonts.notoSans(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w800,
-                        color: charcoalBlack.withValues(alpha: 0.38),
-                      ),
-                    ),
-                    Text(
-                      hasNickname ? nickname : '게스트',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.blackHanSans(
-                        fontSize: 17,
-                        color: charcoalBlack,
-                        height: 1.0,
-                        letterSpacing: 0,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (hasNickname)
-                Icon(
-                  Icons.edit_rounded,
-                  size: 18,
-                  color: charcoalBlack.withValues(alpha: 0.3),
-                ),
-            ],
-          ),
-        ),
-      );
-    });
   }
 }

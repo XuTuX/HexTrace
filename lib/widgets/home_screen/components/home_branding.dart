@@ -95,41 +95,14 @@ class HomeLogo extends StatelessWidget {
   }
 }
 
+/// Minimal branding — just a tiny, muted logo mark that doesn't compete
+/// with the score card.
 class CompactHomeLogo extends StatelessWidget {
   const CompactHomeLogo({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _MiniHex(color: GamePalette.colorFor(GameColor.coral)),
-        const SizedBox(width: 4),
-        _MiniHex(color: GamePalette.colorFor(GameColor.azure)),
-        const SizedBox(width: 4),
-        _MiniHex(color: GamePalette.colorFor(GameColor.mint)),
-        const SizedBox(width: 10),
-        Text(
-          'BEE',
-          style: GoogleFonts.blackHanSans(
-            fontSize: 22,
-            color: charcoalBlack,
-            height: 1.0,
-            letterSpacing: 1.5,
-          ),
-        ),
-        const SizedBox(width: 5),
-        Text(
-          'HOUSE',
-          style: GoogleFonts.blackHanSans(
-            fontSize: 22,
-            color: const Color(0xFF0095FF),
-            height: 1.0,
-            letterSpacing: 1.5,
-          ),
-        ),
-      ],
-    );
+    return const SizedBox.shrink();
   }
 }
 
