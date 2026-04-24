@@ -35,8 +35,8 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
     try {
       final dbService = Get.find<DatabaseService>();
       final scores = await (widget.isAllTime
-              ? dbService.getAllTimeLeaderboard(gameId, limit: 3)
-              : dbService.getWeeklyLeaderboard(gameId, limit: 3))
+              ? dbService.getAllTimeLeaderboard(gameId, limit: 5)
+              : dbService.getWeeklyLeaderboard(gameId, limit: 5))
           .catchError((e) {
         debugPrint('🔴 [WeeklyRankingPreview] Error: $e');
         return <Map<String, dynamic>>[];
@@ -47,7 +47,7 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
       }
 
       setState(() {
-        _topScores = List<Map<String, dynamic>>.from(scores.take(3));
+        _topScores = List<Map<String, dynamic>>.from(scores.take(5));
         _isLoading = false;
       });
     } catch (_) {
@@ -172,9 +172,9 @@ class _CleanRankRow extends StatelessWidget {
     final score = data['score'] ?? 0;
 
     final Color rankColor = switch (rank) {
-      1 => GamePalette.colorFor(GameColor.amber),
-      2 => charcoalBlack.withValues(alpha: 0.35),
-      3 => charcoalBlack.withValues(alpha: 0.25),
+      1 => const Color(0xFFFB7185), // Coral Red
+      2 => const Color(0xFFFB923C), // Orange
+      3 => const Color(0xFFFBBF24), // Amber Yellow
       _ => charcoalBlack.withValues(alpha: 0.2),
     };
 
