@@ -27,7 +27,7 @@ class TopIconButton extends StatelessWidget {
           boxShadow: const [
             BoxShadow(
               color: charcoalBlack,
-              offset: Offset(3, 3),
+              offset: Offset(2, 2),
               blurRadius: 0,
             ),
           ],
