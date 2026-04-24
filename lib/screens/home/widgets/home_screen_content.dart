@@ -187,9 +187,7 @@ class _HomeDashboardPage extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  PrimaryButton(
-                    label: '게임 시작',
-                    icon: Icons.play_arrow_rounded,
+                  _AnimatedPlayButton(
                     onPressed: onStartGame,
                   ),
                 ],
@@ -198,6 +196,111 @@ class _HomeDashboardPage extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _AnimatedPlayButton extends StatefulWidget {
+  const _AnimatedPlayButton({
+    required this.onPressed,
+  });
+
+  final VoidCallback onPressed;
+
+  @override
+  State<_AnimatedPlayButton> createState() => _AnimatedPlayButtonState();
+}
+
+class _AnimatedPlayButtonState extends State<_AnimatedPlayButton>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _scaleAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    )..repeat(reverse: true);
+    _scaleAnim = Tween<double>(begin: 1.0, end: 1.025).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isTablet = MediaQuery.sizeOf(context).shortestSide >= 600;
+
+    return AnimatedBuilder(
+      animation: _scaleAnim,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: _scaleAnim.value,
+          child: child,
+        );
+      },
+      child: Container(
+        width: double.infinity,
+        height: isTablet ? 80 : 68,
+        decoration: BoxDecoration(
+          color: charcoalBlack,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: const [
+            BoxShadow(
+              color: charcoalBlack,
+              offset: Offset(5, 5),
+              blurRadius: 0,
+            ),
+          ],
+        ),
+        child: ElevatedButton(
+          onPressed: widget.onPressed,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF0095FF),
+            foregroundColor: Colors.white,
+            elevation: 0,
+            side: const BorderSide(color: charcoalBlack, width: 2.5),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
+            padding: EdgeInsets.zero,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: isTablet ? 40 : 36,
+                height: isTablet ? 40 : 36,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.play_arrow_rounded,
+                  size: isTablet ? 28 : 24,
+                  color: Colors.white,
+                ),
+              ),
+              SizedBox(width: isTablet ? 14 : 12),
+              Text(
+                '게임 시작',
+                style: GoogleFonts.blackHanSans(
+                  fontSize: isTablet ? 28 : 25,
+                  letterSpacing: 0,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -237,64 +340,93 @@ class _HomePageTabs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 24),
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: charcoalBlack, width: 2),
-        boxShadow: const [
-          BoxShadow(
-            color: charcoalBlack,
-            offset: Offset(2, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: List.generate(2, (index) {
-          final labels = ['플레이', '오늘'];
-          final icons = [
-            Icons.play_arrow_rounded,
-            Icons.calendar_today_rounded,
-          ];
-          final isActive = activeIndex == index;
-          return Expanded(
-            child: GestureDetector(
-              onTap: () => onTap(index),
-              behavior: HitTestBehavior.opaque,
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 180),
-                curve: Curves.easeOutCubic,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: isActive ? charcoalBlack : Colors.transparent,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                alignment: Alignment.center,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      icons[index],
-                      size: 16,
-                      color: isActive ? Colors.white : charcoalBlack54,
-                    ),
-                    const SizedBox(width: 5),
-                    Text(
-                      labels[index],
-                      style: GoogleFonts.blackHanSans(
-                        fontSize: 14,
-                        color: isActive ? Colors.white : charcoalBlack54,
-                        letterSpacing: 0,
-                      ),
-                    ),
-                  ],
-                ),
+    final isTablet = MediaQuery.sizeOf(context).shortestSide >= 600;
+    final maxWidth = isTablet ? 360.0 : double.infinity;
+
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: maxWidth),
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 24),
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: charcoalBlack, width: 2),
+            boxShadow: const [
+              BoxShadow(
+                color: charcoalBlack,
+                offset: Offset(2, 2),
               ),
-            ),
-          );
-        }),
+            ],
+          ),
+          child: Row(
+            children: List.generate(2, (index) {
+              final labels = ['플레이', '오늘의 창'];
+              final icons = [
+                Icons.sports_esports_rounded,
+                Icons.auto_awesome_rounded,
+              ];
+              final activeColors = [
+                const Color(0xFF0095FF),
+                const Color(0xFFF59E0B),
+              ];
+              final isActive = activeIndex == index;
+              return Expanded(
+                child: GestureDetector(
+                  onTap: () => onTap(index),
+                  behavior: HitTestBehavior.opaque,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 220),
+                    curve: Curves.easeOutCubic,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: isActive
+                          ? activeColors[index]
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(16),
+                      border: isActive
+                          ? Border.all(color: charcoalBlack, width: 2)
+                          : null,
+                      boxShadow: isActive
+                          ? const [
+                              BoxShadow(
+                                color: charcoalBlack,
+                                offset: Offset(2, 2),
+                              ),
+                            ]
+                          : null,
+                    ),
+                    alignment: Alignment.center,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          icons[index],
+                          size: 17,
+                          color: isActive
+                              ? Colors.white
+                              : charcoalBlack.withValues(alpha: 0.32),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          labels[index],
+                          style: GoogleFonts.blackHanSans(
+                            fontSize: 14,
+                            color: isActive
+                                ? Colors.white
+                                : charcoalBlack.withValues(alpha: 0.32),
+                            letterSpacing: 0,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }),
+          ),
+        ),
       ),
     );
   }
@@ -347,8 +479,19 @@ class _HomeProfileChip extends StatelessWidget {
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE0F2FE),
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color(0xFFE0F2FE),
+                      Color(0xFFBAE6FD),
+                    ],
+                  ),
                   borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: const Color(0xFF0369A1).withValues(alpha: 0.15),
+                    width: 1,
+                  ),
                 ),
                 child: const Icon(
                   Icons.person_rounded,

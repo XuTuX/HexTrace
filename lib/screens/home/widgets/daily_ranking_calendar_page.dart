@@ -4,6 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:hexor/constant.dart';
 import 'package:hexor/controllers/score_controller.dart';
+import 'package:hexor/game/game_palette.dart';
+import 'package:hexor/game/hex_game_controller.dart';
 import 'package:hexor/screens/ranking/ranking_data_loader.dart';
 import 'package:hexor/screens/ranking/ranking_period.dart';
 import 'package:hexor/screens/ranking/widgets/rank_list_item.dart';
@@ -11,7 +13,7 @@ import 'package:hexor/services/auth_service.dart';
 import 'package:hexor/services/database_service.dart';
 import 'package:hexor/theme/app_typography.dart';
 import 'package:hexor/utils/kst_clock.dart';
-import 'package:hexor/widgets/home_screen/home_components.dart';
+
 
 class DailyRankingCalendarPage extends StatefulWidget {
   const DailyRankingCalendarPage({
@@ -201,9 +203,7 @@ class _DailyRankingCalendarPageState extends State<DailyRankingCalendarPage> {
                 ),
               ),
               const SizedBox(height: 16),
-              PrimaryButton(
-                label: '게임 시작',
-                icon: Icons.play_arrow_rounded,
+              _DailyPlayButton(
                 onPressed: () {
                   widget.onStartDaily();
                 },
@@ -239,19 +239,143 @@ class _DailyRankingCalendarPageState extends State<DailyRankingCalendarPage> {
   }
 }
 
+class _DailyPlayButton extends StatefulWidget {
+  const _DailyPlayButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  State<_DailyPlayButton> createState() => _DailyPlayButtonState();
+}
+
+class _DailyPlayButtonState extends State<_DailyPlayButton>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _shimmer;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2400),
+    )..repeat();
+    _shimmer = Tween<double>(begin: -1.0, end: 2.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isTablet = MediaQuery.sizeOf(context).shortestSide >= 600;
+
+    return Container(
+      width: double.infinity,
+      height: isTablet ? 80 : 68,
+      decoration: BoxDecoration(
+        color: charcoalBlack,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: const [
+          BoxShadow(
+            color: charcoalBlack,
+            offset: Offset(5, 5),
+            blurRadius: 0,
+          ),
+        ],
+      ),
+      child: AnimatedBuilder(
+        animation: _shimmer,
+        builder: (context, child) {
+          return ElevatedButton(
+            onPressed: widget.onPressed,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFF59E0B),
+              foregroundColor: charcoalBlack,
+              elevation: 0,
+              side: const BorderSide(color: charcoalBlack, width: 2.5),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+              ),
+              padding: EdgeInsets.zero,
+            ),
+            child: ShaderMask(
+              blendMode: BlendMode.srcIn,
+              shaderCallback: (bounds) {
+                return LinearGradient(
+                  begin: Alignment(_shimmer.value - 1, 0),
+                  end: Alignment(_shimmer.value, 0),
+                  colors: const [
+                    Color(0xFF1A1A1A),
+                    Color(0xFF5B3A00),
+                    Color(0xFF1A1A1A),
+                  ],
+                  stops: const [0.0, 0.5, 1.0],
+                ).createShader(bounds);
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: isTablet ? 40 : 36,
+                    height: isTablet ? 40 : 36,
+                    decoration: BoxDecoration(
+                      color: charcoalBlack.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      Icons.auto_awesome_rounded,
+                      size: isTablet ? 24 : 20,
+                      color: charcoalBlack,
+                    ),
+                  ),
+                  SizedBox(width: isTablet ? 14 : 12),
+                  Text(
+                    '오늘의 도전',
+                    style: GoogleFonts.blackHanSans(
+                      fontSize: isTablet ? 28 : 25,
+                      letterSpacing: 0,
+                      color: charcoalBlack,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
 class _CalendarHeader extends StatelessWidget {
   const _CalendarHeader();
 
   @override
   Widget build(BuildContext context) {
+    final today = KstClock.nowInKst();
+    final monthLabel = '${today.year}년 ${today.month}월';
+
     return Row(
       children: [
         Container(
-          width: 44,
-          height: 44,
+          width: 48,
+          height: 48,
           decoration: BoxDecoration(
-            color: const Color(0xFFFFFBEB),
-            borderRadius: BorderRadius.circular(14),
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFFFFFBEB),
+                Color(0xFFFEF3C7),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(color: charcoalBlack, width: 2),
             boxShadow: const [
               BoxShadow(
@@ -263,10 +387,10 @@ class _CalendarHeader extends StatelessWidget {
           child: const Icon(
             Icons.calendar_month_rounded,
             color: Color(0xFFF59E0B),
-            size: 22,
+            size: 24,
           ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 14),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -278,6 +402,25 @@ class _CalendarHeader extends StatelessWidget {
                   color: charcoalBlack,
                   height: 1.0,
                   letterSpacing: 0,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 2,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF59E0B).withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  monthLabel,
+                  style: GoogleFonts.notoSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFFB45309),
+                  ),
                 ),
               ),
             ],
@@ -312,10 +455,10 @@ class _MonthlyCalendar extends StatelessWidget {
     const gap = 5.0;
 
     return Container(
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(22),
         border: Border.all(color: charcoalBlack, width: 2),
         boxShadow: const [
           BoxShadow(
@@ -332,6 +475,8 @@ class _MonthlyCalendar extends StatelessWidget {
             children: [
               Row(
                 children: ['일', '월', '화', '수', '목', '금', '토'].map((label) {
+                  final isSun = label == '일';
+                  final isSat = label == '토';
                   return SizedBox(
                     width: chipWidth,
                     child: Center(
@@ -339,14 +484,21 @@ class _MonthlyCalendar extends StatelessWidget {
                         label,
                         style: AppTypography.tiny.copyWith(
                           fontSize: 10,
-                          color: charcoalBlack.withValues(alpha: 0.34),
+                          fontWeight: FontWeight.w900,
+                          color: isSun
+                              ? GamePalette.colorFor(GameColor.coral)
+                                  .withValues(alpha: 0.5)
+                              : isSat
+                                  ? GamePalette.colorFor(GameColor.azure)
+                                      .withValues(alpha: 0.5)
+                                  : charcoalBlack.withValues(alpha: 0.30),
                         ),
                       ),
                     ),
                   );
                 }).toList(),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 10),
               Wrap(
                 spacing: gap,
                 runSpacing: gap,
@@ -398,12 +550,22 @@ class _DateChip extends StatelessWidget {
   final bool isRankLoading;
   final VoidCallback? onTap;
 
+  Color get _rankColor {
+    if (rank == null) return Colors.transparent;
+    return switch (rank!) {
+      1 => GamePalette.colorFor(GameColor.amber),
+      2 => const Color(0xFF64748B),
+      3 => GamePalette.colorFor(GameColor.coral),
+      _ => const Color(0xFF2563EB),
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final backgroundColor = isSelected
         ? charcoalBlack
         : isToday
-            ? const Color(0xFFE0F2FE)
+            ? const Color(0xFFFEF3C7)
             : const Color(0xFFF8FAFC);
     final foregroundColor = isSelected
         ? Colors.white
@@ -422,14 +584,14 @@ class _DateChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 3),
         decoration: BoxDecoration(
           color: backgroundColor,
-          borderRadius: BorderRadius.circular(11),
+          borderRadius: BorderRadius.circular(13),
           border: Border.all(
             color: isSelected
                 ? charcoalBlack
                 : isToday
-                    ? const Color(0xFF2563EB).withValues(alpha: 0.28)
-                    : charcoalBlack.withValues(alpha: isEnabled ? 0.1 : 0.04),
-            width: isSelected ? 2 : 1,
+                    ? const Color(0xFFF59E0B).withValues(alpha: 0.4)
+                    : charcoalBlack.withValues(alpha: isEnabled ? 0.08 : 0.03),
+            width: isSelected ? 2 : 1.5,
           ),
           boxShadow: isSelected
               ? const [
@@ -453,25 +615,47 @@ class _DateChip extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             if (rank != null)
-              Text(
-                '$rank등',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AppTypography.tiny.copyWith(
-                  fontSize: 9,
-                  fontWeight: FontWeight.w900,
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 4,
+                  vertical: 1,
+                ),
+                decoration: BoxDecoration(
                   color: isSelected
-                      ? Colors.white.withValues(alpha: 0.86)
-                      : const Color(0xFF2563EB),
+                      ? Colors.white.withValues(alpha: 0.2)
+                      : _rankColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(5),
+                ),
+                child: Text(
+                  '$rank등',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTypography.tiny.copyWith(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w900,
+                    color: isSelected
+                        ? Colors.white.withValues(alpha: 0.86)
+                        : _rankColor,
+                  ),
                 ),
               )
             else if (isToday)
               Container(
-                width: 4,
-                height: 4,
+                width: 6,
+                height: 6,
                 decoration: BoxDecoration(
-                  color: isSelected ? Colors.white : const Color(0xFF2563EB),
+                  color: isSelected
+                      ? Colors.white
+                      : const Color(0xFFF59E0B),
                   shape: BoxShape.circle,
+                  boxShadow: [
+                    if (!isSelected)
+                      BoxShadow(
+                        color: const Color(0xFFF59E0B).withValues(alpha: 0.3),
+                        blurRadius: 4,
+                        spreadRadius: 1,
+                      ),
+                  ],
                 ),
               )
             else if (isRankLoading && isEnabled)
@@ -515,7 +699,7 @@ class _InlineDailyRankingPanel extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(14, 14, 14, 6),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(22),
         border: Border.all(color: charcoalBlack, width: 2),
         boxShadow: const [
           BoxShadow(
@@ -529,6 +713,20 @@ class _InlineDailyRankingPanel extends StatelessWidget {
         children: [
           Row(
             children: [
+              Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF59E0B).withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(9),
+                ),
+                child: Icon(
+                  Icons.emoji_events_rounded,
+                  size: 15,
+                  color: GamePalette.colorFor(GameColor.amber),
+                ),
+              ),
+              const SizedBox(width: 8),
               Text(
                 '${_formatDate(dateKey)} 랭킹',
                 style: GoogleFonts.blackHanSans(
@@ -541,7 +739,7 @@ class _InlineDailyRankingPanel extends StatelessWidget {
               Expanded(
                 child: Container(
                   height: 1,
-                  color: charcoalBlack.withValues(alpha: 0.08),
+                  color: charcoalBlack.withValues(alpha: 0.06),
                 ),
               ),
             ],
