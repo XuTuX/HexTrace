@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-
 import 'package:hexor/constant.dart';
 import 'package:hexor/controllers/score_controller.dart';
-import 'package:hexor/game/game_palette.dart';
-import 'package:hexor/game/hex_game_controller.dart';
 import 'package:hexor/screens/ranking/ranking_data_loader.dart';
 import 'package:hexor/screens/ranking/ranking_period.dart';
 import 'package:hexor/screens/ranking/widgets/rank_list_item.dart';
@@ -13,7 +10,6 @@ import 'package:hexor/services/auth_service.dart';
 import 'package:hexor/services/database_service.dart';
 import 'package:hexor/theme/app_typography.dart';
 import 'package:hexor/utils/kst_clock.dart';
-
 
 class DailyRankingCalendarPage extends StatefulWidget {
   const DailyRankingCalendarPage({
@@ -176,11 +172,12 @@ class _DailyRankingCalendarPageState extends State<DailyRankingCalendarPage> {
             children: [
               Expanded(
                 child: SingleChildScrollView(
+                  padding: const EdgeInsets.only(left: 4, right: 4, bottom: 40),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       const _CalendarHeader(),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 12),
                       _MonthlyCalendar(
                         cells: _calendarCells,
                         selectableDateKeys: _selectableDateKeys,
@@ -340,61 +337,27 @@ class _CalendarHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final today = KstClock.nowInKst();
-    final monthLabel = '${today.year}년 ${today.month}월';
+    final monthLabel = '${today.year}.${today.month.toString().padLeft(2, '0')}';
 
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      textBaseline: TextBaseline.alphabetic,
       children: [
-        Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color(0xFFFFFBEB),
-                Color(0xFFFEF3C7),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: charcoalBlack, width: 2),
-            boxShadow: const [
-              BoxShadow(
-                color: charcoalBlack,
-                offset: Offset(2, 2),
-              ),
-            ],
-          ),
-          child: const Icon(
-            Icons.calendar_month_rounded,
-            color: Color(0xFFF59E0B),
-            size: 24,
+        Text(
+          '오늘의 퍼즐',
+          style: GoogleFonts.blackHanSans(
+            fontSize: 22,
+            color: charcoalBlack,
+            letterSpacing: -0.5,
           ),
         ),
-        const SizedBox(width: 14),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '오늘의 퍼즐',
-                style: GoogleFonts.blackHanSans(
-                  fontSize: 24,
-                  color: charcoalBlack,
-                  height: 1.0,
-                  letterSpacing: 0,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                monthLabel,
-                style: GoogleFonts.notoSans(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: charcoalBlack.withValues(alpha: 0.35),
-                ),
-              ),
-            ],
+        const SizedBox(width: 10),
+        Text(
+          monthLabel,
+          style: GoogleFonts.notoSans(
+            fontSize: 14,
+            fontWeight: FontWeight.w800,
+            color: charcoalBlack.withValues(alpha: 0.2),
           ),
         ),
       ],
@@ -423,10 +386,10 @@ class _MonthlyCalendar extends StatelessWidget {
   Widget build(BuildContext context) {
     final todayKey = KstClock.currentDateKey();
     const columns = 7;
-    const gap = 5.0;
+    const gap = 4.0;
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(22),
@@ -444,39 +407,13 @@ class _MonthlyCalendar extends StatelessWidget {
               (constraints.maxWidth - (gap * (columns - 1))) / columns;
           return Column(
             children: [
-              Row(
-                children: ['일', '월', '화', '수', '목', '금', '토'].map((label) {
-                  final isSun = label == '일';
-                  final isSat = label == '토';
-                  return SizedBox(
-                    width: chipWidth,
-                    child: Center(
-                      child: Text(
-                        label,
-                        style: AppTypography.tiny.copyWith(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w900,
-                          color: isSun
-                              ? GamePalette.colorFor(GameColor.coral)
-                                  .withValues(alpha: 0.5)
-                              : isSat
-                                  ? GamePalette.colorFor(GameColor.azure)
-                                      .withValues(alpha: 0.5)
-                                  : charcoalBlack.withValues(alpha: 0.30),
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 10),
               Wrap(
                 spacing: gap,
                 runSpacing: gap,
                 children: cells.map((cell) {
                   final dateKey = cell.dateKey;
                   if (dateKey == null) {
-                    return SizedBox(width: chipWidth, height: 54);
+                    return SizedBox(width: chipWidth, height: 42);
                   }
 
                   final isEnabled = selectableDateKeys.contains(dateKey);
@@ -522,13 +459,13 @@ class _DateChip extends StatelessWidget {
   final VoidCallback? onTap;
 
   /// Subtle dot color based on rank tier — no text, just a small indicator.
-  Color get _rankDotColor {
+  Color get _rankBackgroundColor {
     if (rank == null) return Colors.transparent;
     return switch (rank!) {
-      1 => GamePalette.colorFor(GameColor.amber),
-      2 => const Color(0xFF94A3B8),
-      3 => GamePalette.colorFor(GameColor.coral),
-      _ => const Color(0xFF93C5FD),
+      1 => const Color(0xFFFB7185), // Coral Red (1st)
+      2 => const Color(0xFFFB923C), // Orange (2nd)
+      3 => const Color(0xFFFBBF24), // Amber Yellow (3rd)
+      _ => const Color(0xFFE2E8F0), // Participation (Subtle Slate)
     };
   }
 
@@ -536,8 +473,8 @@ class _DateChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final backgroundColor = isSelected
         ? charcoalBlack
-        : isToday
-            ? const Color(0xFFF8FAFC)
+        : (rank != null)
+            ? _rankBackgroundColor
             : const Color(0xFFF8FAFC);
     final foregroundColor = isSelected
         ? Colors.white
@@ -552,7 +489,7 @@ class _DateChip extends StatelessWidget {
         duration: const Duration(milliseconds: 180),
         curve: Curves.easeOutCubic,
         width: width,
-        height: 54,
+        height: 48,
         padding: const EdgeInsets.symmetric(horizontal: 3),
         decoration: BoxDecoration(
           color: backgroundColor,
@@ -584,39 +521,28 @@ class _DateChip extends StatelessWidget {
             Text(
               day.toString(),
               style: GoogleFonts.blackHanSans(
-                fontSize: 14,
+                fontSize: 13,
                 color: foregroundColor,
                 height: 1.0,
               ),
             ),
-            const SizedBox(height: 6),
-            if (rank != null)
-              // Subtle small dot for rank — no text
+            if (isToday) ...[
+              const SizedBox(height: 3),
               Container(
-                width: 6,
-                height: 6,
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? Colors.white.withValues(alpha: 0.6)
-                      : _rankDotColor.withValues(alpha: 0.7),
-                  shape: BoxShape.circle,
-                ),
-              )
-            else if (isToday)
-              Container(
-                width: 6,
-                height: 6,
+                width: 4,
+                height: 4,
                 decoration: BoxDecoration(
                   color: isSelected
                       ? Colors.white
                       : charcoalBlack.withValues(alpha: 0.4),
                   shape: BoxShape.circle,
                 ),
-              )
-            else if (isRankLoading && isEnabled)
+              ),
+            ] else if (isRankLoading && isEnabled) ...[
+              const SizedBox(height: 3),
               Container(
-                width: 4,
-                height: 4,
+                width: 3,
+                height: 3,
                 decoration: BoxDecoration(
                   color: isSelected
                       ? Colors.white.withValues(alpha: 0.5)
@@ -624,6 +550,7 @@ class _DateChip extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
               ),
+            ],
           ],
         ),
       ),

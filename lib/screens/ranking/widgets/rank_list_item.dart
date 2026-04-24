@@ -41,9 +41,9 @@ class RankListItem extends StatelessWidget {
     };
 
     final Color rankColor = switch (rank) {
-      1 => GamePalette.colorFor(GameColor.amber),
-      2 => charcoalBlack.withValues(alpha: 0.4),
-      3 => GamePalette.colorFor(GameColor.coral),
+      1 => const Color(0xFFFB7185), // Coral Red
+      2 => const Color(0xFFFB923C), // Orange
+      3 => const Color(0xFFFBBF24), // Amber Yellow
       _ => charcoalBlack.withValues(alpha: 0.25),
     };
 
