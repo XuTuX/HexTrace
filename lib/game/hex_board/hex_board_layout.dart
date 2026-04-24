@@ -88,6 +88,38 @@ class HexBoardLayout {
     return null;
   }
 
+  HexCoord? nearestCoord(
+    Offset position, {
+    double? maxDistance,
+    bool Function(HexCoord coord)? where,
+  }) {
+    HexCoord? closest;
+    double closestDistance = double.infinity;
+
+    for (final entry in centers.entries) {
+      final coord = entry.key;
+      if (where != null && !where(coord)) {
+        continue;
+      }
+
+      final distance = (entry.value - position).distance;
+      if (distance < closestDistance) {
+        closest = coord;
+        closestDistance = distance;
+      }
+    }
+
+    if (closest == null) {
+      return null;
+    }
+
+    if (maxDistance != null && closestDistance > maxDistance) {
+      return null;
+    }
+
+    return closest;
+  }
+
   static Path _buildHexPath(Offset center, double radius) {
     final inset = math.max(1.5, radius * _tileInsetFactor);
     final effectiveRadius = math.max(6, radius - inset);

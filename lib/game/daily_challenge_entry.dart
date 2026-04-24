@@ -25,11 +25,21 @@ DailyChallengeLaunchDecision resolveDailyChallengeLaunch({
   }
 
   if (challenge.hasUsedEntry) {
-    return DailyChallengeLaunchDecision(
+    if (challenge.myScore == null) {
+      return DailyChallengeLaunchDecision(
+        canLaunch: true,
+        sessionConfig: GameSessionConfig(
+          mode: GameMode.dailyOfficial,
+          seed: challenge.seed,
+          dateKey: challenge.dateKey,
+          isOfficialScoreSubmission: true,
+        ),
+      );
+    }
+
+    return const DailyChallengeLaunchDecision(
       canLaunch: false,
-      noticeMessage: challenge.myScore == null
-          ? '오늘의 퍼즐은 이미 입장했어요. 내일 다시 도전해 주세요.'
-          : '오늘의 퍼즐은 이미 플레이했어요. 내일 다시 도전해 주세요.',
+      noticeMessage: '오늘의 퍼즐은 이미 플레이했어요. 내일 다시 도전해 주세요.',
     );
   }
 

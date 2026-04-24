@@ -9,6 +9,7 @@ import 'package:hexor/screens/ranking_screen.dart';
 import 'package:hexor/screens/settings_screen.dart';
 import 'package:hexor/services/auth_service.dart';
 import 'package:hexor/services/database_service.dart';
+import 'package:hexor/services/daily_submission_service.dart';
 import 'package:hexor/widgets/dialogs/edit_nickname_dialog.dart';
 import 'package:hexor/widgets/home_screen/login_sheet.dart';
 
@@ -23,6 +24,7 @@ void openGameScreen(
 
 Future<void> openDailyChallenge(AuthService authService) async {
   final dbService = Get.find<DatabaseService>();
+  final dailySubmissionService = Get.find<DailySubmissionService>();
 
   if (authService.user.value == null) {
     showLoginSheet(
@@ -33,7 +35,20 @@ Future<void> openDailyChallenge(AuthService authService) async {
   }
 
   try {
-    final existingState = await dbService.getDailyChallenge(gameId);
+    var existingState = await dbService.getDailyChallenge(gameId);
+    if (existingState.hasUsedEntry && !existingState.hasScoreEntry) {
+      try {
+        final retried =
+            await dailySubmissionService.retryPendingSubmissionIfMatches(
+          gameId: gameId,
+          dateKey: existingState.dateKey,
+        );
+        if (retried != null) {
+          existingState = await dbService.getDailyChallenge(gameId);
+        }
+      } catch (_) {}
+    }
+
     final gateDecision = resolveDailyChallengeLaunch(
       challenge: existingState,
       isLoggedIn: true,
@@ -47,6 +62,14 @@ Future<void> openDailyChallenge(AuthService authService) async {
         colorText: Colors.white,
         duration: const Duration(seconds: 3),
       );
+      return;
+    }
+
+    if (existingState.hasUsedEntry && !existingState.hasScoreEntry) {
+      final launchConfig = gateDecision.sessionConfig;
+      if (launchConfig != null) {
+        openGameScreen(launchConfig);
+      }
       return;
     }
 

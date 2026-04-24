@@ -6,6 +6,7 @@ void _beginDrag(HexGameController controller, HexCoord? coord) {
   }
 
   unawaited(AppHaptics.selection());
+  unawaited(AudioService().playNote(0));
   controller.dragPath = [coord];
   controller.invalidPulse = false;
   _refreshDragState(controller);
@@ -57,6 +58,7 @@ void _extendDrag(HexGameController controller, HexCoord? coord) {
   _refreshDragState(controller);
   _updateStatusForDrag(controller);
   unawaited(AppHaptics.selection());
+  unawaited(AudioService().playNote(controller.dragPath.length - 1));
   controller._notify();
 }
 

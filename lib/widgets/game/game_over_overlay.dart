@@ -18,8 +18,6 @@ class GameOverOverlay extends StatelessWidget {
     required this.onHome,
     required this.onRanking,
     required this.isSharing,
-    this.dailyStatusLabel,
-    this.dailyStatusDetail,
   });
 
   final GameRunSummary runSummary;
@@ -31,8 +29,6 @@ class GameOverOverlay extends StatelessWidget {
   final VoidCallback onHome;
   final VoidCallback onRanking;
   final bool isSharing;
-  final String? dailyStatusLabel;
-  final String? dailyStatusDetail;
 
   @override
   Widget build(BuildContext context) {
@@ -69,15 +65,6 @@ class GameOverOverlay extends StatelessWidget {
                       children: [
                         _buildHeader(),
                         const SizedBox(height: 24),
-                        if (runSummary.isDailyMode &&
-                            dailyStatusLabel != null &&
-                            dailyStatusDetail != null) ...[
-                          _DailyStatusCard(
-                            label: dailyStatusLabel!,
-                            detail: dailyStatusDetail!,
-                          ),
-                          const SizedBox(height: 20),
-                        ],
                         _buildScoreSection(),
                         const SizedBox(height: 28),
                         PrimaryButton(
@@ -238,49 +225,4 @@ class GameOverOverlay extends StatelessWidget {
       ],
     );
   }
-
 }
-
-class _DailyStatusCard extends StatelessWidget {
-  const _DailyStatusCard({
-    required this.label,
-    required this.detail,
-  });
-
-  final String label;
-  final String detail;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFEFF6FF),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: charcoalBlack, width: 2),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: GoogleFonts.blackHanSans(
-              fontSize: 16,
-              color: const Color(0xFF2563EB),
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            detail,
-            style: AppTypography.body.copyWith(
-              color: charcoalBlack.withValues(alpha: 0.75),
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-

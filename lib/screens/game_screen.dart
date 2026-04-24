@@ -9,7 +9,9 @@ import '../controllers/score_controller.dart';
 import '../game/hex_board_view.dart';
 import '../game/hex_game_controller.dart';
 import '../services/app_haptics.dart';
+import '../services/audio_service.dart';
 import '../services/database_service.dart';
+import '../services/daily_submission_service.dart';
 import '../services/replay_share_service.dart';
 import '../utils/browser_back_blocker.dart';
 import '../widgets/dialogs/share_preview_dialog.dart';
@@ -39,8 +41,6 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   int _lastSyncedScore = 0;
   bool _didReportGameOver = false;
   bool _isSharingReplay = false;
-  String? _dailyStatusLabel;
-  String? _dailyStatusDetail;
 
   @override
   void initState() {
@@ -64,6 +64,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     _browserBackBlocker.detach();
     _controller.removeListener(_handleControllerChanged);
     _controller.dispose();
+    unawaited(AudioService().stopBGM());
     super.dispose();
   }
 
@@ -234,8 +235,6 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                                     Get.offAll(() => const HomeScreen()),
                                 onRanking: _openRanking,
                                 isSharing: _isSharingReplay,
-                                dailyStatusLabel: _dailyStatusLabel,
-                                dailyStatusDetail: _dailyStatusDetail,
                               ),
                             ),
                         ],
@@ -287,7 +286,6 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       _scoreController.resetScore();
       _lastSyncedScore = _controller.score;
       _didReportGameOver = false;
-      _resetPostGamePresentationState();
       return;
     }
 
@@ -306,7 +304,6 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         !_didReportGameOver &&
         !_controller.isReplaying) {
       _didReportGameOver = true;
-      _primePostGamePresentationState();
       unawaited(AppHaptics.gameOver());
       _scoreController.checkHighScore();
       unawaited(_scoreController.uploadHighScoreToServer(_controller.score));
@@ -320,7 +317,6 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     _scoreController.resetScore();
     _lastSyncedScore = 0;
     _didReportGameOver = false;
-    _resetPostGamePresentationState();
 
     if (_controller.sessionConfig.isDailyMode) {
       Get.snackbar(
@@ -342,90 +338,60 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     _scoreController.resetScore();
     _lastSyncedScore = 0;
     _didReportGameOver = false;
-    _resetPostGamePresentationState();
     unawaited(_controller.watchReplay());
   }
 
   void _openRanking() {
     Get.bottomSheet(
-      const RankingScreen(),
+      RankingScreen(isDailyOnly: _controller.sessionConfig.isDailyMode),
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       enterBottomSheetDuration: const Duration(milliseconds: 300),
     );
   }
 
-  void _primePostGamePresentationState() {
-    final session = _controller.sessionConfig;
-    if (!mounted) {
-      return;
-    }
-
-    setState(() {
-
-      if (session.mode == GameMode.dailyOfficial) {
-        _dailyStatusLabel = '오늘의 퍼즐 기록 제출 중';
-        _dailyStatusDetail = session.dateKey == null
-            ? '공식 기록을 저장하고 있어요.'
-            : '${session.dateKey} 기록을 저장하고 있어요.';
-      } else if (session.mode == GameMode.dailyPractice) {
-        _dailyStatusLabel = '오늘의 퍼즐';
-        _dailyStatusDetail = '오늘의 퍼즐은 하루 한 번만 플레이할 수 있어요.';
-      } else {
-        _dailyStatusLabel = null;
-        _dailyStatusDetail = null;
-      }
-    });
-  }
-
-  void _resetPostGamePresentationState() {
-    if (!mounted) {
-      return;
-    }
-
-    setState(() {
-      _dailyStatusLabel = null;
-      _dailyStatusDetail = null;
-    });
-  }
-
   Future<void> _finalizeCompletedRun() async {
     final summary = _controller.runSummary;
     final dbService = Get.find<DatabaseService>();
 
-    final dailyFuture = _submitDailyScoreIfNeeded(
+    final dailyResult = await _submitDailyScoreIfNeeded(
       dbService: dbService,
       summary: summary,
     );
-
-    final dailyResult = await dailyFuture;
 
     if (!mounted) {
       return;
     }
 
-    setState(() {
-      if (dailyResult case (final label, final detail)) {
-        _dailyStatusLabel = label;
-        _dailyStatusDetail = detail;
-      }
-    });
+    if (dailyResult == DailySubmissionResult.success &&
+        Get.isBottomSheetOpen != true) {
+      _openRanking();
+    }
   }
 
-  Future<(String, String)?> _submitDailyScoreIfNeeded({
+  Future<DailySubmissionResult> _submitDailyScoreIfNeeded({
     required DatabaseService dbService,
     required GameRunSummary summary,
   }) async {
     if (!_controller.sessionConfig.isOfficialScoreSubmission ||
         !_controller.sessionConfig.isDailyMode ||
         _controller.sessionConfig.dateKey == null) {
-      return null;
+      return DailySubmissionResult.notNeeded;
     }
 
     try {
       final replayCode = ReplayShareService.buildReplayCode(
         seed: _controller.initialSeed,
         recordedMoves: _controller.recordedMoves,
+      );
+      final dailySubmissionService = Get.find<DailySubmissionService>();
+      await dailySubmissionService.savePendingSubmission(
+        gameId: gameId,
+        dateKey: _controller.sessionConfig.dateKey!,
+        seed: _controller.initialSeed,
+        score: summary.score,
+        replayCode: replayCode,
+        summary: summary.toJson(),
       );
       final storedScore = await dbService.submitDailyScore(
         gameId: gameId,
@@ -435,22 +401,39 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         replayCode: replayCode,
         summary: summary.toJson(),
       );
-      return (
-        '오늘의 퍼즐 등록 완료',
-        '공식 기록 $storedScore점이 오늘의 랭킹에 반영되었어요.',
-      );
+      await dailySubmissionService.clearPendingSubmission();
+      debugPrint('Daily score submitted: $storedScore');
+      return DailySubmissionResult.success;
     } catch (e) {
       final message = e.toString();
+      late final String snackMessage;
+
       if (message.contains('Daily attempt already used')) {
-        return (
-          '오늘의 퍼즐 미등록',
-          '오늘의 퍼즐은 하루 한 번만 플레이할 수 있어요.',
+        snackMessage = '오늘의 퍼즐은 하루 한 번만 플레이할 수 있어요.';
+      } else if (message.contains('Daily challenge is only valid for today')) {
+        snackMessage = '날짜가 바뀌어 오늘 랭킹에 기록을 등록하지 못했어요.';
+      } else if (message.contains('Daily challenge entry not claimed')) {
+        snackMessage = '입장 정보가 확인되지 않아 오늘 랭킹에 반영되지 않았어요.';
+      } else if (message.contains('Invalid daily challenge seed')) {
+        snackMessage = '퍼즐 정보가 맞지 않아 오늘 랭킹에 반영되지 않았어요.';
+      } else if (message.contains('Not authenticated')) {
+        snackMessage = '로그인 정보가 만료되어 오늘 랭킹에 반영되지 않았어요.';
+      } else {
+        snackMessage = '공식 기록 저장에 실패했어요. 홈 화면에서 자동으로 다시 제출을 시도합니다.';
+      }
+
+      if (mounted) {
+        Get.snackbar(
+          '오늘의 퍼즐 저장 실패',
+          snackMessage,
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
         );
       }
-      return (
-        '오늘의 퍼즐 저장 실패',
-        '공식 기록 저장에 실패했어요. 일반 기록과 미션은 정상 반영됐습니다.',
-      );
+
+      return DailySubmissionResult.failed;
     }
   }
 
@@ -531,3 +514,5 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     );
   }
 }
+
+enum DailySubmissionResult { notNeeded, success, failed }

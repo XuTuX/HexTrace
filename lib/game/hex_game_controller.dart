@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import 'hex_game_models.dart';
 import '../services/app_haptics.dart';
+import '../services/audio_service.dart';
 
 export 'hex_game_models.dart';
 
