@@ -189,7 +189,6 @@ void _endGame(HexGameController controller, String message) {
   controller.clearingPath = const [];
   controller.statusText = message;
   controller.statusTone = GameMessageTone.error;
-  unawaited(AudioService().stopBGM());
 }
 
 void _resetGame(

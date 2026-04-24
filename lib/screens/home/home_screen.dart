@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'package:hexor/controllers/score_controller.dart';
 import 'package:hexor/services/auth_service.dart';
+import 'package:hexor/services/audio_service.dart';
 
 import 'home_screen_flows.dart';
 import 'widgets/home_screen_content.dart';
@@ -14,7 +17,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   late final Worker _profileLoadedWorker;
   late final Worker _userWorker;
   late final Worker _loadingWorker;
@@ -23,6 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
 
     final authService = Get.find<AuthService>();
     _profileLoadedWorker =
@@ -34,14 +38,31 @@ class _HomeScreenState extends State<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkNicknameRequirement();
     });
+    unawaited(AudioService().startHomeBGM());
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _profileLoadedWorker.dispose();
     _userWorker.dispose();
     _loadingWorker.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.resumed:
+        unawaited(AudioService().resumeBGMIfNeeded());
+        break;
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.hidden:
+      case AppLifecycleState.paused:
+      case AppLifecycleState.detached:
+        unawaited(AudioService().pauseBGM());
+        break;
+    }
   }
 
   Future<void> _checkNicknameRequirement() async {

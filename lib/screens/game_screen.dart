@@ -41,6 +41,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   int _lastSyncedScore = 0;
   bool _didReportGameOver = false;
   bool _isSharingReplay = false;
+  int? _dailyRank;
+  bool _isDailyRankLoading = false;
 
   @override
   void initState() {
@@ -70,8 +72,17 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      _controller.syncTimer();
+    switch (state) {
+      case AppLifecycleState.resumed:
+        _controller.syncTimer();
+        unawaited(AudioService().resumeBGMIfNeeded());
+        break;
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.hidden:
+      case AppLifecycleState.paused:
+      case AppLifecycleState.detached:
+        unawaited(AudioService().pauseBGM());
+        break;
     }
   }
 
@@ -98,7 +109,9 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                   child: Center(
                     child: ConstrainedBox(
                       constraints: BoxConstraints(
-                        maxWidth: MediaQuery.sizeOf(context).shortestSide >= 600 ? 680 : 480,
+                        maxWidth: MediaQuery.sizeOf(context).shortestSide >= 600
+                            ? 680
+                            : 480,
                       ),
                       child: Stack(
                         children: [
@@ -228,6 +241,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                                 bestScore: _scoreController.highscore.value,
                                 isNewHighScore: _scoreController
                                     .hasNewHighScoreThisGame.value,
+                                dailyRank: _dailyRank,
+                                isDailyRankLoading: _isDailyRankLoading,
                                 onRestart: _restartGame,
                                 onReplay: _replayGame,
                                 onShare: _shareReplay,
@@ -317,6 +332,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     _scoreController.resetScore();
     _lastSyncedScore = 0;
     _didReportGameOver = false;
+    _dailyRank = null;
+    _isDailyRankLoading = false;
 
     if (_controller.sessionConfig.isDailyMode) {
       Get.snackbar(
@@ -338,6 +355,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     _scoreController.resetScore();
     _lastSyncedScore = 0;
     _didReportGameOver = false;
+    _dailyRank = null;
+    _isDailyRankLoading = false;
     unawaited(_controller.watchReplay());
   }
 
@@ -354,10 +373,37 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     final summary = _controller.runSummary;
     final dbService = Get.find<DatabaseService>();
 
+    if (summary.mode == GameMode.dailyOfficial && mounted) {
+      setState(() {
+        _dailyRank = null;
+        _isDailyRankLoading = true;
+      });
+    }
+
     final dailyResult = await _submitDailyScoreIfNeeded(
       dbService: dbService,
       summary: summary,
     );
+
+    if (dailyResult == DailySubmissionResult.success &&
+        summary.mode == GameMode.dailyOfficial &&
+        _controller.sessionConfig.dateKey != null) {
+      final dailyRank = await dbService.getMyDailyRank(
+        gameId,
+        dateKey: _controller.sessionConfig.dateKey!,
+      );
+
+      if (mounted) {
+        setState(() {
+          _dailyRank = dailyRank;
+          _isDailyRankLoading = false;
+        });
+      }
+    } else if (mounted && summary.mode == GameMode.dailyOfficial) {
+      setState(() {
+        _isDailyRankLoading = false;
+      });
+    }
 
     if (!mounted) {
       return;

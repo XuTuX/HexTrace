@@ -12,6 +12,8 @@ class GameOverOverlay extends StatelessWidget {
     required this.runSummary,
     required this.bestScore,
     required this.isNewHighScore,
+    required this.dailyRank,
+    required this.isDailyRankLoading,
     required this.onRestart,
     required this.onReplay,
     required this.onShare,
@@ -23,6 +25,8 @@ class GameOverOverlay extends StatelessWidget {
   final GameRunSummary runSummary;
   final int bestScore;
   final bool isNewHighScore;
+  final int? dailyRank;
+  final bool isDailyRankLoading;
   final VoidCallback onRestart;
   final VoidCallback onReplay;
   final VoidCallback onShare;
@@ -127,13 +131,16 @@ class GameOverOverlay extends StatelessWidget {
   }
 
   Widget _buildHeader() {
+    final isDailyOfficial = runSummary.mode == GameMode.dailyOfficial;
+
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: 22,
         vertical: 12,
       ),
       decoration: BoxDecoration(
-        color: const Color(0xFFFEF2F2),
+        color:
+            isDailyOfficial ? const Color(0xFFEFF6FF) : const Color(0xFFFEF2F2),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: charcoalBlack, width: 2.5),
         boxShadow: const [
@@ -144,18 +151,121 @@ class GameOverOverlay extends StatelessWidget {
           ),
         ],
       ),
-      child: Text(
-        'GAME OVER',
-        style: GoogleFonts.blackHanSans(
-          fontSize: 18,
-          color: const Color(0xFFEF4444),
-          letterSpacing: 2.0,
-        ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (isDailyOfficial) ...[
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 10,
+                  height: 10,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF2563EB),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  '오늘의 퍼즐',
+                  style: GoogleFonts.blackHanSans(
+                    fontSize: 18,
+                    color: const Color(0xFF2563EB),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '오늘 결과',
+              style: AppTypography.label.copyWith(
+                fontSize: 12,
+                color: charcoalBlack.withValues(alpha: 0.56),
+              ),
+            ),
+          ] else
+            Text(
+              'GAME OVER',
+              style: GoogleFonts.blackHanSans(
+                fontSize: 18,
+                color: const Color(0xFFEF4444),
+                letterSpacing: 2.0,
+              ),
+            ),
+        ],
       ),
     );
   }
 
   Widget _buildScoreSection() {
+    final isDailyOfficial = runSummary.mode == GameMode.dailyOfficial;
+
+    if (isDailyOfficial) {
+      return _buildDailyScoreSection();
+    }
+
+    return _buildStandardScoreSection();
+  }
+
+  Widget _buildDailyScoreSection() {
+    return Column(
+      children: [
+        Text(
+          '오늘 점수',
+          style: GoogleFonts.blackHanSans(
+            fontSize: 16,
+            color: charcoalBlack.withValues(alpha: 0.4),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          '${runSummary.score}',
+          style: GoogleFonts.blackHanSans(
+            fontSize: 84,
+            color: charcoalBlack,
+            height: 0.9,
+          ),
+        ),
+        const SizedBox(height: 20),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+          decoration: BoxDecoration(
+            color: const Color(0xFFEFF6FF),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: const Color(0xFFBFDBFE),
+              width: 1.5,
+            ),
+          ),
+          child: Column(
+            children: [
+              Text(
+                '오늘의 랭킹',
+                style: AppTypography.label.copyWith(
+                  fontSize: 12,
+                  color: const Color(0xFF1D4ED8),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                _scoreHighlightText(true),
+                style: GoogleFonts.blackHanSans(
+                  fontSize: 32,
+                  color: dailyRank != null
+                      ? const Color(0xFF2563EB)
+                      : charcoalBlack,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStandardScoreSection() {
     return Column(
       children: [
         Text(
@@ -202,11 +312,14 @@ class GameOverOverlay extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              Text(
-                '$bestScore',
-                style: GoogleFonts.blackHanSans(
-                  fontSize: 24,
-                  color: charcoalBlack,
+              Flexible(
+                child: Text(
+                  _scoreHighlightText(false),
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.blackHanSans(
+                    fontSize: 24,
+                    color: charcoalBlack,
+                  ),
                 ),
               ),
               if (isNewHighScore) ...[
@@ -224,5 +337,21 @@ class GameOverOverlay extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  String _scoreHighlightText(bool isDailyOfficial) {
+    if (!isDailyOfficial) {
+      return '$bestScore';
+    }
+
+    if (isDailyRankLoading) {
+      return '집계 중';
+    }
+
+    if (dailyRank != null) {
+      return '$dailyRank등';
+    }
+
+    return '랭킹에서 확인';
   }
 }
