@@ -306,12 +306,11 @@ class _AnimatedPlayButtonState extends State<_AnimatedPlayButton>
         width: double.infinity,
         height: isTablet ? 80 : 68,
         decoration: BoxDecoration(
-          color: charcoalBlack,
           borderRadius: BorderRadius.circular(24),
           boxShadow: const [
             BoxShadow(
               color: charcoalBlack,
-              offset: Offset(5, 5),
+              offset: Offset(3, 3),
               blurRadius: 0,
             ),
           ],
@@ -322,7 +321,7 @@ class _AnimatedPlayButtonState extends State<_AnimatedPlayButton>
             backgroundColor: const Color(0xFF0095FF),
             foregroundColor: Colors.white,
             elevation: 0,
-            side: const BorderSide(color: charcoalBlack, width: 2.5),
+            side: const BorderSide(color: charcoalBlack, width: 2.0),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(24),
             ),
@@ -398,17 +397,6 @@ class _HomePageTabs extends StatelessWidget {
                           ? activeColors[index]
                           : Colors.transparent,
                       borderRadius: BorderRadius.circular(16),
-                      border: isActive
-                          ? Border.all(color: charcoalBlack, width: 2)
-                          : null,
-                      boxShadow: isActive
-                          ? const [
-                              BoxShadow(
-                                color: charcoalBlack,
-                                offset: Offset(2, 2),
-                              ),
-                            ]
-                          : null,
                     ),
                     alignment: Alignment.center,
                     child: Row(

@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hexor/constant.dart';
 import 'package:hexor/theme/app_typography.dart';
 
-const double _borderWidth = 2.5;
+const double _borderWidth = 2.0;
 
 class PrimaryButton extends StatelessWidget {
   const PrimaryButton({
@@ -26,12 +26,11 @@ class PrimaryButton extends StatelessWidget {
       width: double.infinity,
       height: isTablet ? 80 : 68,
       decoration: BoxDecoration(
-        color: charcoalBlack,
         borderRadius: BorderRadius.circular(24),
         boxShadow: const [
           BoxShadow(
             color: charcoalBlack,
-            offset: Offset(5, 5),
+            offset: Offset(3, 3),
             blurRadius: 0,
           ),
         ],
@@ -84,7 +83,6 @@ class RankingButton extends StatelessWidget {
       width: double.infinity,
       height: 56,
       decoration: BoxDecoration(
-        color: charcoalBlack,
         borderRadius: BorderRadius.circular(18),
         boxShadow: const [
           BoxShadow(
@@ -152,7 +150,7 @@ class RankingCard extends StatelessWidget {
           boxShadow: const [
             BoxShadow(
               color: charcoalBlack,
-              offset: Offset(4, 4),
+              offset: Offset(3, 3),
             ),
           ],
         ),
@@ -205,12 +203,11 @@ class SecondaryButton extends StatelessWidget {
       width: double.infinity,
       height: 64,
       decoration: BoxDecoration(
-        color: charcoalBlack,
         borderRadius: BorderRadius.circular(20),
         boxShadow: const [
           BoxShadow(
             color: charcoalBlack,
-            offset: Offset(4, 4),
+            offset: Offset(3, 3),
             blurRadius: 0,
           ),
         ],
@@ -278,7 +275,7 @@ class LoginButton extends StatelessWidget {
           backgroundColor: backgroundColor,
           foregroundColor: foregroundColor,
           elevation: 0,
-          side: BorderSide(color: borderColor, width: 2.5),
+          side: BorderSide(color: borderColor, width: 2),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(18),
           ),

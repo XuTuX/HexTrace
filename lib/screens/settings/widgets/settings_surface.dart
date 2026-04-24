@@ -18,11 +18,11 @@ class SettingsCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: charcoalBlack, width: 2.5),
+        border: Border.all(color: charcoalBlack, width: 2.0),
         boxShadow: const [
           BoxShadow(
             color: charcoalBlack,
-            offset: Offset(4, 4),
+            offset: Offset(3, 3),
             blurRadius: 0,
           ),
         ],

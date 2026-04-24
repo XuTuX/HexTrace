@@ -46,11 +46,11 @@ class GameOverOverlay extends StatelessWidget {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(32),
-              border: Border.all(color: charcoalBlack, width: 2.5),
+              border: Border.all(color: charcoalBlack, width: 2.0),
               boxShadow: const [
                 BoxShadow(
                   color: charcoalBlack,
-                  offset: Offset(6, 6),
+                  offset: Offset(3, 3),
                   blurRadius: 0,
                 ),
               ],
@@ -142,11 +142,11 @@ class GameOverOverlay extends StatelessWidget {
         color:
             isDailyOfficial ? const Color(0xFFEFF6FF) : const Color(0xFFFEF2F2),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: charcoalBlack, width: 2.5),
+        border: Border.all(color: charcoalBlack, width: 2.0),
         boxShadow: const [
           BoxShadow(
             color: charcoalBlack,
-            offset: Offset(4, 4),
+            offset: Offset(3, 3),
             blurRadius: 0,
           ),
         ],

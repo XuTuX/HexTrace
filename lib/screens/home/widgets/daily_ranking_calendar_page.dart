@@ -284,7 +284,7 @@ class _DailyPlayButtonState extends State<_DailyPlayButton>
         boxShadow: const [
           BoxShadow(
             color: charcoalBlack,
-            offset: Offset(5, 5),
+            offset: Offset(3, 3),
             blurRadius: 0,
           ),
         ],
@@ -298,7 +298,7 @@ class _DailyPlayButtonState extends State<_DailyPlayButton>
               backgroundColor: const Color(0xFFF59E0B),
               foregroundColor: charcoalBlack,
               elevation: 0,
-              side: const BorderSide(color: charcoalBlack, width: 2.5),
+              side: const BorderSide(color: charcoalBlack, width: 2.0),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(24),
               ),
@@ -361,7 +361,7 @@ class _CalendarHeader extends StatelessWidget {
             boxShadow: const [
               BoxShadow(
                 color: charcoalBlack,
-                offset: Offset(2, 2),
+                offset: Offset(3, 3),
               ),
             ],
           ),

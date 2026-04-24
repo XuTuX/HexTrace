@@ -54,7 +54,7 @@ class NicknameStickerCard extends StatelessWidget {
                 boxShadow: const [
                   BoxShadow(
                     color: charcoalBlack,
-                    offset: Offset(4, 4),
+                    offset: Offset(3, 3),
                     blurRadius: 0,
                   ),
                 ],

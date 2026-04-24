@@ -53,11 +53,11 @@ class SharePreviewDialog extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(32),
-                  border: Border.all(color: charcoalBlack, width: 2.5),
+                  border: Border.all(color: charcoalBlack, width: 2.0),
                   boxShadow: const [
                     BoxShadow(
                       color: charcoalBlack,
-                      offset: Offset(8, 8),
+                      offset: Offset(4, 4),
                       blurRadius: 0,
                     ),
                   ],
@@ -113,7 +113,7 @@ class SharePreviewDialog extends StatelessWidget {
                                 boxShadow: const [
                                   BoxShadow(
                                     color: charcoalBlack,
-                                    offset: Offset(4, 4),
+                                    offset: Offset(3, 3),
                                     blurRadius: 0,
                                   ),
                                 ],
@@ -167,7 +167,7 @@ class SharePreviewDialog extends StatelessWidget {
                                 boxShadow: const [
                                   BoxShadow(
                                     color: charcoalBlack,
-                                    offset: Offset(5, 5),
+                                    offset: Offset(3, 3),
                                     blurRadius: 0,
                                   ),
                                 ],
