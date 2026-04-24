@@ -9,6 +9,7 @@ class GameHud extends StatelessWidget {
 
   final HexGameController controller;
 
+  @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),

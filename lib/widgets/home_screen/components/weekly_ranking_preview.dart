@@ -12,9 +12,11 @@ class WeeklyRankingPreview extends StatefulWidget {
   const WeeklyRankingPreview({
     super.key,
     required this.onViewAll,
+    this.isAllTime = false,
   });
 
   final VoidCallback onViewAll;
+  final bool isAllTime;
 
   @override
   State<WeeklyRankingPreview> createState() => _WeeklyRankingPreviewState();
@@ -33,8 +35,9 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
   Future<void> _loadTopScores() async {
     try {
       final dbService = Get.find<DatabaseService>();
-      final scores = await dbService
-          .getWeeklyLeaderboard(gameId, limit: 3)
+      final scores = await (widget.isAllTime
+              ? dbService.getAllTimeLeaderboard(gameId, limit: 3)
+              : dbService.getWeeklyLeaderboard(gameId, limit: 3))
           .catchError((e) {
         debugPrint('🔴 [WeeklyRankingPreview] Error: $e');
         return <Map<String, dynamic>>[];
@@ -60,19 +63,21 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
   @override
   Widget build(BuildContext context) {
     final weeklyResetInfo = WeeklyResetInfo.current();
+    final title = widget.isAllTime ? '전체 랭킹 TOP3' : '주간 랭킹 TOP3';
 
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(22),
         border: Border.all(
-          color: charcoalBlack,
-          width: 2,
+          color: charcoalBlack.withValues(alpha: 0.08),
+          width: 1.5,
         ),
         boxShadow: const [
           BoxShadow(
-            color: charcoalBlack,
-            offset: Offset(4, 4),
+            color: Color(0x10000000),
+            offset: Offset(0, 8),
+            blurRadius: 22,
           ),
         ],
       ),
@@ -83,24 +88,25 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(4),
+                  width: 32,
+                  height: 32,
                   decoration: BoxDecoration(
-                    color: GamePalette.colorFor(GameColor.amber),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: charcoalBlack, width: 1.5),
+                    color: GamePalette.colorFor(GameColor.amber)
+                        .withValues(alpha: 0.16),
+                    borderRadius: BorderRadius.circular(11),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.emoji_events,
-                    color: Colors.white,
+                    color: GamePalette.colorFor(GameColor.amber),
                     size: 18,
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 10),
                 Text(
-                  '주간 랭킹 TOP3',
+                  title,
                   style: GoogleFonts.blackHanSans(
                     fontSize: 17,
-                    letterSpacing: 0.5,
+                    letterSpacing: 0,
                     color: charcoalBlack,
                   ),
                 ),
@@ -116,13 +122,13 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
                         style: GoogleFonts.notoSans(
                           fontSize: 11,
                           fontWeight: FontWeight.w900,
-                          color: charcoalBlack.withValues(alpha: 0.4),
+                          color: const Color(0xFF2563EB),
                         ),
                       ),
                       Icon(
                         Icons.chevron_right_rounded,
                         size: 14,
-                        color: charcoalBlack.withValues(alpha: 0.3),
+                        color: const Color(0xFF2563EB).withValues(alpha: 0.72),
                       ),
                     ],
                   ),
@@ -169,24 +175,37 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
             ),
           ],
           const SizedBox(height: 10),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 18),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.timer_outlined, size: 12, color: charcoalBlack38),
-                const SizedBox(width: 4),
-                Text(
-                  weeklyResetInfo.koreanLabel,
-                  style: GoogleFonts.notoSans(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w800,
-                    color: charcoalBlack.withValues(alpha: 0.3),
-                  ),
+          if (widget.isAllTime)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 18),
+              child: Text(
+                '누적 최고 기록 기준',
+                style: GoogleFonts.notoSans(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                  color: charcoalBlack.withValues(alpha: 0.3),
                 ),
-              ],
+              ),
+            )
+          else
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 18),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.timer_outlined, size: 12, color: charcoalBlack38),
+                  const SizedBox(width: 4),
+                  Text(
+                    weeklyResetInfo.koreanLabel,
+                    style: GoogleFonts.notoSans(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      color: charcoalBlack.withValues(alpha: 0.3),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
           const SizedBox(height: 14),
         ],
       ),
@@ -230,9 +249,9 @@ class _RankRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(13),
         border: Border.all(
-          color: charcoalBlack.withValues(alpha: 0.08),
+          color: charcoalBlack.withValues(alpha: 0.06),
           width: 1,
         ),
       ),

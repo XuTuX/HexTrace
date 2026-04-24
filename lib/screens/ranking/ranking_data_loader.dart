@@ -27,6 +27,7 @@ Future<RankingDataSnapshot> loadRankingSnapshot({
   required AuthService authService,
   required DatabaseService dbService,
   required RankingPeriod period,
+  String? dateKey,
 }) async {
   final isLoggedIn = authService.user.value != null;
 
@@ -40,7 +41,7 @@ Future<RankingDataSnapshot> loadRankingSnapshot({
   final results = await Future.wait([
     isLoggedIn
         ? (period == RankingPeriod.daily
-                ? dbService.getMyDailyRank(gameId)
+                ? dbService.getMyDailyRank(gameId, dateKey: dateKey)
                 : period == RankingPeriod.weekly
                     ? dbService.getMyWeeklyRank(gameId)
                     : dbService.getMyAllTimeRank(gameId))
@@ -51,7 +52,7 @@ Future<RankingDataSnapshot> loadRankingSnapshot({
         : Future<int?>.value(null),
     isLoggedIn
         ? (period == RankingPeriod.daily
-                ? dbService.getMyDailyBestScore(gameId)
+                ? dbService.getMyDailyBestScore(gameId, dateKey: dateKey)
                 : period == RankingPeriod.weekly
                     ? dbService.getMyWeeklyBestScore(gameId)
                     : dbService.getMyAllTimeBestScore(gameId))
@@ -61,7 +62,7 @@ Future<RankingDataSnapshot> loadRankingSnapshot({
           })
         : Future<int?>.value(null),
     (period == RankingPeriod.daily
-            ? dbService.getDailyLeaderboard(gameId)
+            ? dbService.getDailyLeaderboard(gameId, dateKey: dateKey)
             : period == RankingPeriod.weekly
                 ? dbService.getWeeklyLeaderboard(gameId)
                 : dbService.getAllTimeLeaderboard(gameId))

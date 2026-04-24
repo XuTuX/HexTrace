@@ -47,9 +47,9 @@ class NicknameStickerCard extends StatelessWidget {
         final effectiveCardWidth = maxCardWidth.isFinite
             ? math.min(availableWidth, maxCardWidth)
             : availableWidth;
-        final scoreFontSize = isTablet ? 42.0 : 36.0;
-        final cardHorizontalPadding = isTablet ? 28.0 : 22.0;
-        final cardVerticalPadding = isTablet ? 22.0 : 18.0;
+        final scoreFontSize = isTablet ? 42.0 : 34.0;
+        final cardHorizontalPadding = isTablet ? 26.0 : 20.0;
+        final cardVerticalPadding = isTablet ? 20.0 : 16.0;
 
         return Center(
           child: ConstrainedBox(
@@ -81,12 +81,12 @@ class NicknameStickerCard extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          'BEST',
+                          'BEST SCORE',
                           style: TextStyle(
                             fontSize: isTablet ? 15 : 12,
                             fontWeight: FontWeight.w900,
-                            color: charcoalBlack.withValues(alpha: 0.42),
-                            letterSpacing: 1.4,
+                            color: charcoalBlack.withValues(alpha: 0.38),
+                            letterSpacing: 0,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -95,7 +95,7 @@ class NicknameStickerCard extends StatelessWidget {
                           child: isLoading
                               ? const SizedBox(
                                   key: ValueKey('loading'),
-                                  height: 36,
+                                  height: 32,
                                   child: Center(
                                     child: SizedBox(
                                       width: 20,
@@ -127,8 +127,8 @@ class NicknameStickerCard extends StatelessWidget {
                         maxWidth: effectiveCardWidth * 0.34,
                       ),
                       padding: EdgeInsets.symmetric(
-                        horizontal: isTablet ? 14.0 : 11.0,
-                        vertical: isTablet ? 10.0 : 8.0,
+                        horizontal: isTablet ? 12.0 : 9.0,
+                        vertical: isTablet ? 8.0 : 6.0,
                       ),
                       decoration: BoxDecoration(
                         color: tierColor,

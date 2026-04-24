@@ -141,46 +141,46 @@ class _TodayPuzzleCard extends StatelessWidget {
                   onPressed();
                 }
               },
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(22),
         child: Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(22),
             border: Border.all(color: charcoalBlack, width: 2),
             boxShadow: const [
               BoxShadow(
                 color: charcoalBlack,
                 offset: Offset(4, 4),
+                blurRadius: 0,
               ),
             ],
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
             children: [
-              Row(
-                children: [
-                  Container(
-                    width: 10,
-                    height: 10,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF2563EB),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    '오늘의 퍼즐',
-                    style: GoogleFonts.blackHanSans(
-                      fontSize: 17,
-                      color: charcoalBlack,
-                    ),
-                  ),
-                ],
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEFF6FF),
+                  borderRadius: BorderRadius.circular(15),
+                  border: Border.all(color: charcoalBlack, width: 1.5),
+                ),
+                child: const Icon(
+                  Icons.auto_awesome_rounded,
+                  color: Color(0xFF2563EB),
+                  size: 21,
+                ),
               ),
-              const SizedBox(height: 14),
-              _buildContent(),
+              const SizedBox(width: 12),
+              Expanded(child: _buildContent()),
+              const SizedBox(width: 10),
+              _ActionPill(
+                label: _actionLabel(hasUsedAttempt: hasUsedAttempt),
+                isLoading: isLoading,
+                isWarning: hasUsedAttempt && challenge?.myScore == null,
+              ),
             ],
           ),
         ),
@@ -190,186 +190,113 @@ class _TodayPuzzleCard extends StatelessWidget {
 
   Widget _buildContent() {
     if (isLoading) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 2),
-          child: SizedBox(
-            width: 20,
-            height: 20,
-            child: CircularProgressIndicator(
-              strokeWidth: 2.5,
-              color: charcoalBlack,
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _titleText(),
+          const SizedBox(height: 5),
+          Text(
+            '기록을 불러오는 중',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTypography.bodySmall.copyWith(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: charcoalBlack.withValues(alpha: 0.45),
             ),
           ),
-        ),
+        ],
       );
     }
 
     final hasUsedAttempt = challenge?.hasUsedEntry ?? false;
 
     if (!isLoggedIn) {
-      return Row(
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Text(
-              '로그인 후 하루 한 번 참여 가능',
-              style: AppTypography.body.copyWith(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: charcoalBlack.withValues(alpha: 0.5),
-              ),
+          _titleText(),
+          const SizedBox(height: 5),
+          Text(
+            '로그인 후 하루 한 번 참여 가능',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTypography.bodySmall.copyWith(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: charcoalBlack.withValues(alpha: 0.5),
             ),
-          ),
-          const SizedBox(width: 12),
-          Icon(
-            Icons.chevron_right_rounded,
-            color: charcoalBlack38,
           ),
         ],
       );
     }
 
     if (hasUsedAttempt) {
-      return Row(
+      final scoreText = challenge?.myScore == null
+          ? '기록이 누락돼 다시 제출할 수 있어요'
+          : dailyRank != null
+              ? '${_formatScore(challenge!.myScore!)}점 · $dailyRank등'
+              : '${_formatScore(challenge!.myScore!)}점';
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '오늘 기록',
-                  style: AppTypography.bodySmall.copyWith(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                    color: charcoalBlack.withValues(alpha: 0.42),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  challenge?.myScore != null
-                      ? '${_formatScore(challenge!.myScore!)}점'
-                      : '기록 미반영',
-                  style: GoogleFonts.blackHanSans(
-                    fontSize: 28,
-                    color: charcoalBlack,
-                    height: 1.0,
-                  ),
-                ),
-                if (challenge?.myScore == null) ...[
-                  const SizedBox(height: 6),
-                  Text(
-                    '기록이 누락돼 다시 들어가서 제출할 수 있어요.',
-                    style: AppTypography.bodySmall.copyWith(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFFDC2626),
-                    ),
-                  ),
-                ] else if (dailyRank != null) ...[
-                  const SizedBox(height: 6),
-                  Text(
-                    '내 랭킹은 $dailyRank등이에요!',
-                    style: AppTypography.bodySmall.copyWith(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFF2563EB),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
+          _titleText(),
+          const SizedBox(height: 5),
+          Text(
+            scoreText,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTypography.bodySmall.copyWith(
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
               color: challenge?.myScore == null
-                  ? const Color(0xFFFEF2F2)
-                  : const Color(0xFFE0F2FE),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  challenge?.myScore == null ? '다시 들어가기' : '전체 랭킹 보기',
-                  style: AppTypography.bodySmall.copyWith(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w900,
-                    color: challenge?.myScore == null
-                        ? const Color(0xFFB91C1C)
-                        : const Color(0xFF0369A1),
-                  ),
-                ),
-                const SizedBox(width: 4),
-                Icon(
-                  Icons.chevron_right_rounded,
-                  color: challenge?.myScore == null
-                      ? const Color(0xFFB91C1C)
-                      : const Color(0xFF0369A1),
-                  size: 18,
-                ),
-              ],
+                  ? const Color(0xFFDC2626)
+                  : const Color(0xFF2563EB),
             ),
           ),
         ],
       );
     }
 
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '하루 한 번 도전',
-                style: GoogleFonts.blackHanSans(
-                  fontSize: 26,
-                  color: charcoalBlack,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                '공식 기록이 오늘 랭킹에 반영돼요',
-                style: AppTypography.bodySmall.copyWith(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: charcoalBlack.withValues(alpha: 0.5),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 12),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
-          decoration: BoxDecoration(
-            color: const Color(0xFF2563EB),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: const Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.play_arrow_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
-              SizedBox(width: 4),
-              Text(
-                '시작',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-            ],
+        _titleText(),
+        const SizedBox(height: 5),
+        Text(
+          '공식 기록이 오늘 랭킹에 반영돼요',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: AppTypography.bodySmall.copyWith(
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            color: charcoalBlack.withValues(alpha: 0.5),
           ),
         ),
       ],
     );
+  }
+
+  Widget _titleText() {
+    return Text(
+      '오늘의 퍼즐',
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: GoogleFonts.blackHanSans(
+        fontSize: 17,
+        color: charcoalBlack,
+        letterSpacing: 0,
+      ),
+    );
+  }
+
+  String _actionLabel({required bool hasUsedAttempt}) {
+    if (isLoading) return '';
+    if (!isLoggedIn) return '로그인';
+    if (hasUsedAttempt && challenge?.myScore == null) return '재입장';
+    if (hasUsedAttempt) return '랭킹';
+    return '도전';
   }
 
   String _formatScore(int value) {
@@ -386,5 +313,56 @@ class _TodayPuzzleCard extends StatelessWidget {
       buffer.write(digits[i]);
     }
     return buffer.toString();
+  }
+}
+
+class _ActionPill extends StatelessWidget {
+  const _ActionPill({
+    required this.label,
+    required this.isLoading,
+    required this.isWarning,
+  });
+
+  final String label;
+  final bool isLoading;
+  final bool isWarning;
+
+  @override
+  Widget build(BuildContext context) {
+    if (isLoading) {
+      return const SizedBox(
+        width: 18,
+        height: 18,
+        child: CircularProgressIndicator(
+          strokeWidth: 2.4,
+          color: charcoalBlack,
+        ),
+      );
+    }
+
+    final color = isWarning ? const Color(0xFFB91C1C) : const Color(0xFF0369A1);
+    final background =
+        isWarning ? const Color(0xFFFEF2F2) : const Color(0xFFE0F2FE);
+
+    return Container(
+      constraints: const BoxConstraints(minWidth: 58),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withValues(alpha: 0.32), width: 1.5),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: AppTypography.bodySmall.copyWith(
+          fontSize: 12,
+          fontWeight: FontWeight.w900,
+          color: color,
+        ),
+      ),
+    );
   }
 }

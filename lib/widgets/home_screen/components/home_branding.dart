@@ -22,11 +22,15 @@ class TopIconButton extends StatelessWidget {
         height: 44,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: charcoalBlack.withValues(alpha: 0.12),
-            width: 1.5,
-          ),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: charcoalBlack, width: 2),
+          boxShadow: const [
+            BoxShadow(
+              color: charcoalBlack,
+              offset: Offset(3, 3),
+              blurRadius: 0,
+            ),
+          ],
         ),
         child: Icon(
           icon,

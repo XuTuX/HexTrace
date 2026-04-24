@@ -24,7 +24,7 @@ class PrimaryButton extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      height: isTablet ? 88 : 80,
+      height: isTablet ? 80 : 68,
       decoration: BoxDecoration(
         color: charcoalBlack,
         borderRadius: BorderRadius.circular(24),
@@ -52,14 +52,14 @@ class PrimaryButton extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             if (icon != null) ...[
-              Icon(icon, size: isTablet ? 32 : 30, color: Colors.white),
+              Icon(icon, size: isTablet ? 30 : 28, color: Colors.white),
               SizedBox(width: isTablet ? 14 : 12),
             ],
             Text(
               label,
               style: GoogleFonts.blackHanSans(
                 fontSize: isTablet ? 28 : 25,
-                letterSpacing: 1.2,
+                letterSpacing: 0,
                 color: Colors.white,
               ),
             ),
