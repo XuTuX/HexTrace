@@ -4,7 +4,9 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:hexor/constant.dart';
 import 'package:hexor/controllers/score_controller.dart';
-import 'package:hexor/screens/ranking_screen.dart';
+import 'package:hexor/screens/ranking/ranking_data_loader.dart';
+import 'package:hexor/screens/ranking/ranking_period.dart';
+import 'package:hexor/screens/ranking/widgets/rank_list_item.dart';
 import 'package:hexor/services/auth_service.dart';
 import 'package:hexor/services/database_service.dart';
 import 'package:hexor/theme/app_typography.dart';
@@ -38,7 +40,10 @@ class _DailyRankingCalendarPageState extends State<DailyRankingCalendarPage> {
   late String _selectedDateKey;
   late final Worker _authWorker;
   bool _isRankLoading = false;
+  bool _isSelectedRankingLoading = false;
+  String? _selectedRankingError;
   Map<String, int> _myDailyRanks = {};
+  List<Map<String, dynamic>> _selectedScores = [];
 
   @override
   void initState() {
@@ -48,9 +53,11 @@ class _DailyRankingCalendarPageState extends State<DailyRankingCalendarPage> {
     _calendarCells = _buildCurrentMonthCells();
     _selectedDateKey = recentDateKeys.first;
     _loadMyDailyRanks();
+    _loadSelectedRanking(_selectedDateKey);
     _authWorker = ever(widget.authService.user, (_) {
       if (mounted) {
         _loadMyDailyRanks();
+        _loadSelectedRanking(_selectedDateKey);
       }
     });
   }
@@ -63,7 +70,7 @@ class _DailyRankingCalendarPageState extends State<DailyRankingCalendarPage> {
 
   void _selectDate(String dateKey) {
     setState(() => _selectedDateKey = dateKey);
-    _openDailyRanking(dateKey);
+    _loadSelectedRanking(dateKey);
   }
 
   Future<void> _loadMyDailyRanks() async {
@@ -108,13 +115,44 @@ class _DailyRankingCalendarPageState extends State<DailyRankingCalendarPage> {
     });
   }
 
-  void _openDailyRanking(String dateKey) {
-    Get.bottomSheet(
-      RankingScreen(isDailyOnly: true, dailyDateKey: dateKey),
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      enterBottomSheetDuration: const Duration(milliseconds: 300),
-    );
+  Future<void> _loadSelectedRanking(String dateKey) async {
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _isSelectedRankingLoading = true;
+      _selectedRankingError = null;
+    });
+
+    try {
+      final snapshot = await loadRankingSnapshot(
+        scoreController: widget.scoreController,
+        authService: widget.authService,
+        dbService: Get.find<DatabaseService>(),
+        period: RankingPeriod.daily,
+        dateKey: dateKey,
+      );
+
+      if (!mounted || _selectedDateKey != dateKey) {
+        return;
+      }
+
+      setState(() {
+        _selectedScores = snapshot.scores;
+        _isSelectedRankingLoading = false;
+      });
+    } catch (error) {
+      if (!mounted || _selectedDateKey != dateKey) {
+        return;
+      }
+
+      setState(() {
+        _selectedScores = [];
+        _selectedRankingError = error.toString();
+        _isSelectedRankingLoading = false;
+      });
+    }
   }
 
   @override
@@ -123,6 +161,7 @@ class _DailyRankingCalendarPageState extends State<DailyRankingCalendarPage> {
     final isTablet = mediaSize.shortestSide >= 600;
     final horizontalPadding = isTablet ? 40.0 : 24.0;
     final maxWidth = isTablet ? 680.0 : 480.0;
+    final myId = widget.authService.user.value?.id;
 
     return Padding(
       padding: EdgeInsets.fromLTRB(horizontalPadding, isTablet ? 36 : 18,
@@ -147,6 +186,15 @@ class _DailyRankingCalendarPageState extends State<DailyRankingCalendarPage> {
                         myDailyRanks: _myDailyRanks,
                         isRankLoading: _isRankLoading,
                         onDateSelected: _selectDate,
+                      ),
+                      const SizedBox(height: 18),
+                      _InlineDailyRankingPanel(
+                        dateKey: _selectedDateKey,
+                        scores: _selectedScores,
+                        myId: myId,
+                        isLoading: _isSelectedRankingLoading,
+                        error: _selectedRankingError,
+                        onRetry: () => _loadSelectedRanking(_selectedDateKey),
                       ),
                     ],
                   ),
@@ -230,15 +278,6 @@ class _CalendarHeader extends StatelessWidget {
                   color: charcoalBlack,
                   height: 1.0,
                   letterSpacing: 0,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                '날짜 아래 내 등수를 확인해요',
-                style: AppTypography.bodySmall.copyWith(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                  color: charcoalBlack.withValues(alpha: 0.45),
                 ),
               ),
             ],
@@ -450,6 +489,135 @@ class _DateChip extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _InlineDailyRankingPanel extends StatelessWidget {
+  const _InlineDailyRankingPanel({
+    required this.dateKey,
+    required this.scores,
+    required this.myId,
+    required this.isLoading,
+    required this.error,
+    required this.onRetry,
+  });
+
+  final String dateKey;
+  final List<Map<String, dynamic>> scores;
+  final String? myId;
+  final bool isLoading;
+  final String? error;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 6),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: charcoalBlack, width: 2),
+        boxShadow: const [
+          BoxShadow(
+            color: charcoalBlack,
+            offset: Offset(3, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Text(
+                '${_formatDate(dateKey)} 랭킹',
+                style: GoogleFonts.blackHanSans(
+                  fontSize: 16,
+                  color: charcoalBlack,
+                  letterSpacing: 0,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Container(
+                  height: 1,
+                  color: charcoalBlack.withValues(alpha: 0.08),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (isLoading)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 18),
+              child: Center(
+                child: SizedBox(
+                  width: 22,
+                  height: 22,
+                  child: CircularProgressIndicator(
+                    color: charcoalBlack,
+                    strokeWidth: 3,
+                  ),
+                ),
+              ),
+            )
+          else if (error != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: GestureDetector(
+                  onTap: onRetry,
+                  behavior: HitTestBehavior.opaque,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFEF2F2),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: charcoalBlack, width: 1.5),
+                    ),
+                    child: Text(
+                      '다시 불러오기',
+                      style: AppTypography.bodySmall.copyWith(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w900,
+                        color: const Color(0xFFB91C1C),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            )
+          else
+            ...List.generate(
+              scores.length > 6 ? 6 : scores.length,
+              (index) => RankListItem(
+                scoreData: scores[index],
+                index: index,
+                myId: myId,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  String _formatDate(String dateKey) {
+    final parts = dateKey.split('-');
+    if (parts.length != 3) {
+      return dateKey;
+    }
+
+    final month = int.tryParse(parts[1]);
+    final day = int.tryParse(parts[2]);
+    if (month == null || day == null) {
+      return dateKey;
+    }
+
+    return '$month.$day';
   }
 }
 
