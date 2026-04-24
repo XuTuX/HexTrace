@@ -35,8 +35,8 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
     try {
       final dbService = Get.find<DatabaseService>();
       final scores = await (widget.isAllTime
-              ? dbService.getAllTimeLeaderboard(gameId, limit: 5)
-              : dbService.getWeeklyLeaderboard(gameId, limit: 5))
+              ? dbService.getAllTimeLeaderboard(gameId, limit: 6)
+              : dbService.getWeeklyLeaderboard(gameId, limit: 6))
           .catchError((e) {
         debugPrint('🔴 [WeeklyRankingPreview] Error: $e');
         return <Map<String, dynamic>>[];
@@ -47,7 +47,7 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
       }
 
       setState(() {
-        _topScores = List<Map<String, dynamic>>.from(scores.take(5));
+        _topScores = List<Map<String, dynamic>>.from(scores.take(6));
         _isLoading = false;
       });
     } catch (_) {
@@ -179,7 +179,7 @@ class _CleanRankRow extends StatelessWidget {
     };
 
     return Padding(
-      padding: EdgeInsets.only(bottom: isLast ? 0 : 10),
+      padding: EdgeInsets.only(bottom: isLast ? 0 : 18),
       child: Row(
         children: [
           SizedBox(
@@ -197,7 +197,7 @@ class _CleanRankRow extends StatelessWidget {
             child: Text(
               nickname.toString(),
               style: GoogleFonts.notoSans(
-                fontSize: 13,
+                fontSize: 14,
                 fontWeight: FontWeight.w700,
                 color: charcoalBlack.withValues(alpha: 0.65),
               ),
@@ -208,7 +208,7 @@ class _CleanRankRow extends StatelessWidget {
           Text(
             _formatScore(score),
             style: GoogleFonts.blackHanSans(
-              fontSize: 14,
+              fontSize: 15,
               color: charcoalBlack.withValues(alpha: 0.4),
             ),
           ),

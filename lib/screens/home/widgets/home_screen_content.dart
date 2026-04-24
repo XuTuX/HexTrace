@@ -160,13 +160,13 @@ class _HomeDashboardPage extends StatelessWidget {
                             authService: authService,
                             onSettingsTap: onSettingsTap,
                           ),
-                          SizedBox(height: sectionGap + 6),
+                          SizedBox(height: sectionGap + 12),
                           // Score hero card
                           ScoreDisplay(
                             scoreController: scoreController,
                             authService: authService,
                           ),
-                          SizedBox(height: sectionGap),
+                          SizedBox(height: sectionGap + 10),
                           // Ranking TOP 3
                           WeeklyRankingPreview(
                             isAllTime: true,
