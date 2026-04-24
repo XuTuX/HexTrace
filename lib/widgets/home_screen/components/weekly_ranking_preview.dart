@@ -3,10 +3,10 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:hexor/constant.dart';
-import 'package:hexor/screens/ranking/weekly_reset_info.dart';
-import 'package:hexor/services/database_service.dart';
 import 'package:hexor/game/game_palette.dart';
 import 'package:hexor/game/hex_game_controller.dart';
+import 'package:hexor/screens/ranking/weekly_reset_info.dart';
+import 'package:hexor/services/database_service.dart';
 
 class WeeklyRankingPreview extends StatefulWidget {
   const WeeklyRankingPreview({
@@ -121,14 +121,14 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
                         '더 보기',
                         style: GoogleFonts.notoSans(
                           fontSize: 11,
-                          fontWeight: FontWeight.w900,
-                          color: const Color(0xFF2563EB),
+                          fontWeight: FontWeight.w700,
+                          color: charcoalBlack.withValues(alpha: 0.62),
                         ),
                       ),
                       Icon(
                         Icons.chevron_right_rounded,
                         size: 14,
-                        color: const Color(0xFF2563EB).withValues(alpha: 0.72),
+                        color: charcoalBlack.withValues(alpha: 0.48),
                       ),
                     ],
                   ),

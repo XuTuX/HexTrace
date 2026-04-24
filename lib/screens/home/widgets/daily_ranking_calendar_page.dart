@@ -4,11 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:hexor/constant.dart';
 import 'package:hexor/controllers/score_controller.dart';
-import 'package:hexor/screens/ranking/ranking_data_loader.dart';
-import 'package:hexor/screens/ranking/ranking_period.dart';
-import 'package:hexor/screens/ranking/widgets/rank_list_item.dart';
-import 'package:hexor/screens/ranking/widgets/ranking_chrome.dart';
-import 'package:hexor/screens/ranking/widgets/ranking_states.dart';
+import 'package:hexor/screens/ranking_screen.dart';
 import 'package:hexor/services/auth_service.dart';
 import 'package:hexor/services/database_service.dart';
 import 'package:hexor/theme/app_typography.dart';
@@ -41,11 +37,8 @@ class _DailyRankingCalendarPageState extends State<DailyRankingCalendarPage> {
   late final List<_CalendarCellData> _calendarCells;
   late String _selectedDateKey;
   late final Worker _authWorker;
-  bool _isLoading = true;
-  String? _error;
-  int? _myRank;
-  int? _myScore;
-  List<Map<String, dynamic>> _scores = [];
+  bool _isRankLoading = false;
+  Map<String, int> _myDailyRanks = {};
 
   @override
   void initState() {
@@ -54,10 +47,10 @@ class _DailyRankingCalendarPageState extends State<DailyRankingCalendarPage> {
     _selectableDateKeys = recentDateKeys.toSet();
     _calendarCells = _buildCurrentMonthCells();
     _selectedDateKey = recentDateKeys.first;
-    _loadRankingData();
+    _loadMyDailyRanks();
     _authWorker = ever(widget.authService.user, (_) {
       if (mounted) {
-        _loadRankingData();
+        _loadMyDailyRanks();
       }
     });
   }
@@ -68,54 +61,60 @@ class _DailyRankingCalendarPageState extends State<DailyRankingCalendarPage> {
     super.dispose();
   }
 
-  Future<void> _loadRankingData() async {
+  void _selectDate(String dateKey) {
+    setState(() => _selectedDateKey = dateKey);
+    _openDailyRanking(dateKey);
+  }
+
+  Future<void> _loadMyDailyRanks() async {
+    if (!mounted) {
+      return;
+    }
+
+    if (widget.authService.user.value == null) {
+      setState(() {
+        _myDailyRanks = {};
+        _isRankLoading = false;
+      });
+      return;
+    }
+
+    setState(() => _isRankLoading = true);
+
+    final dbService = Get.find<DatabaseService>();
+    final dateKeys = _calendarCells
+        .map((cell) => cell.dateKey)
+        .whereType<String>()
+        .where(_selectableDateKeys.contains)
+        .toList(growable: false);
+
+    final entries = await Future.wait(
+      dateKeys.map((dateKey) async {
+        final rank = await dbService.getMyDailyRank(gameId, dateKey: dateKey);
+        return MapEntry(dateKey, rank);
+      }),
+    );
+
     if (!mounted) {
       return;
     }
 
     setState(() {
-      _isLoading = true;
-      _error = null;
+      _myDailyRanks = {
+        for (final entry in entries)
+          if (entry.value != null) entry.key: entry.value!,
+      };
+      _isRankLoading = false;
     });
-
-    try {
-      final snapshot = await loadRankingSnapshot(
-        scoreController: widget.scoreController,
-        authService: widget.authService,
-        dbService: Get.find<DatabaseService>(),
-        period: RankingPeriod.daily,
-        dateKey: _selectedDateKey,
-      );
-
-      if (!mounted) {
-        return;
-      }
-
-      setState(() {
-        _myRank = snapshot.myRank;
-        _myScore = snapshot.myScore;
-        _scores = snapshot.scores;
-        _isLoading = false;
-      });
-    } catch (error) {
-      if (!mounted) {
-        return;
-      }
-
-      setState(() {
-        _error = error.toString();
-        _isLoading = false;
-      });
-    }
   }
 
-  void _selectDate(String dateKey) {
-    if (_selectedDateKey == dateKey) {
-      return;
-    }
-
-    setState(() => _selectedDateKey = dateKey);
-    _loadRankingData();
+  void _openDailyRanking(String dateKey) {
+    Get.bottomSheet(
+      RankingScreen(isDailyOnly: true, dailyDateKey: dateKey),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      enterBottomSheetDuration: const Duration(milliseconds: 300),
+    );
   }
 
   @override
@@ -124,7 +123,6 @@ class _DailyRankingCalendarPageState extends State<DailyRankingCalendarPage> {
     final isTablet = mediaSize.shortestSide >= 600;
     final horizontalPadding = isTablet ? 40.0 : 24.0;
     final maxWidth = isTablet ? 680.0 : 480.0;
-    final myId = widget.authService.user.value?.id;
 
     return Padding(
       padding: EdgeInsets.fromLTRB(horizontalPadding, isTablet ? 36 : 18,
@@ -135,51 +133,33 @@ class _DailyRankingCalendarPageState extends State<DailyRankingCalendarPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _CalendarHeader(onRankingTap: widget.onRankingTap),
-              const SizedBox(height: 14),
-              HomeProgressPanel(
-                authService: widget.authService,
-                onStartDaily: widget.onStartDaily,
-                onShowDailyRanking: widget.onShowDailyRanking,
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const _CalendarHeader(),
+                      const SizedBox(height: 20),
+                      _MonthlyCalendar(
+                        cells: _calendarCells,
+                        selectableDateKeys: _selectableDateKeys,
+                        selectedDateKey: _selectedDateKey,
+                        myDailyRanks: _myDailyRanks,
+                        isRankLoading: _isRankLoading,
+                        onDateSelected: _selectDate,
+                      ),
+                    ],
+                  ),
+                ),
               ),
               const SizedBox(height: 16),
-              _MonthlyCalendar(
-                cells: _calendarCells,
-                selectableDateKeys: _selectableDateKeys,
-                selectedDateKey: _selectedDateKey,
-                onDateSelected: _selectDate,
+              PrimaryButton(
+                label: '게임 시작',
+                icon: Icons.play_arrow_rounded,
+                onPressed: () {
+                  widget.onStartDaily();
+                },
               ),
-              const SizedBox(height: 14),
-              if (_isLoading)
-                const Expanded(child: RankingLoadingState())
-              else if (_error != null)
-                Expanded(child: RankingErrorState(onRetry: _loadRankingData))
-              else ...[
-                _MyDailyRankSummary(
-                  dateKey: _selectedDateKey,
-                  rank: _myRank,
-                  score: _myScore,
-                  isLoggedIn: myId != null,
-                ),
-                const SizedBox(height: 16),
-                const TopPlayersLabel(period: RankingPeriod.daily),
-                const SizedBox(height: 8),
-                Expanded(
-                  child: _scores.isEmpty
-                      ? const EmptyRankingState(period: RankingPeriod.daily)
-                      : ListView.builder(
-                          padding: const EdgeInsets.only(bottom: 24),
-                          itemCount: _scores.length,
-                          itemBuilder: (context, index) {
-                            return RankListItem(
-                              scoreData: _scores[index],
-                              index: index,
-                              myId: myId,
-                            );
-                          },
-                        ),
-                ),
-              ],
             ],
           ),
         ),
@@ -212,17 +192,15 @@ class _DailyRankingCalendarPageState extends State<DailyRankingCalendarPage> {
 }
 
 class _CalendarHeader extends StatelessWidget {
-  const _CalendarHeader({required this.onRankingTap});
-
-  final VoidCallback onRankingTap;
+  const _CalendarHeader();
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
         Container(
-          width: 42,
-          height: 42,
+          width: 44,
+          height: 44,
           decoration: BoxDecoration(
             color: const Color(0xFFFFFBEB),
             borderRadius: BorderRadius.circular(14),
@@ -256,7 +234,7 @@ class _CalendarHeader extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                '날짜를 고르면 내 등수와 순위가 보여요',
+                '날짜 아래 내 등수를 확인해요',
                 style: AppTypography.bodySmall.copyWith(
                   fontSize: 12,
                   fontWeight: FontWeight.w800,
@@ -266,55 +244,7 @@ class _CalendarHeader extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(width: 12),
-        _AllRankingButton(onTap: onRankingTap),
       ],
-    );
-  }
-}
-
-class _AllRankingButton extends StatelessWidget {
-  const _AllRankingButton({required this.onTap});
-
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        decoration: BoxDecoration(
-          color: charcoalBlack,
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: const [
-            BoxShadow(
-              color: charcoalBlack,
-              offset: Offset(2, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(
-              Icons.emoji_events_rounded,
-              size: 15,
-              color: Colors.white,
-            ),
-            const SizedBox(width: 5),
-            Text(
-              '전체 랭킹',
-              style: GoogleFonts.blackHanSans(
-                fontSize: 13,
-                color: Colors.white,
-                letterSpacing: 0,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
@@ -324,12 +254,16 @@ class _MonthlyCalendar extends StatelessWidget {
     required this.cells,
     required this.selectableDateKeys,
     required this.selectedDateKey,
+    required this.myDailyRanks,
+    required this.isRankLoading,
     required this.onDateSelected,
   });
 
   final List<_CalendarCellData> cells;
   final Set<String> selectableDateKeys;
   final String selectedDateKey;
+  final Map<String, int> myDailyRanks;
+  final bool isRankLoading;
   final ValueChanged<String> onDateSelected;
 
   @override
@@ -380,16 +314,18 @@ class _MonthlyCalendar extends StatelessWidget {
                 children: cells.map((cell) {
                   final dateKey = cell.dateKey;
                   if (dateKey == null) {
-                    return SizedBox(width: chipWidth, height: 38);
+                    return SizedBox(width: chipWidth, height: 54);
                   }
 
                   final isEnabled = selectableDateKeys.contains(dateKey);
                   return _DateChip(
                     width: chipWidth,
                     day: cell.day,
+                    rank: myDailyRanks[dateKey],
                     isSelected: dateKey == selectedDateKey,
                     isToday: dateKey == todayKey,
                     isEnabled: isEnabled,
+                    isRankLoading: isRankLoading,
                     onTap: isEnabled ? () => onDateSelected(dateKey) : null,
                   );
                 }).toList(),
@@ -406,17 +342,21 @@ class _DateChip extends StatelessWidget {
   const _DateChip({
     required this.width,
     required this.day,
+    required this.rank,
     required this.isSelected,
     required this.isToday,
     required this.isEnabled,
+    required this.isRankLoading,
     required this.onTap,
   });
 
   final double width;
   final int day;
+  final int? rank;
   final bool isSelected;
   final bool isToday;
   final bool isEnabled;
+  final bool isRankLoading;
   final VoidCallback? onTap;
 
   @override
@@ -439,7 +379,7 @@ class _DateChip extends StatelessWidget {
         duration: const Duration(milliseconds: 180),
         curve: Curves.easeOutCubic,
         width: width,
-        height: 38,
+        height: 54,
         padding: const EdgeInsets.symmetric(horizontal: 3),
         decoration: BoxDecoration(
           color: backgroundColor,
@@ -461,8 +401,8 @@ class _DateChip extends StatelessWidget {
                 ]
               : null,
         ),
-        child: Stack(
-          alignment: Alignment.center,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               day.toString(),
@@ -472,145 +412,44 @@ class _DateChip extends StatelessWidget {
                 height: 1.0,
               ),
             ),
-            if (isToday)
-              Positioned(
-                bottom: 3,
-                child: Container(
-                  width: 4,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: isSelected ? Colors.white : const Color(0xFF2563EB),
-                    shape: BoxShape.circle,
-                  ),
+            const SizedBox(height: 4),
+            if (rank != null)
+              Text(
+                '$rank등',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTypography.tiny.copyWith(
+                  fontSize: 9,
+                  fontWeight: FontWeight.w900,
+                  color: isSelected
+                      ? Colors.white.withValues(alpha: 0.86)
+                      : const Color(0xFF2563EB),
+                ),
+              )
+            else if (isToday)
+              Container(
+                width: 4,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: isSelected ? Colors.white : const Color(0xFF2563EB),
+                  shape: BoxShape.circle,
+                ),
+              )
+            else if (isRankLoading && isEnabled)
+              Container(
+                width: 4,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? Colors.white.withValues(alpha: 0.5)
+                      : charcoalBlack.withValues(alpha: 0.16),
+                  shape: BoxShape.circle,
                 ),
               ),
           ],
         ),
       ),
     );
-  }
-}
-
-class _MyDailyRankSummary extends StatelessWidget {
-  const _MyDailyRankSummary({
-    required this.dateKey,
-    required this.rank,
-    required this.score,
-    required this.isLoggedIn,
-  });
-
-  final String dateKey;
-  final int? rank;
-  final int? score;
-  final bool isLoggedIn;
-
-  @override
-  Widget build(BuildContext context) {
-    final isToday = dateKey == KstClock.currentDateKey();
-    final hasRank = rank != null && score != null;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: charcoalBlack, width: 2),
-        boxShadow: const [
-          BoxShadow(
-            color: charcoalBlack,
-            offset: Offset(3, 3),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  isToday ? '오늘 내 등수' : '${dateKey.replaceAll('-', '.')} 내 등수',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTypography.label.copyWith(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w900,
-                    color: charcoalBlack.withValues(alpha: 0.45),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  _message(hasRank: hasRank),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTypography.bodySmall.copyWith(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
-                    color: charcoalBlack.withValues(alpha: 0.48),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 14),
-          if (hasRank)
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
-              children: [
-                Text(
-                  '$rank',
-                  style: GoogleFonts.blackHanSans(
-                    fontSize: 38,
-                    color: const Color(0xFF2563EB),
-                    height: 1.0,
-                  ),
-                ),
-                const SizedBox(width: 3),
-                Text(
-                  '등',
-                  style: AppTypography.bodySmall.copyWith(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w900,
-                    color: charcoalBlack54,
-                  ),
-                ),
-              ],
-            )
-          else
-            Icon(
-              isLoggedIn
-                  ? Icons.sentiment_satisfied_alt_rounded
-                  : Icons.lock_outline_rounded,
-              color: charcoalBlack.withValues(alpha: 0.24),
-              size: 30,
-            ),
-        ],
-      ),
-    );
-  }
-
-  String _message({required bool hasRank}) {
-    if (!isLoggedIn) {
-      return '로그인하면 내 등수를 볼 수 있어요';
-    }
-    if (!hasRank) {
-      return '이 날짜에는 아직 기록이 없어요';
-    }
-    return '${_formatScore(score!)}점으로 기록됐어요';
-  }
-
-  String _formatScore(int value) {
-    final digits = value.toString();
-    if (digits.length <= 3) return digits;
-    final buffer = StringBuffer();
-    for (var index = 0; index < digits.length; index++) {
-      if (index > 0 && (digits.length - index) % 3 == 0) {
-        buffer.write(',');
-      }
-      buffer.write(digits[index]);
-    }
-    return buffer.toString();
   }
 }
 

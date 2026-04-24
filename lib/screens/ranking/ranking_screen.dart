@@ -18,9 +18,11 @@ class RankingScreen extends StatefulWidget {
   const RankingScreen({
     super.key,
     this.isDailyOnly = false,
+    this.dailyDateKey,
   });
 
   final bool isDailyOnly;
+  final String? dailyDateKey;
 
   @override
   State<RankingScreen> createState() => _RankingScreenState();
@@ -75,6 +77,7 @@ class _RankingScreenState extends State<RankingScreen> {
         authService: authService,
         dbService: dbService,
         period: _period,
+        dateKey: _period == RankingPeriod.daily ? widget.dailyDateKey : null,
       );
 
       if (!mounted) {
@@ -124,7 +127,8 @@ class _RankingScreenState extends State<RankingScreen> {
     return Material(
       color: Colors.transparent,
       child: Container(
-        constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.9),
+        constraints:
+            BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.9),
         decoration: BoxDecoration(
           color: const Color(0xFFF8F9FA),
           borderRadius: const BorderRadius.only(
@@ -145,13 +149,16 @@ class _RankingScreenState extends State<RankingScreen> {
                 period: _period,
                 onPeriodChanged: _handlePeriodChanged,
                 isDailyOnly: widget.isDailyOnly,
+                dailyDateKey: widget.dailyDateKey,
               ),
               const SizedBox(height: 16),
               Expanded(
                 child: Center(
                   child: ConstrainedBox(
                     constraints: BoxConstraints(
-                      maxWidth: MediaQuery.sizeOf(context).shortestSide >= 600 ? 680 : 480,
+                      maxWidth: MediaQuery.sizeOf(context).shortestSide >= 600
+                          ? 680
+                          : 480,
                     ),
                     child: _buildContent(myId),
                   ),

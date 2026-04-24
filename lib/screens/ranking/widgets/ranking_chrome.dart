@@ -35,11 +35,13 @@ class RankingHeader extends StatelessWidget {
     required this.period,
     required this.onPeriodChanged,
     this.isDailyOnly = false,
+    this.dailyDateKey,
   });
 
   final RankingPeriod period;
   final ValueChanged<RankingPeriod> onPeriodChanged;
   final bool isDailyOnly;
+  final String? dailyDateKey;
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +60,7 @@ class RankingHeader extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             Text(
-              isDailyOnly ? '오늘의 퍼즐 랭킹' : 'RANKING',
+              isDailyOnly ? _dailyTitle : 'RANKING',
               style: GoogleFonts.blackHanSans(
                 fontSize: isDailyOnly ? 18 : 20,
                 letterSpacing: isDailyOnly ? 0.0 : 1.0,
@@ -87,52 +89,68 @@ class RankingHeader extends StatelessWidget {
                 children: RankingPeriod.values
                     .where((period) => period != RankingPeriod.daily)
                     .map<Widget>(
-                      (candidate) {
-                        final isActive = candidate == period;
-                        return Expanded(
-                          child: GestureDetector(
-                            onTap: () => onPeriodChanged(candidate),
-                            behavior: HitTestBehavior.opaque,
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              curve: Curves.easeOutCubic,
-                              decoration: BoxDecoration(
-                                color: isActive
-                                    ? Colors.white
-                                    : Colors.transparent,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: isActive
-                                      ? charcoalBlack.withValues(alpha: 0.12)
-                                      : Colors.transparent,
-                                  width: 1.5,
-                                ),
-                              ),
-                              alignment: Alignment.center,
-                              child: Text(
-                                candidate.tabLabel,
-                                style: AppTypography.label.copyWith(
-                                  fontSize: 13,
-                                  fontWeight: isActive
-                                      ? FontWeight.w900
-                                      : FontWeight.w700,
-                                  color: isActive
-                                      ? charcoalBlack
-                                      : charcoalBlack.withValues(alpha: 0.4),
-                                ),
-                              ),
+                  (candidate) {
+                    final isActive = candidate == period;
+                    return Expanded(
+                      child: GestureDetector(
+                        onTap: () => onPeriodChanged(candidate),
+                        behavior: HitTestBehavior.opaque,
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          curve: Curves.easeOutCubic,
+                          decoration: BoxDecoration(
+                            color: isActive ? Colors.white : Colors.transparent,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isActive
+                                  ? charcoalBlack.withValues(alpha: 0.12)
+                                  : Colors.transparent,
+                              width: 1.5,
                             ),
                           ),
-                        );
-                      },
-                    )
-                    .toList(),
+                          alignment: Alignment.center,
+                          child: Text(
+                            candidate.tabLabel,
+                            style: AppTypography.label.copyWith(
+                              fontSize: 13,
+                              fontWeight:
+                                  isActive ? FontWeight.w900 : FontWeight.w700,
+                              color: isActive
+                                  ? charcoalBlack
+                                  : charcoalBlack.withValues(alpha: 0.4),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ).toList(),
               ),
             ),
           ),
         ],
       ],
     );
+  }
+
+  String get _dailyTitle {
+    final dateKey = dailyDateKey;
+    if (dateKey == null || dateKey.isEmpty) {
+      return '오늘의 퍼즐 랭킹';
+    }
+
+    final parts = dateKey.split('-');
+    if (parts.length != 3) {
+      return '오늘의 퍼즐 랭킹';
+    }
+
+    final month = int.tryParse(parts[1]);
+    final day = int.tryParse(parts[2]);
+    if (month == null || day == null) {
+      return '오늘의 퍼즐 랭킹';
+    }
+
+    return '$month.$day 랭킹';
   }
 }
 

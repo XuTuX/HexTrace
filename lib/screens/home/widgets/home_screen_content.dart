@@ -136,12 +136,15 @@ class _HomeDashboardPage extends StatelessWidget {
     final compactVertical = viewportHeight < 760;
     final heroGap = compactVertical ? 18.0 : (isTablet ? 38.0 : 28.0);
     final actionGap = compactVertical ? 12.0 : 16.0;
-    final bottomSpacing = compactVertical ? 22.0 : (isTablet ? 42.0 : 32.0);
-
     return LayoutBuilder(
       builder: (context, constraints) {
-        return SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+        return Padding(
+          padding: EdgeInsets.fromLTRB(
+            horizontalPadding,
+            0,
+            horizontalPadding,
+            isTablet ? 36 : 22,
+          ),
           child: Center(
             child: ConstrainedBox(
               constraints: BoxConstraints(
@@ -150,36 +153,45 @@ class _HomeDashboardPage extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  SizedBox(height: topSpacing),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _HomeProfileChip(authService: authService),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          SizedBox(height: topSpacing),
+                          Row(
+                            children: [
+                              Expanded(
+                                child:
+                                    _HomeProfileChip(authService: authService),
+                              ),
+                              const SizedBox(width: 12),
+                              TopIconButton(
+                                icon: Icons.settings_rounded,
+                                onTap: onSettingsTap,
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: heroGap),
+                          _HomeHero(
+                            scoreController: scoreController,
+                            authService: authService,
+                          ),
+                          SizedBox(height: sectionGap),
+                          WeeklyRankingPreview(
+                            isAllTime: true,
+                            onViewAll: onRankingTap,
+                          ),
+                          SizedBox(height: actionGap),
+                        ],
                       ),
-                      const SizedBox(width: 12),
-                      TopIconButton(
-                        icon: Icons.settings_rounded,
-                        onTap: onSettingsTap,
-                      ),
-                    ],
+                    ),
                   ),
-                  SizedBox(height: heroGap),
-                  _HomeHero(
-                    scoreController: scoreController,
-                    authService: authService,
-                  ),
-                  SizedBox(height: sectionGap),
+                  const SizedBox(height: 16),
                   PrimaryButton(
                     label: '게임 시작',
                     icon: Icons.play_arrow_rounded,
                     onPressed: onStartGame,
                   ),
-                  SizedBox(height: actionGap),
-                  WeeklyRankingPreview(
-                    isAllTime: true,
-                    onViewAll: onRankingTap,
-                  ),
-                  SizedBox(height: bottomSpacing),
                 ],
               ),
             ),
@@ -227,10 +239,10 @@ class _HomePageTabs extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 24),
-      padding: const EdgeInsets.all(3),
+      padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(17),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(color: charcoalBlack, width: 2),
         boxShadow: const [
           BoxShadow(
@@ -244,7 +256,7 @@ class _HomePageTabs extends StatelessWidget {
           final labels = ['플레이', '오늘'];
           final icons = [
             Icons.play_arrow_rounded,
-            Icons.auto_awesome_rounded,
+            Icons.calendar_today_rounded,
           ];
           final isActive = activeIndex == index;
           return Expanded(
@@ -254,10 +266,10 @@ class _HomePageTabs extends StatelessWidget {
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 180),
                 curve: Curves.easeOutCubic,
-                height: 38,
+                height: 40,
                 decoration: BoxDecoration(
                   color: isActive ? charcoalBlack : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(14),
                 ),
                 alignment: Alignment.center,
                 child: Row(
@@ -317,7 +329,7 @@ class _HomeProfileChip extends StatelessWidget {
             : null,
         child: Container(
           height: 56,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 18),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(18),
