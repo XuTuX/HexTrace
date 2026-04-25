@@ -407,7 +407,7 @@ class _HomePageTabs extends StatelessWidget {
           ),
           child: Row(
             children: List.generate(2, (index) {
-              final labels = ['플레이', '오늘의 도전'];
+              final labels = ['플레이', '오늘의 퍼즐'];
               final icons = [
                 Icons.sports_esports_rounded,
                 Icons.auto_awesome_rounded,
