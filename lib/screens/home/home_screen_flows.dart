@@ -36,8 +36,12 @@ Future<void> openDailyChallenge(AuthService authService) async {
   }
 
   try {
+    debugPrint('🔵 [DailyFlow] Starting openDailyChallenge');
     var existingState = await dbService.getDailyChallenge(gameId);
+    debugPrint('🔵 [DailyFlow] Challenge state: hasUsedEntry=${existingState.hasUsedEntry}, myScore=${existingState.myScore}');
+
     if (existingState.hasUsedEntry && !existingState.hasScoreEntry) {
+      debugPrint('🔵 [DailyFlow] Detected used entry without score, attempting retry');
       try {
         final retried =
             await dailySubmissionService.retryPendingSubmissionIfMatches(
@@ -45,19 +49,26 @@ Future<void> openDailyChallenge(AuthService authService) async {
           dateKey: existingState.dateKey,
         );
         if (retried != null) {
+          debugPrint('🔵 [DailyFlow] Retry successful, refreshing state');
           existingState = await dbService.getDailyChallenge(gameId);
         }
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('🔴 [DailyFlow] Retry failed: $e');
+      }
     }
 
     final gateDecision = resolveDailyChallengeLaunch(
       challenge: existingState,
       isLoggedIn: true,
     );
+    debugPrint('🔵 [DailyFlow] Gate decision: canLaunch=${gateDecision.canLaunch}, message=${gateDecision.noticeMessage}');
+
     if (!gateDecision.canLaunch) {
-      showAppToast(
-        message: '오늘은 이미 참여했어요! 내일 다시 도전해 주세요.',
-        icon: Icons.check_circle_rounded,
+      debugPrint('🟡 [DailyFlow] Launch blocked. Showing snackbar.');
+      showAppSnackBar(
+        title: '오늘의 퍼즐',
+        message: gateDecision.noticeMessage ?? '오늘은 이미 참여했어요! 내일 다시 도전해 주세요.',
+        icon: Icons.lock_outline_rounded,
       );
       return;
     }
@@ -131,7 +142,8 @@ void _showDailyLaunchNotice(String? message) {
     return;
   }
 
-  showAppToast(
+  showAppSnackBar(
+    title: '오늘의 퍼즐',
     message: message,
     icon: Icons.info_outline_rounded,
   );

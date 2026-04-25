@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 final GlobalKey<ScaffoldMessengerState> appScaffoldMessengerKey =
@@ -49,15 +50,23 @@ void showAppSnackBar({
 }
 
 OverlayState? _findNavigatorOverlay() {
+  // 1. Try finding via GetX navigator key (Safest & Most Reliable)
   try {
-    final context = appScaffoldMessengerKey.currentContext;
-    if (context != null) {
-      final overlay = Overlay.of(context, rootOverlay: true);
-      return overlay;
+    if (Get.key.currentState?.overlay != null) {
+      return Get.key.currentState?.overlay;
     }
   } catch (_) {}
 
-  // Fallback: try finding via NavigatorState
+  // 2. Try finding via ScaffoldMessenger context
+  try {
+    final context = appScaffoldMessengerKey.currentContext;
+    if (context != null) {
+      final overlay = Overlay.maybeOf(context, rootOverlay: true);
+      if (overlay != null) return overlay;
+    }
+  } catch (_) {}
+
+  // 3. Fallback: try finding via rootElement
   try {
     final navKey = WidgetsBinding.instance.rootElement;
     if (navKey != null) {
@@ -170,60 +179,63 @@ class _TopSnackBarWidgetState extends State<_TopSnackBarWidget>
                 _dismiss();
               }
             },
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(16, topPadding + 8, 16, 0),
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: widget.backgroundColor,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: widget.borderColor, width: 2),
-                  boxShadow: [
-                    BoxShadow(
-                      color: widget.borderColor,
-                      offset: const Offset(2, 2),
-                      blurRadius: 0,
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Icon(widget.icon,
-                        size: 20,
-                        color: widget.textColor.withValues(alpha: 0.7)),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (widget.title != null &&
-                              widget.title!.trim().isNotEmpty)
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 2),
-                              child: Text(
-                                widget.title!,
-                                style: GoogleFonts.blackHanSans(
-                                  fontSize: 14,
-                                  color: widget.textColor,
-                                  letterSpacing: -0.3,
+            child: Material(
+              color: Colors.transparent,
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(16, topPadding + 8, 16, 0),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: widget.backgroundColor,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: widget.borderColor, width: 2),
+                    boxShadow: [
+                      BoxShadow(
+                        color: widget.borderColor,
+                        offset: const Offset(2, 2),
+                        blurRadius: 0,
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(widget.icon,
+                          size: 20,
+                          color: widget.textColor.withValues(alpha: 0.7)),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (widget.title != null &&
+                                widget.title!.trim().isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 2),
+                                child: Text(
+                                  widget.title!,
+                                  style: GoogleFonts.blackHanSans(
+                                    fontSize: 14,
+                                    color: widget.textColor,
+                                    letterSpacing: -0.3,
+                                  ),
                                 ),
                               ),
+                            Text(
+                              widget.message,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: widget.textColor.withValues(alpha: 0.75),
+                                height: 1.3,
+                              ),
                             ),
-                          Text(
-                            widget.message,
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: widget.textColor.withValues(alpha: 0.75),
-                              height: 1.3,
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -348,45 +360,48 @@ class _TopToastWidgetState extends State<_TopToastWidget>
                 _dismiss();
               }
             },
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(16, topPadding + 12, 16, 0),
-              child: Align(
-                alignment: Alignment.topCenter,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(
-                        color: const Color(0xFF1A1A1A), width: 1.5),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color(0xFF1A1A1A),
-                        offset: Offset(2, 2),
-                        blurRadius: 0,
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (widget.icon != null) ...[
-                        Icon(widget.icon,
-                            size: 16, color: const Color(0xFF1A1A1A)),
-                        const SizedBox(width: 8),
-                      ],
-                      Text(
-                        widget.message,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w800,
+            child: Material(
+              color: Colors.transparent,
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(16, topPadding + 12, 16, 0),
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                          color: const Color(0xFF1A1A1A), width: 1.5),
+                      boxShadow: const [
+                        BoxShadow(
                           color: Color(0xFF1A1A1A),
-                          height: 1.2,
-                          letterSpacing: -0.2,
+                          offset: Offset(2, 2),
+                          blurRadius: 0,
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (widget.icon != null) ...[
+                          Icon(widget.icon,
+                              size: 16, color: const Color(0xFF1A1A1A)),
+                          const SizedBox(width: 8),
+                        ],
+                        Text(
+                          widget.message,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF1A1A1A),
+                            height: 1.2,
+                            letterSpacing: -0.2,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
