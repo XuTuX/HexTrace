@@ -408,7 +408,7 @@ class _DailyPlayButtonState extends State<_DailyPlayButton>
                     const SizedBox(width: 10),
                   ],
                   Text(
-                    widget.isLoading ? '입장 중...' : '오늘의 도전',
+                    widget.isLoading ? '입장 중...' : '오늘의 퍼즐',
                     style: GoogleFonts.blackHanSans(
                       fontSize: btnFs,
                       letterSpacing: 0,

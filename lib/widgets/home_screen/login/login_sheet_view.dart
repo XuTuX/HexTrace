@@ -153,21 +153,28 @@ class _LoginErrorBanner extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFF0F0),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+                  color: const Color(0xFFFFFBFA),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: charcoalBlack, width: 2),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: charcoalBlack,
+                      offset: Offset(2, 2),
+                    ),
+                  ],
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.error_outline, color: Colors.red[400], size: 20),
+                    const Icon(Icons.error_outline_rounded,
+                        color: Color(0xFFEF4444), size: 20),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
                         errorMessage!,
-                        style: TextStyle(
-                          color: Colors.red[700],
+                        style: GoogleFonts.notoSans(
+                          color: charcoalBlack,
                           fontSize: 13,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
                     ),
