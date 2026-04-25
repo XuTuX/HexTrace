@@ -149,7 +149,7 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
             )
           else
             ...List.generate(_topScores.length, (index) {
-              return _CleanRankRow(
+              return CleanRankRow(
                 rank: index + 1,
                 data: _topScores[index],
                 isLast: index == _topScores.length - 1,
@@ -161,8 +161,9 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
   }
 }
 
-class _CleanRankRow extends StatelessWidget {
-  const _CleanRankRow({
+class CleanRankRow extends StatelessWidget {
+  const CleanRankRow({
+    super.key,
     required this.rank,
     required this.data,
     this.isLast = false,

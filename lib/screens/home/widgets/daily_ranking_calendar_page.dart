@@ -6,11 +6,11 @@ import 'package:hexor/constant.dart';
 import 'package:hexor/controllers/score_controller.dart';
 import 'package:hexor/screens/ranking/ranking_data_loader.dart';
 import 'package:hexor/screens/ranking/ranking_period.dart';
-import 'package:hexor/screens/ranking/widgets/rank_list_item.dart';
 import 'package:hexor/services/auth_service.dart';
 import 'package:hexor/services/database_service.dart';
 import 'package:hexor/theme/app_typography.dart';
 import 'package:hexor/utils/kst_clock.dart';
+import 'package:hexor/widgets/home_screen/components/weekly_ranking_preview.dart';
 
 class DailyRankingCalendarPage extends StatefulWidget {
   const DailyRankingCalendarPage({
@@ -246,6 +246,7 @@ class _DailyRankingCalendarPageState extends State<DailyRankingCalendarPage>
                         isLoading: _isSelectedRankingLoading,
                         error: _selectedRankingError,
                         onRetry: () => _loadSelectedRanking(_selectedDateKey),
+                        onViewAll: widget.onShowDailyRanking,
                       ),
                     ],
                   ),
@@ -731,6 +732,7 @@ class _InlineDailyRankingPanel extends StatelessWidget {
     required this.isLoading,
     required this.error,
     required this.onRetry,
+    required this.onViewAll,
   });
 
   final String dateKey;
@@ -739,21 +741,26 @@ class _InlineDailyRankingPanel extends StatelessWidget {
   final bool isLoading;
   final String? error;
   final VoidCallback onRetry;
+  final VoidCallback onViewAll;
 
   @override
   Widget build(BuildContext context) {
     final sw = MediaQuery.sizeOf(context).width;
     final isTablet = MediaQuery.sizeOf(context).shortestSide >= 600;
     final panelPad = isTablet
-        ? (sw * 0.02).clamp(12.0, 20.0)
-        : (sw * 0.036).clamp(12.0, 18.0);
+        ? (sw * 0.03).clamp(16.0, 24.0)
+        : (sw * 0.045).clamp(14.0, 22.0);
     final headerFs = isTablet
         ? (sw * 0.02).clamp(14.0, 18.0)
         : (sw * 0.042).clamp(13.0, 17.0);
 
+    final viewAllFs = isTablet
+        ? (sw * 0.014).clamp(10.0, 13.0)
+        : (sw * 0.028).clamp(9.0, 12.0);
+    final headerGap = isTablet ? 16.0 : (MediaQuery.sizeOf(context).height * 0.016).clamp(10.0, 16.0);
+
     return Container(
-      padding:
-          EdgeInsets.fromLTRB(panelPad, panelPad, panelPad, panelPad * 0.4),
+      padding: EdgeInsets.all(panelPad),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(22),
@@ -768,32 +775,43 @@ class _InlineDailyRankingPanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              Icon(
-                Icons.emoji_events_rounded,
-                size: headerFs - 1,
-                color: charcoalBlack.withValues(alpha: 0.35),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                '${_formatDate(dateKey)} 랭킹',
-                style: GoogleFonts.blackHanSans(
-                  fontSize: headerFs,
-                  color: charcoalBlack,
-                  letterSpacing: 0,
+          GestureDetector(
+            onTap: onViewAll,
+            behavior: HitTestBehavior.opaque,
+            child: Row(
+              children: [
+                Icon(
+                  Icons.emoji_events_rounded,
+                  size: headerFs - 1,
+                  color: charcoalBlack.withValues(alpha: 0.35),
                 ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Container(
-                  height: 1,
-                  color: charcoalBlack.withValues(alpha: 0.06),
+                const SizedBox(width: 8),
+                Text(
+                  '${_formatDate(dateKey)} 랭킹',
+                  style: GoogleFonts.blackHanSans(
+                    fontSize: headerFs,
+                    color: charcoalBlack,
+                    letterSpacing: 0,
+                  ),
                 ),
-              ),
-            ],
+                const Spacer(),
+                Text(
+                  '전체 보기',
+                  style: GoogleFonts.notoSans(
+                    fontSize: viewAllFs,
+                    fontWeight: FontWeight.w700,
+                    color: charcoalBlack.withValues(alpha: 0.32),
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  size: viewAllFs + 3,
+                  color: charcoalBlack.withValues(alpha: 0.28),
+                ),
+              ],
+            ),
           ),
-          SizedBox(height: panelPad * 0.85),
+          SizedBox(height: headerGap),
           if (isLoading)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 18),
@@ -840,11 +858,11 @@ class _InlineDailyRankingPanel extends StatelessWidget {
             )
           else
             ...List.generate(
-              scores.length > 6 ? 6 : scores.length,
-              (index) => RankListItem(
-                scoreData: scores[index],
-                index: index,
-                myId: myId,
+              scores.length > 3 ? 3 : scores.length,
+              (index) => CleanRankRow(
+                rank: index + 1,
+                data: scores[index],
+                isLast: index == (scores.length > 3 ? 3 : scores.length) - 1,
               ),
             ),
         ],
