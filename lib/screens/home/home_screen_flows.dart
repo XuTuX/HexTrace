@@ -58,9 +58,6 @@ Future<void> openDailyChallenge(AuthService authService) async {
       showAppSnackBar(
         title: '오늘의 퍼즐',
         message: gateDecision.noticeMessage ?? '오늘의 퍼즐은 오늘 이미 사용했어요.',
-        backgroundColor: const Color(0xFFF59E0B),
-        textColor: charcoalBlack,
-        duration: const Duration(seconds: 3),
       );
       return;
     }
@@ -95,8 +92,32 @@ Future<void> openDailyChallenge(AuthService authService) async {
     showAppSnackBar(
       title: '입장 실패',
       message: _dailyEntryFailureMessage(error),
-      backgroundColor: const Color(0xFFFB7185),
-      textColor: Colors.white,
+      backgroundColor: const Color(0xFFEF4444),
+    );
+  }
+}
+
+Future<void> openDailyChallengeTest() async {
+  final dbService = Get.find<DatabaseService>();
+
+  try {
+    final challenge = await dbService.getDailyChallenge(gameId);
+    showAppSnackBar(
+      title: '테스트 모드',
+      message: '공식 기록 없이 오늘의 퍼즐을 테스트합니다.',
+    );
+    openGameScreen(
+      GameSessionConfig(
+        mode: GameMode.dailyPractice,
+        seed: challenge.seed,
+        dateKey: challenge.dateKey,
+      ),
+    );
+  } catch (_) {
+    showAppSnackBar(
+      title: '테스트 실패',
+      message: '오늘의 퍼즐 테스트를 시작하지 못했어요.',
+      backgroundColor: const Color(0xFFEF4444),
     );
   }
 }
@@ -109,9 +130,6 @@ void _showDailyLaunchNotice(String? message) {
   showAppSnackBar(
     title: '오늘의 퍼즐',
     message: message,
-    backgroundColor: const Color(0xFFF59E0B),
-    textColor: charcoalBlack,
-    duration: const Duration(seconds: 3),
   );
 }
 

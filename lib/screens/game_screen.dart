@@ -13,6 +13,7 @@ import '../services/audio_service.dart';
 import '../services/database_service.dart';
 import '../services/daily_submission_service.dart';
 import '../services/replay_share_service.dart';
+import '../utils/app_snackbar.dart';
 import '../utils/browser_back_blocker.dart';
 import '../widgets/dialogs/share_preview_dialog.dart';
 import '../widgets/game/floating_status_view.dart';
@@ -339,12 +340,10 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     _isDailyRankLoading = false;
 
     if (_controller.sessionConfig.isDailyMode) {
-      Get.snackbar(
-        '오늘의 퍼즐',
-        '오늘의 퍼즐은 하루 한 번만 플레이할 수 있어요. 홈으로 돌아갑니다.',
-        snackPosition: SnackPosition.BOTTOM,
+      showAppSnackBar(
+        title: '오늘의 퍼즐',
+        message: '오늘의 퍼즐은 하루 한 번만 플레이할 수 있어요. 홈으로 돌아갑니다.',
         backgroundColor: Colors.black87,
-        colorText: Colors.white,
         duration: const Duration(seconds: 3),
       );
       unawaited(_goHome());
@@ -364,12 +363,25 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   }
 
   void _openRanking() {
-    Get.bottomSheet(
-      RankingScreen(isDailyOnly: _controller.sessionConfig.isDailyMode),
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      enterBottomSheetDuration: const Duration(milliseconds: 300),
-    );
+    if (_isLeavingScreen ||
+        !mounted ||
+        ModalRoute.of(context)?.isCurrent != true ||
+        Get.overlayContext == null) {
+      return;
+    }
+
+    try {
+      Get.bottomSheet(
+        RankingScreen(isDailyOnly: _controller.sessionConfig.isDailyMode),
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        enterBottomSheetDuration: const Duration(milliseconds: 300),
+      );
+    } catch (error, stackTrace) {
+      debugPrint(
+          'Skipping ranking sheet because overlay is unavailable: $error');
+      debugPrintStack(stackTrace: stackTrace);
+    }
   }
 
   Future<void> _finalizeCompletedRun() async {
@@ -412,11 +424,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       return;
     }
 
-    if (!_isLeavingScreen &&
-        dailyResult == DailySubmissionResult.success &&
-        Get.isBottomSheetOpen != true) {
-      _openRanking();
-    }
+    // Ranking is intentionally opened only by the user's explicit tap.
   }
 
   Future<void> _goHome() async {
@@ -425,7 +433,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     }
 
     _isLeavingScreen = true;
-    Get.closeAllSnackbars();
+    clearAppSnackBars();
     await Get.offAll(() => const HomeScreen());
   }
 
@@ -482,13 +490,11 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         snackMessage = '공식 기록 저장에 실패했어요. 홈 화면에서 자동으로 다시 제출을 시도합니다.';
       }
 
-      if (mounted) {
-        Get.snackbar(
-          '오늘의 퍼즐 저장 실패',
-          snackMessage,
-          snackPosition: SnackPosition.BOTTOM,
+      if (mounted && !_isLeavingScreen) {
+        showAppSnackBar(
+          title: '오늘의 퍼즐 저장 실패',
+          message: snackMessage,
           backgroundColor: Colors.red,
-          colorText: Colors.white,
           duration: const Duration(seconds: 3),
         );
       }
@@ -553,12 +559,10 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                   Get.back(); // Close dialog on success
                 }
               } catch (e) {
-                Get.snackbar(
-                  '공유 실패',
-                  '리플레이를 공유하지 못했습니다. 잠시 후 다시 시도해 주세요.',
-                  snackPosition: SnackPosition.BOTTOM,
+                showAppSnackBar(
+                  title: '공유 실패',
+                  message: '리플레이를 공유하지 못했습니다. 잠시 후 다시 시도해 주세요.',
                   backgroundColor: Colors.red,
-                  colorText: Colors.white,
                 );
               } finally {
                 if (mounted) {

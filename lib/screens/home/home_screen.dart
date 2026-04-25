@@ -100,6 +100,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       onSettingsTap: () => showSettingsScreen(authService),
       onStartGame: () => openGameScreen(),
       onStartDaily: () => openDailyChallenge(authService),
+      onStartDailyTest: openDailyChallengeTest,
       onShowDailyRanking: () {
         if (authService.user.value != null) {
           showDailyRankingSheet();

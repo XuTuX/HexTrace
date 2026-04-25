@@ -153,15 +153,8 @@ class _LoginErrorBanner extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFFBFA),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: charcoalBlack, width: 2),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: charcoalBlack,
-                      offset: Offset(2, 2),
-                    ),
-                  ],
+                  color: const Color(0xFFFEF2F2),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
                   children: [
@@ -172,9 +165,9 @@ class _LoginErrorBanner extends StatelessWidget {
                       child: Text(
                         errorMessage!,
                         style: GoogleFonts.notoSans(
-                          color: charcoalBlack,
+                          color: const Color(0xFFB91C1C),
                           fontSize: 13,
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),

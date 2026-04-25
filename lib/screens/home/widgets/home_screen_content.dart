@@ -19,6 +19,7 @@ class HomeScreenContent extends StatefulWidget {
     required this.onSettingsTap,
     required this.onStartGame,
     required this.onStartDaily,
+    required this.onStartDailyTest,
     required this.onShowDailyRanking,
     required this.onRankingTap,
   });
@@ -28,6 +29,7 @@ class HomeScreenContent extends StatefulWidget {
   final VoidCallback onSettingsTap;
   final VoidCallback onStartGame;
   final Future<void> Function() onStartDaily;
+  final Future<void> Function() onStartDailyTest;
   final VoidCallback onShowDailyRanking;
   final VoidCallback onRankingTap;
 
@@ -83,6 +85,7 @@ class _HomeScreenContentState extends State<HomeScreenContent> {
                         scoreController: widget.scoreController,
                         authService: widget.authService,
                         onStartDaily: widget.onStartDaily,
+                        onStartDailyTest: widget.onStartDailyTest,
                         onShowDailyRanking: widget.onShowDailyRanking,
                         onRankingTap: widget.onRankingTap,
                         isVisible: _pageIndex == 1,

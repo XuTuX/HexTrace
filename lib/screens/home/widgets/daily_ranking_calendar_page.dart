@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -17,6 +18,7 @@ class DailyRankingCalendarPage extends StatefulWidget {
     required this.scoreController,
     required this.authService,
     required this.onStartDaily,
+    required this.onStartDailyTest,
     required this.onShowDailyRanking,
     required this.onRankingTap,
     required this.isVisible,
@@ -25,6 +27,7 @@ class DailyRankingCalendarPage extends StatefulWidget {
   final ScoreController scoreController;
   final AuthService authService;
   final Future<void> Function() onStartDaily;
+  final Future<void> Function() onStartDailyTest;
   final VoidCallback onShowDailyRanking;
   final VoidCallback onRankingTap;
   final bool isVisible;
@@ -42,6 +45,7 @@ class _DailyRankingCalendarPageState extends State<DailyRankingCalendarPage> {
   bool _isRankLoading = false;
   bool _isSelectedRankingLoading = false;
   bool _isLaunching = false;
+  bool _isLaunchingTest = false;
   bool _hasLoadedVisibleData = false;
   String? _selectedRankingError;
   Map<String, int> _myDailyRanks = {};
@@ -252,6 +256,13 @@ class _DailyRankingCalendarPageState extends State<DailyRankingCalendarPage> {
                 isLoading: _isLaunching,
                 onPressed: _handleStartDaily,
               ),
+              if (kDebugMode) ...[
+                const SizedBox(height: 10),
+                _DailyTestButton(
+                  isLoading: _isLaunchingTest,
+                  onPressed: _handleStartDailyTest,
+                ),
+              ],
             ],
           ),
         ),
@@ -270,6 +281,21 @@ class _DailyRankingCalendarPageState extends State<DailyRankingCalendarPage> {
     } finally {
       if (mounted) {
         setState(() => _isLaunching = false);
+      }
+    }
+  }
+
+  Future<void> _handleStartDailyTest() async {
+    if (_isLaunchingTest) {
+      return;
+    }
+
+    setState(() => _isLaunchingTest = true);
+    try {
+      await widget.onStartDailyTest();
+    } finally {
+      if (mounted) {
+        setState(() => _isLaunchingTest = false);
       }
     }
   }
@@ -420,6 +446,50 @@ class _DailyPlayButtonState extends State<_DailyPlayButton>
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _DailyTestButton extends StatelessWidget {
+  const _DailyTestButton({
+    required this.isLoading,
+    required this.onPressed,
+  });
+
+  final bool isLoading;
+  final Future<void> Function() onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton.icon(
+      onPressed: isLoading
+          ? null
+          : () {
+              onPressed();
+            },
+      icon: isLoading
+          ? const SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: charcoalBlack,
+              ),
+            )
+          : const Icon(Icons.science_rounded),
+      label: Text(isLoading ? '테스트 준비 중' : '테스트 플레이'),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: charcoalBlack,
+        side: const BorderSide(color: charcoalBlack, width: 1.5),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 13),
+        textStyle: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w900,
+        ),
       ),
     );
   }

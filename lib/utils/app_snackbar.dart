@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:hexor/constant.dart';
 
 final GlobalKey<ScaffoldMessengerState> appScaffoldMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
@@ -8,7 +6,7 @@ final GlobalKey<ScaffoldMessengerState> appScaffoldMessengerKey =
 void showAppSnackBar({
   required String message,
   String? title,
-  Color backgroundColor = charcoalBlack,
+  Color backgroundColor = const Color(0xFF2D2D2D),
   Color textColor = Colors.white,
   Duration duration = const Duration(seconds: 3),
 }) {
@@ -18,57 +16,27 @@ void showAppSnackBar({
     return;
   }
 
+  final snackText =
+      title == null || title.trim().isEmpty ? message : '$title\n$message';
   messenger
     ..clearSnackBars()
     ..showSnackBar(
       SnackBar(
-        content: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(
-            color: backgroundColor,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: charcoalBlack, width: 2),
-            boxShadow: const [
-              BoxShadow(
-                color: charcoalBlack,
-                offset: Offset(3, 3),
-                blurRadius: 0,
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (title != null && title.trim().isNotEmpty) ...[
-                Text(
-                  title,
-                  style: GoogleFonts.blackHanSans(
-                    fontSize: 17,
-                    color: textColor,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                const SizedBox(height: 4),
-              ],
-              Text(
-                message,
-                style: GoogleFonts.notoSans(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: textColor.withValues(alpha: 0.9),
-                  height: 1.3,
-                ),
-              ),
-            ],
+        content: Text(
+          snackText,
+          style: TextStyle(
+            color: textColor,
+            fontWeight: FontWeight.w800,
+            height: 1.35,
           ),
         ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        behavior: SnackBarBehavior.floating,
+        backgroundColor: backgroundColor,
         duration: duration,
-        padding: EdgeInsets.zero,
-        margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+        behavior: SnackBarBehavior.floating,
       ),
     );
+}
+
+void clearAppSnackBars() {
+  appScaffoldMessengerKey.currentState?.clearSnackBars();
 }
