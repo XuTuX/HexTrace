@@ -21,7 +21,6 @@ class DailyRankingCalendarPage extends StatefulWidget {
     required this.onStartDailyTest,
     required this.onShowDailyRanking,
     required this.onRankingTap,
-    required this.isVisible,
   });
 
   final ScoreController scoreController;
@@ -30,14 +29,14 @@ class DailyRankingCalendarPage extends StatefulWidget {
   final Future<void> Function() onStartDailyTest;
   final VoidCallback onShowDailyRanking;
   final VoidCallback onRankingTap;
-  final bool isVisible;
 
   @override
   State<DailyRankingCalendarPage> createState() =>
       _DailyRankingCalendarPageState();
 }
 
-class _DailyRankingCalendarPageState extends State<DailyRankingCalendarPage> {
+class _DailyRankingCalendarPageState extends State<DailyRankingCalendarPage>
+    with AutomaticKeepAliveClientMixin {
   late final Set<String> _selectableDateKeys;
   late final List<_CalendarCellData> _calendarCells;
   late String _selectedDateKey;
@@ -54,6 +53,9 @@ class _DailyRankingCalendarPageState extends State<DailyRankingCalendarPage> {
   int _selectedRankingRequestId = 0;
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   void initState() {
     super.initState();
     final recentDateKeys = KstClock.recentDateKeys(days: 30);
@@ -61,7 +63,7 @@ class _DailyRankingCalendarPageState extends State<DailyRankingCalendarPage> {
     _calendarCells = _buildCurrentMonthCells();
     _selectedDateKey = recentDateKeys.first;
     _authWorker = ever(widget.authService.user, (_) {
-      if (mounted && widget.isVisible) {
+      if (mounted) {
         _hasLoadedVisibleData = false;
         _ensureVisibleDataLoaded(force: true);
       }
@@ -78,15 +80,12 @@ class _DailyRankingCalendarPageState extends State<DailyRankingCalendarPage> {
   @override
   void didUpdateWidget(covariant DailyRankingCalendarPage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.isVisible && (!oldWidget.isVisible || !_hasLoadedVisibleData)) {
+    if (!_hasLoadedVisibleData) {
       _ensureVisibleDataLoaded();
     }
   }
 
   void _ensureVisibleDataLoaded({bool force = false}) {
-    if (!widget.isVisible) {
-      return;
-    }
     if (_hasLoadedVisibleData && !force) {
       return;
     }
@@ -194,6 +193,7 @@ class _DailyRankingCalendarPageState extends State<DailyRankingCalendarPage> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final mediaSize = MediaQuery.sizeOf(context);
     final isTablet = mediaSize.shortestSide >= 600;
     final sw = mediaSize.width;

@@ -88,7 +88,6 @@ class _HomeScreenContentState extends State<HomeScreenContent> {
                         onStartDailyTest: widget.onStartDailyTest,
                         onShowDailyRanking: widget.onShowDailyRanking,
                         onRankingTap: widget.onRankingTap,
-                        isVisible: _pageIndex == 1,
                       ),
                     ],
                   ),
