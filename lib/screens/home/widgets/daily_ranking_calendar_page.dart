@@ -564,11 +564,15 @@ class _MonthlyCalendar extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: charcoalBlack, width: 2),
-        boxShadow: const [
+        border: Border.all(
+          color: charcoalBlack.withValues(alpha: 0.12),
+          width: 1.5,
+        ),
+        boxShadow: [
           BoxShadow(
-            color: charcoalBlack,
-            offset: Offset(3, 3),
+            color: charcoalBlack.withValues(alpha: 0.06),
+            offset: const Offset(0, 2),
+            blurRadius: 8,
           ),
         ],
       ),
@@ -645,16 +649,12 @@ class _DateChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final backgroundColor = isSelected
+    final backgroundColor = (rank != null)
+        ? _rankBackgroundColor
+        : const Color(0xFFF8FAFC);
+    final foregroundColor = isEnabled
         ? charcoalBlack
-        : (rank != null)
-            ? _rankBackgroundColor
-            : const Color(0xFFF8FAFC);
-    final foregroundColor = isSelected
-        ? Colors.white
-        : isEnabled
-            ? charcoalBlack
-            : charcoalBlack.withValues(alpha: 0.2);
+        : charcoalBlack.withValues(alpha: 0.2);
 
     return GestureDetector(
       onTap: onTap,
@@ -667,24 +667,19 @@ class _DateChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 3),
         decoration: BoxDecoration(
           color: backgroundColor,
-          borderRadius: BorderRadius.circular(13),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected
                 ? charcoalBlack
-                : isToday
-                    ? charcoalBlack.withValues(alpha: 0.25)
-                    : charcoalBlack.withValues(alpha: isEnabled ? 0.08 : 0.03),
-            width: isSelected
-                ? 2
-                : isToday
-                    ? 1.8
-                    : 1.5,
+                : Colors.transparent,
+            width: isSelected ? 2 : 1,
           ),
           boxShadow: isSelected
-              ? const [
+              ? [
                   BoxShadow(
-                    color: charcoalBlack,
-                    offset: Offset(2, 2),
+                    color: charcoalBlack.withValues(alpha: 0.15),
+                    offset: const Offset(0, 2),
+                    blurRadius: 4,
                   ),
                 ]
               : null,
@@ -706,9 +701,7 @@ class _DateChip extends StatelessWidget {
                 width: 4,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: isSelected
-                      ? Colors.white
-                      : charcoalBlack.withValues(alpha: 0.4),
+                  color: charcoalBlack.withValues(alpha: 0.4),
                   shape: BoxShape.circle,
                 ),
               ),
@@ -718,9 +711,7 @@ class _DateChip extends StatelessWidget {
                 width: 3,
                 height: 3,
                 decoration: BoxDecoration(
-                  color: isSelected
-                      ? Colors.white.withValues(alpha: 0.5)
-                      : charcoalBlack.withValues(alpha: 0.16),
+                  color: charcoalBlack.withValues(alpha: 0.16),
                   shape: BoxShape.circle,
                 ),
               ),

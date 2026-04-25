@@ -343,7 +343,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       showAppSnackBar(
         title: '오늘의 퍼즐',
         message: '오늘의 퍼즐은 하루 한 번만 플레이할 수 있어요. 홈으로 돌아갑니다.',
-        backgroundColor: Colors.black87,
+        icon: Icons.lock_outline_rounded,
         duration: const Duration(seconds: 3),
       );
       unawaited(_goHome());
@@ -494,7 +494,9 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         showAppSnackBar(
           title: '오늘의 퍼즐 저장 실패',
           message: snackMessage,
-          backgroundColor: Colors.red,
+          backgroundColor: const Color(0xFFFEF2F2),
+          borderColor: const Color(0xFFEF4444),
+          icon: Icons.error_outline_rounded,
           duration: const Duration(seconds: 3),
         );
       }
@@ -562,7 +564,9 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                 showAppSnackBar(
                   title: '공유 실패',
                   message: '리플레이를 공유하지 못했습니다. 잠시 후 다시 시도해 주세요.',
-                  backgroundColor: Colors.red,
+                  backgroundColor: const Color(0xFFFEF2F2),
+                  borderColor: const Color(0xFFEF4444),
+                  icon: Icons.error_outline_rounded,
                 );
               } finally {
                 if (mounted) {
