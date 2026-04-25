@@ -69,7 +69,6 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     _browserBackBlocker.detach();
     _controller.removeListener(_handleControllerChanged);
     _controller.dispose();
-    unawaited(AudioService().stopBGM());
     super.dispose();
   }
 

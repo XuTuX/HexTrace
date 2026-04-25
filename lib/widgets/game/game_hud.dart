@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import 'package:hexor/constant.dart';
 import '../../game/hex_game_controller.dart';
+import '../../services/settings_service.dart';
 import 'animated_color_stream.dart';
 
 class GameHud extends StatelessWidget {
@@ -47,7 +49,14 @@ class GameHud extends StatelessWidget {
           if (!controller.isReplaying)
             Align(
               alignment: Alignment.centerRight,
-              child: _RestartButton(onPressed: controller.playAgain),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const _SoundToggleButton(),
+                  const SizedBox(width: 8),
+                  _RestartButton(onPressed: controller.playAgain),
+                ],
+              ),
             ),
           const SizedBox(height: 8),
           Row(
@@ -199,6 +208,50 @@ class ColorBarPanel extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _SoundToggleButton extends StatelessWidget {
+  const _SoundToggleButton();
+
+  @override
+  Widget build(BuildContext context) {
+    final settingsService = Get.find<SettingsService>();
+    return Obx(() {
+      final isOn = settingsService.isBgmOn.value || settingsService.isSfxOn.value;
+      return GestureDetector(
+        onTap: () async {
+          final targetState = !isOn;
+          await settingsService.toggleBgm();
+          if (settingsService.isSfxOn.value != targetState) {
+            await settingsService.toggleSfx();
+          }
+        },
+        child: Container(
+          height: 40,
+          width: 40,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: charcoalBlack, width: 2),
+            boxShadow: const [
+              BoxShadow(
+                color: charcoalBlack,
+                offset: Offset(2, 2),
+                blurRadius: 0,
+              ),
+            ],
+          ),
+          child: Center(
+            child: Icon(
+              isOn ? Icons.volume_up_rounded : Icons.volume_off_rounded,
+              color: charcoalBlack,
+              size: 20,
+            ),
+          ),
+        ),
+      );
+    });
   }
 }
 

@@ -8,8 +8,8 @@ class AudioService {
   static const String _clickSfxAsset = 'bgm/click.mp3';
   static const double _gameBgmVolume = 0.18;
   static const double _homeBgmVolume = 0.18;
-  static const double _clearSfxVolume = 0.42;
-  static const double _clickSfxVolume = 0.42;
+  static const double _clearSfxVolume = 0.36;
+  static const double _clickSfxVolume = 0.36;
 
   static final AudioService _instance = AudioService._internal();
   factory AudioService() => _instance;
@@ -33,6 +33,13 @@ class AudioService {
     _isBgmEnabled = isBgmEnabled;
     _isSfxEnabled = isSfxEnabled;
     await _runSafely('initialize audio players', () async {
+      await AudioPlayer.global.setAudioContext(AudioContextConfig(
+        route: AudioContextConfigRoute.system,
+        focus: AudioContextConfigFocus.mixWithOthers,
+        respectSilence: true,
+        stayAwake: false,
+      ).build());
+
       await _bgmPlayer.setReleaseMode(ReleaseMode.loop);
       await _bgmPlayer.setVolume(_currentBgmVolume);
       await _sfxPlayer.setVolume(_clearSfxVolume);
