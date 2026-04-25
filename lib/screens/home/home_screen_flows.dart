@@ -55,10 +55,9 @@ Future<void> openDailyChallenge(AuthService authService) async {
       isLoggedIn: true,
     );
     if (!gateDecision.canLaunch) {
-      showAppSnackBar(
-        title: '오늘의 퍼즐',
-        message: gateDecision.noticeMessage ?? '오늘의 퍼즐은 오늘 이미 사용했어요.',
-        icon: Icons.lock_outline_rounded,
+      showAppToast(
+        message: '오늘은 이미 참여했어요! 내일 다시 도전해 주세요.',
+        icon: Icons.check_circle_rounded,
       );
       return;
     }
@@ -132,10 +131,9 @@ void _showDailyLaunchNotice(String? message) {
     return;
   }
 
-  showAppSnackBar(
-    title: '오늘의 퍼즐',
+  showAppToast(
     message: message,
-    icon: Icons.extension_rounded,
+    icon: Icons.info_outline_rounded,
   );
 }
 

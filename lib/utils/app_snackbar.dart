@@ -233,3 +233,168 @@ class _TopSnackBarWidgetState extends State<_TopSnackBarWidget>
     );
   }
 }
+
+void showAppToast({
+  required String message,
+  IconData? icon,
+  Duration duration = const Duration(seconds: 2),
+}) {
+  // Dismiss any existing overlay first
+  _currentOverlay?.remove();
+  _currentOverlay = null;
+
+  final navigatorState = _findNavigatorOverlay();
+  if (navigatorState == null) {
+    debugPrint('Toast skipped because Overlay is not available.');
+    return;
+  }
+
+  late final OverlayEntry entry;
+  entry = OverlayEntry(
+    builder: (context) => _TopToastWidget(
+      message: message,
+      icon: icon,
+      duration: duration,
+      onDismiss: () {
+        entry.remove();
+        if (_currentOverlay == entry) {
+          _currentOverlay = null;
+        }
+      },
+    ),
+  );
+
+  _currentOverlay = entry;
+  navigatorState.insert(entry);
+}
+
+class _TopToastWidget extends StatefulWidget {
+  const _TopToastWidget({
+    required this.message,
+    this.icon,
+    required this.duration,
+    required this.onDismiss,
+  });
+
+  final String message;
+  final IconData? icon;
+  final Duration duration;
+  final VoidCallback onDismiss;
+
+  @override
+  State<_TopToastWidget> createState() => _TopToastWidgetState();
+}
+
+class _TopToastWidgetState extends State<_TopToastWidget>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _animController;
+  late final Animation<Offset> _slideAnim;
+  late final Animation<double> _fadeAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+      reverseDuration: const Duration(milliseconds: 200),
+    );
+    _slideAnim = Tween<Offset>(
+      begin: const Offset(0, -1.0),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _animController,
+      curve: Curves.easeOutCubic,
+      reverseCurve: Curves.easeInCubic,
+    ));
+    _fadeAnim = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animController, curve: Curves.easeOut),
+    );
+    _animController.forward();
+
+    Future.delayed(widget.duration, _dismiss);
+  }
+
+  void _dismiss() {
+    if (!mounted) return;
+    _animController.reverse().then((_) {
+      if (mounted) widget.onDismiss();
+    });
+  }
+
+  @override
+  void dispose() {
+    _animController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final topPadding = MediaQuery.of(context).padding.top;
+
+    return Positioned(
+      top: 0,
+      left: 0,
+      right: 0,
+      child: SlideTransition(
+        position: _slideAnim,
+        child: FadeTransition(
+          opacity: _fadeAnim,
+          child: GestureDetector(
+            onTap: _dismiss,
+            onVerticalDragEnd: (details) {
+              if (details.primaryVelocity != null &&
+                  details.primaryVelocity! < -100) {
+                _dismiss();
+              }
+            },
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(16, topPadding + 12, 16, 0),
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                        color: const Color(0xFF1A1A1A), width: 1.5),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0xFF1A1A1A),
+                        offset: Offset(2, 2),
+                        blurRadius: 0,
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (widget.icon != null) ...[
+                        Icon(widget.icon,
+                            size: 16, color: const Color(0xFF1A1A1A)),
+                        const SizedBox(width: 8),
+                      ],
+                      Text(
+                        widget.message,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF1A1A1A),
+                          height: 1.2,
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
