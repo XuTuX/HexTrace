@@ -91,7 +91,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    final scoreController = Get.put(ScoreController());
+    final scoreController = Get.find<ScoreController>();
     final authService = Get.find<AuthService>();
 
     return HomeScreenContent(

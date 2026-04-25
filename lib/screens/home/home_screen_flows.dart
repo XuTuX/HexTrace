@@ -10,6 +10,7 @@ import 'package:hexor/screens/settings_screen.dart';
 import 'package:hexor/services/auth_service.dart';
 import 'package:hexor/services/database_service.dart';
 import 'package:hexor/services/daily_submission_service.dart';
+import 'package:hexor/utils/app_snackbar.dart';
 import 'package:hexor/widgets/dialogs/edit_nickname_dialog.dart';
 import 'package:hexor/widgets/home_screen/login_sheet.dart';
 
@@ -54,43 +55,69 @@ Future<void> openDailyChallenge(AuthService authService) async {
       isLoggedIn: true,
     );
     if (!gateDecision.canLaunch) {
-      Get.snackbar(
-        '오늘의 퍼즐',
-        gateDecision.noticeMessage ?? '오늘의 퍼즐은 오늘 이미 사용했어요.',
-        snackPosition: SnackPosition.BOTTOM,
+      showAppSnackBar(
+        title: '오늘의 퍼즐',
+        message: gateDecision.noticeMessage ?? '오늘의 퍼즐은 오늘 이미 사용했어요.',
         backgroundColor: Colors.black87,
-        colorText: Colors.white,
         duration: const Duration(seconds: 3),
       );
       return;
     }
 
-    if (existingState.hasUsedEntry && !existingState.hasScoreEntry) {
-      final launchConfig = gateDecision.sessionConfig;
-      if (launchConfig != null) {
-        openGameScreen(launchConfig);
-      }
+    final launchConfig = gateDecision.sessionConfig;
+    if (launchConfig != null &&
+        existingState.hasUsedEntry &&
+        !existingState.hasScoreEntry) {
+      _showDailyLaunchNotice(gateDecision.noticeMessage);
+      openGameScreen(launchConfig);
       return;
     }
 
-    final claimedChallenge = await dbService.claimDailyChallengeEntry(gameId);
-    openGameScreen(
-      GameSessionConfig(
-        mode: GameMode.dailyOfficial,
-        seed: claimedChallenge.seed,
-        dateKey: claimedChallenge.dateKey,
-        isOfficialScoreSubmission: true,
-      ),
-    );
-  } catch (_) {
-    Get.snackbar(
-      '입장 실패',
-      '오늘의 퍼즐 입장 처리에 실패했어요. 잠시 후 다시 시도해 주세요.',
-      snackPosition: SnackPosition.BOTTOM,
+    try {
+      final claimedChallenge = await dbService.claimDailyChallengeEntry(gameId);
+      openGameScreen(
+        GameSessionConfig(
+          mode: GameMode.dailyOfficial,
+          seed: claimedChallenge.seed,
+          dateKey: claimedChallenge.dateKey,
+          isOfficialScoreSubmission: true,
+        ),
+      );
+    } catch (error) {
+      if (error.toString().contains('Daily challenge already used')) {
+        _showDailyLaunchNotice('오늘의 퍼즐은 하루에 한 번만 가능해요.');
+        return;
+      }
+      rethrow;
+    }
+  } catch (error) {
+    showAppSnackBar(
+      title: '입장 실패',
+      message: _dailyEntryFailureMessage(error),
       backgroundColor: Colors.red,
-      colorText: Colors.white,
     );
   }
+}
+
+void _showDailyLaunchNotice(String? message) {
+  if (message == null || message.trim().isEmpty) {
+    return;
+  }
+
+  showAppSnackBar(
+    title: '오늘의 퍼즐',
+    message: message,
+    backgroundColor: Colors.black87,
+    duration: const Duration(seconds: 3),
+  );
+}
+
+String _dailyEntryFailureMessage(Object error) {
+  final message = error.toString();
+  if (message.contains('Daily challenge already used')) {
+    return '오늘의 퍼즐은 하루에 한 번만 가능해요.';
+  }
+  return '오늘의 퍼즐 입장 처리에 실패했어요. 잠시 후 다시 시도해 주세요.';
 }
 
 void showLoginSheet(

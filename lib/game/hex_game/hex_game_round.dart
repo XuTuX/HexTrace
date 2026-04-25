@@ -239,7 +239,6 @@ void _resetGame(
   _refillColorBar(controller);
   _randomizeBoardUntilPlayable(controller);
   _startTimer(controller);
-  unawaited(AudioService().startBGM());
   controller._notify();
 }
 

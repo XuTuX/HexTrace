@@ -39,7 +39,7 @@ DailyChallengeLaunchDecision resolveDailyChallengeLaunch({
 
     return const DailyChallengeLaunchDecision(
       canLaunch: false,
-      noticeMessage: '오늘의 퍼즐은 이미 플레이했어요. 내일 다시 도전해 주세요.',
+      noticeMessage: '오늘의 퍼즐은 하루에 한 번만 가능해요.',
     );
   }
 

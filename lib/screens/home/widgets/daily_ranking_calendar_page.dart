@@ -19,6 +19,7 @@ class DailyRankingCalendarPage extends StatefulWidget {
     required this.onStartDaily,
     required this.onShowDailyRanking,
     required this.onRankingTap,
+    required this.isVisible,
   });
 
   final ScoreController scoreController;
@@ -26,6 +27,7 @@ class DailyRankingCalendarPage extends StatefulWidget {
   final Future<void> Function() onStartDaily;
   final VoidCallback onShowDailyRanking;
   final VoidCallback onRankingTap;
+  final bool isVisible;
 
   @override
   State<DailyRankingCalendarPage> createState() =>
@@ -39,9 +41,13 @@ class _DailyRankingCalendarPageState extends State<DailyRankingCalendarPage> {
   late final Worker _authWorker;
   bool _isRankLoading = false;
   bool _isSelectedRankingLoading = false;
+  bool _isLaunching = false;
+  bool _hasLoadedVisibleData = false;
   String? _selectedRankingError;
   Map<String, int> _myDailyRanks = {};
   List<Map<String, dynamic>> _selectedScores = [];
+  int _rankLoadRequestId = 0;
+  int _selectedRankingRequestId = 0;
 
   @override
   void initState() {
@@ -50,20 +56,40 @@ class _DailyRankingCalendarPageState extends State<DailyRankingCalendarPage> {
     _selectableDateKeys = recentDateKeys.toSet();
     _calendarCells = _buildCurrentMonthCells();
     _selectedDateKey = recentDateKeys.first;
-    _loadMyDailyRanks();
-    _loadSelectedRanking(_selectedDateKey);
     _authWorker = ever(widget.authService.user, (_) {
-      if (mounted) {
-        _loadMyDailyRanks();
-        _loadSelectedRanking(_selectedDateKey);
+      if (mounted && widget.isVisible) {
+        _hasLoadedVisibleData = false;
+        _ensureVisibleDataLoaded(force: true);
       }
     });
+    _ensureVisibleDataLoaded();
   }
 
   @override
   void dispose() {
     _authWorker.dispose();
     super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(covariant DailyRankingCalendarPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isVisible && (!oldWidget.isVisible || !_hasLoadedVisibleData)) {
+      _ensureVisibleDataLoaded();
+    }
+  }
+
+  void _ensureVisibleDataLoaded({bool force = false}) {
+    if (!widget.isVisible) {
+      return;
+    }
+    if (_hasLoadedVisibleData && !force) {
+      return;
+    }
+
+    _hasLoadedVisibleData = true;
+    _loadMyDailyRanks();
+    _loadSelectedRanking(_selectedDateKey);
   }
 
   void _selectDate(String dateKey) {
@@ -75,6 +101,8 @@ class _DailyRankingCalendarPageState extends State<DailyRankingCalendarPage> {
     if (!mounted) {
       return;
     }
+
+    final requestId = ++_rankLoadRequestId;
 
     if (widget.authService.user.value == null) {
       setState(() {
@@ -93,22 +121,23 @@ class _DailyRankingCalendarPageState extends State<DailyRankingCalendarPage> {
         .where(_selectableDateKeys.contains)
         .toList(growable: false);
 
-    final entries = await Future.wait(
-      dateKeys.map((dateKey) async {
-        final rank = await dbService.getMyDailyRank(gameId, dateKey: dateKey);
-        return MapEntry(dateKey, rank);
-      }),
-    );
+    final ranks = <String, int>{};
+    for (final dateKey in dateKeys) {
+      final rank = await dbService.getMyDailyRank(gameId, dateKey: dateKey);
+      if (!mounted || requestId != _rankLoadRequestId) {
+        return;
+      }
+      if (rank != null) {
+        ranks[dateKey] = rank;
+      }
+    }
 
-    if (!mounted) {
+    if (!mounted || requestId != _rankLoadRequestId) {
       return;
     }
 
     setState(() {
-      _myDailyRanks = {
-        for (final entry in entries)
-          if (entry.value != null) entry.key: entry.value!,
-      };
+      _myDailyRanks = ranks;
       _isRankLoading = false;
     });
   }
@@ -117,6 +146,8 @@ class _DailyRankingCalendarPageState extends State<DailyRankingCalendarPage> {
     if (!mounted) {
       return;
     }
+
+    final requestId = ++_selectedRankingRequestId;
 
     setState(() {
       _isSelectedRankingLoading = true;
@@ -132,7 +163,9 @@ class _DailyRankingCalendarPageState extends State<DailyRankingCalendarPage> {
         dateKey: dateKey,
       );
 
-      if (!mounted || _selectedDateKey != dateKey) {
+      if (!mounted ||
+          _selectedDateKey != dateKey ||
+          requestId != _selectedRankingRequestId) {
         return;
       }
 
@@ -141,7 +174,9 @@ class _DailyRankingCalendarPageState extends State<DailyRankingCalendarPage> {
         _isSelectedRankingLoading = false;
       });
     } catch (error) {
-      if (!mounted || _selectedDateKey != dateKey) {
+      if (!mounted ||
+          _selectedDateKey != dateKey ||
+          requestId != _selectedRankingRequestId) {
         return;
       }
 
@@ -214,15 +249,29 @@ class _DailyRankingCalendarPageState extends State<DailyRankingCalendarPage> {
               ),
               SizedBox(height: sectionGap * 0.8),
               _DailyPlayButton(
-                onPressed: () {
-                  widget.onStartDaily();
-                },
+                isLoading: _isLaunching,
+                onPressed: _handleStartDaily,
               ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Future<void> _handleStartDaily() async {
+    if (_isLaunching) {
+      return;
+    }
+
+    setState(() => _isLaunching = true);
+    try {
+      await widget.onStartDaily();
+    } finally {
+      if (mounted) {
+        setState(() => _isLaunching = false);
+      }
+    }
   }
 
   List<_CalendarCellData> _buildCurrentMonthCells() {
@@ -250,9 +299,13 @@ class _DailyRankingCalendarPageState extends State<DailyRankingCalendarPage> {
 }
 
 class _DailyPlayButton extends StatefulWidget {
-  const _DailyPlayButton({required this.onPressed});
+  const _DailyPlayButton({
+    required this.onPressed,
+    required this.isLoading,
+  });
 
-  final VoidCallback onPressed;
+  final Future<void> Function() onPressed;
+  final bool isLoading;
 
   @override
   State<_DailyPlayButton> createState() => _DailyPlayButtonState();
@@ -311,7 +364,11 @@ class _DailyPlayButtonState extends State<_DailyPlayButton>
         animation: _shimmer,
         builder: (context, child) {
           return ElevatedButton(
-            onPressed: widget.onPressed,
+            onPressed: widget.isLoading
+                ? null
+                : () {
+                    widget.onPressed();
+                  },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFF59E0B),
               foregroundColor: charcoalBlack,
@@ -336,13 +393,29 @@ class _DailyPlayButtonState extends State<_DailyPlayButton>
                   stops: const [0.0, 0.5, 1.0],
                 ).createShader(bounds);
               },
-              child: Text(
-                '오늘의 도전',
-                style: GoogleFonts.blackHanSans(
-                  fontSize: btnFs,
-                  letterSpacing: 0,
-                  color: charcoalBlack,
-                ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (widget.isLoading) ...[
+                    SizedBox(
+                      width: btnFs * 0.8,
+                      height: btnFs * 0.8,
+                      child: const CircularProgressIndicator(
+                        strokeWidth: 2.4,
+                        color: charcoalBlack,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                  ],
+                  Text(
+                    widget.isLoading ? '입장 중...' : '오늘의 도전',
+                    style: GoogleFonts.blackHanSans(
+                      fontSize: btnFs,
+                      letterSpacing: 0,
+                      color: charcoalBlack,
+                    ),
+                  ),
+                ],
               ),
             ),
           );
@@ -361,7 +434,8 @@ class _CalendarHeader extends StatelessWidget {
     final headerFs = (sw * 0.055).clamp(17.0, 26.0);
     final subFs = (sw * 0.035).clamp(11.0, 16.0);
     final today = KstClock.nowInKst();
-    final monthLabel = '${today.year}.${today.month.toString().padLeft(2, '0')}';
+    final monthLabel =
+        '${today.year}.${today.month.toString().padLeft(2, '0')}';
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -617,7 +691,8 @@ class _InlineDailyRankingPanel extends StatelessWidget {
         : (sw * 0.042).clamp(13.0, 17.0);
 
     return Container(
-      padding: EdgeInsets.fromLTRB(panelPad, panelPad, panelPad, panelPad * 0.4),
+      padding:
+          EdgeInsets.fromLTRB(panelPad, panelPad, panelPad, panelPad * 0.4),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(22),

@@ -43,21 +43,23 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   bool _isSharingReplay = false;
   int? _dailyRank;
   bool _isDailyRankLoading = false;
+  bool _isLeavingScreen = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    try {
-      _scoreController = Get.find<ScoreController>();
-    } catch (_) {
-      _scoreController = Get.put(ScoreController());
-    }
+    _scoreController = Get.find<ScoreController>();
 
     _scoreController.resetScore();
     _controller = HexGameController(sessionConfig: widget.sessionConfig);
     _controller.addListener(_handleControllerChanged);
     _browserBackBlocker.attach();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        unawaited(AudioService().startBGM());
+      }
+    });
   }
 
   @override
@@ -246,8 +248,9 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                                 onRestart: _restartGame,
                                 onReplay: _replayGame,
                                 onShare: _shareReplay,
-                                onHome: () =>
-                                    Get.offAll(() => const HomeScreen()),
+                                onHome: () {
+                                  unawaited(_goHome());
+                                },
                                 onRanking: _openRanking,
                                 isSharing: _isSharingReplay,
                               ),
@@ -344,7 +347,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         colorText: Colors.white,
         duration: const Duration(seconds: 3),
       );
-      Get.offAll(() => const HomeScreen());
+      unawaited(_goHome());
       return;
     }
 
@@ -409,10 +412,21 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       return;
     }
 
-    if (dailyResult == DailySubmissionResult.success &&
+    if (!_isLeavingScreen &&
+        dailyResult == DailySubmissionResult.success &&
         Get.isBottomSheetOpen != true) {
       _openRanking();
     }
+  }
+
+  Future<void> _goHome() async {
+    if (_isLeavingScreen || !mounted) {
+      return;
+    }
+
+    _isLeavingScreen = true;
+    Get.closeAllSnackbars();
+    await Get.offAll(() => const HomeScreen());
   }
 
   Future<DailySubmissionResult> _submitDailyScoreIfNeeded({

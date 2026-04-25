@@ -3,7 +3,7 @@ part of 'package:hexor/controllers/score_controller.dart';
 void _bindScoreAuthState(ScoreController controller) {
   final authService = Get.find<AuthService>();
   controller._authWorker?.dispose();
-  controller._authWorker = ever(authService.user, (user) {
+  void handleUserChange(dynamic user) {
     if (controller.isClosed) {
       return;
     }
@@ -14,7 +14,10 @@ void _bindScoreAuthState(ScoreController controller) {
     } else {
       _onUserLogout(controller);
     }
-  });
+  }
+
+  controller._authWorker = ever(authService.user, handleUserChange);
+  handleUserChange(authService.user.value);
 }
 
 Future<void> _onUserLogin(ScoreController controller, String userId) async {

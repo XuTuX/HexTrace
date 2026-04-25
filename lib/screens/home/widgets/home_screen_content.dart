@@ -85,6 +85,7 @@ class _HomeScreenContentState extends State<HomeScreenContent> {
                         onStartDaily: widget.onStartDaily,
                         onShowDailyRanking: widget.onShowDailyRanking,
                         onRankingTap: widget.onRankingTap,
+                        isVisible: _pageIndex == 1,
                       ),
                     ],
                   ),
@@ -422,9 +423,8 @@ class _HomePageTabs extends StatelessWidget {
                     curve: Curves.easeOutCubic,
                     height: 44,
                     decoration: BoxDecoration(
-                      color: isActive
-                          ? activeColors[index]
-                          : Colors.transparent,
+                      color:
+                          isActive ? activeColors[index] : Colors.transparent,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     alignment: Alignment.center,
