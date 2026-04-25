@@ -37,8 +37,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkNicknameRequirement();
+      unawaited(AudioService().startHomeBGM());
     });
-    unawaited(AudioService().startHomeBGM());
   }
 
   @override
