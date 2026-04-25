@@ -10,10 +10,12 @@ class WeeklyRankingPreview extends StatefulWidget {
     super.key,
     required this.onViewAll,
     this.isAllTime = false,
+    this.limit = 5,
   });
 
   final VoidCallback onViewAll;
   final bool isAllTime;
+  final int limit;
 
   @override
   State<WeeklyRankingPreview> createState() => _WeeklyRankingPreviewState();
@@ -33,8 +35,8 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
     try {
       final dbService = Get.find<DatabaseService>();
       final scores = await (widget.isAllTime
-              ? dbService.getAllTimeLeaderboard(gameId, limit: 6)
-              : dbService.getWeeklyLeaderboard(gameId, limit: 6))
+              ? dbService.getAllTimeLeaderboard(gameId, limit: widget.limit)
+              : dbService.getWeeklyLeaderboard(gameId, limit: widget.limit))
           .catchError((e) {
         debugPrint('🔴 [WeeklyRankingPreview] Error: $e');
         return <Map<String, dynamic>>[];
@@ -45,7 +47,7 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
       }
 
       setState(() {
-        _topScores = List<Map<String, dynamic>>.from(scores.take(6));
+        _topScores = List<Map<String, dynamic>>.from(scores.take(widget.limit));
         _isLoading = false;
       });
     } catch (_) {
@@ -95,7 +97,7 @@ class _WeeklyRankingPreviewState extends State<WeeklyRankingPreview> {
             child: Row(
               children: [
                 Text(
-                  '랭킹',
+                  widget.isAllTime ? '전체 랭킹' : '주간 랭킹',
                   style: GoogleFonts.blackHanSans(
                     fontSize: headerFs,
                     color: charcoalBlack,

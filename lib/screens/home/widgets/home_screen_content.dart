@@ -181,9 +181,10 @@ class _HomeDashboardPage extends StatelessWidget {
                             authService: authService,
                           ),
                           SizedBox(height: sectionGap + 10),
-                          // Ranking TOP 3
+                          // Weekly Ranking Preview
                           WeeklyRankingPreview(
-                            isAllTime: true,
+                            isAllTime: false,
+                            limit: isTablet ? 7 : 5,
                             onViewAll: onRankingTap,
                           ),
                           SizedBox(height: sectionGap * 0.8),
