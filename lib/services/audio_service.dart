@@ -10,14 +10,20 @@ class AudioService {
   static const double _homeBgmVolume = 0.18;
   static const double _clearSfxVolume = 0.36;
   static const double _clickSfxVolume = 0.36;
+  static const int _clickSfxMinPlayers = 6;
+  static const int _clickSfxMaxPlayers = 8;
+  static const int _clearSfxMinPlayers = 2;
+  static const int _clearSfxMaxPlayers = 3;
 
   static final AudioService _instance = AudioService._internal();
   factory AudioService() => _instance;
   AudioService._internal();
 
   final AudioPlayer _bgmPlayer = AudioPlayer();
-  final AudioPlayer _sfxPlayer = AudioPlayer();
-  final Set<AudioPlayer> _notePlayers = <AudioPlayer>{};
+  AudioPool? _clickSfxPool;
+  AudioPool? _clearSfxPool;
+  Future<void> _bgmOperation = Future<void>.value();
+  Future<void>? _sfxPoolsReady;
 
   bool _isBgmEnabled = true;
   bool _isSfxEnabled = true;
@@ -36,14 +42,17 @@ class AudioService {
       await AudioPlayer.global.setAudioContext(AudioContextConfig(
         route: AudioContextConfigRoute.system,
         focus: AudioContextConfigFocus.mixWithOthers,
-        respectSilence: true,
+        respectSilence: false,
         stayAwake: false,
       ).build());
 
       await _bgmPlayer.setReleaseMode(ReleaseMode.loop);
       await _bgmPlayer.setVolume(_currentBgmVolume);
-      await _sfxPlayer.setVolume(_clearSfxVolume);
     });
+
+    if (_isSfxEnabled) {
+      await _ensureSfxPools();
+    }
   }
 
   Future<void> startBGM() async {
@@ -72,7 +81,7 @@ class AudioService {
     _currentBgmAsset = asset;
     _currentBgmVolume = volume;
     if (!_isBgmEnabled) {
-      await _runSafely('stop disabled BGM', _bgmPlayer.stop);
+      await _queueBgmOperation('stop disabled BGM', _bgmPlayer.stop);
       return;
     }
 
@@ -82,7 +91,7 @@ class AudioService {
   Future<void> stopBGM() async {
     _shouldPlayBgm = false;
     _isBgmPausedByLifecycle = false;
-    await _runSafely('stop BGM', _bgmPlayer.stop);
+    await _queueBgmOperation('stop BGM', _bgmPlayer.stop);
   }
 
   Future<void> pauseBGM() async {
@@ -91,14 +100,15 @@ class AudioService {
     }
 
     _isBgmPausedByLifecycle = true;
-    await _runSafely('pause BGM', _bgmPlayer.pause);
+    await _queueBgmOperation('pause BGM', () async {
+      if (_shouldPlayBgm && _isBgmPausedByLifecycle) {
+        await _bgmPlayer.pause();
+      }
+    });
   }
 
   Future<void> resumeBGMIfNeeded() async {
-    if (!_shouldPlayBgm ||
-        !_isBgmEnabled ||
-        !_isBgmPausedByLifecycle ||
-        _currentBgmAsset == null) {
+    if (!_shouldPlayBgm || !_isBgmEnabled || _currentBgmAsset == null) {
       return;
     }
 
@@ -111,11 +121,20 @@ class AudioService {
       return;
     }
 
-    await _runSafely('play clear sound', () async {
-      await _sfxPlayer.stop();
-      await _sfxPlayer.setVolume(_clearSfxVolume);
-      await _sfxPlayer.play(AssetSource(_clearSfxAsset));
-    });
+    await _ensureSfxPools();
+    if (!_isSfxEnabled) {
+      return;
+    }
+
+    final pool = _clearSfxPool;
+    if (pool == null) {
+      return;
+    }
+
+    await _runSafely(
+      'play clear sound',
+      () => pool.start(volume: _clearSfxVolume),
+    );
   }
 
   Future<void> playNote(int index) async {
@@ -123,30 +142,27 @@ class AudioService {
       return;
     }
 
-    final player = AudioPlayer();
-    _notePlayers.add(player);
-    player.onPlayerComplete.listen((_) async {
-      _notePlayers.remove(player);
-      await _runSafely('dispose completed note player', player.dispose);
-    });
-
-    try {
-      await player.setPlayerMode(PlayerMode.lowLatency);
-      await player.setVolume(_clickSfxVolume);
-      await player.play(AssetSource(_clickSfxAsset));
-    } catch (error, stackTrace) {
-      debugPrint('AudioService failed to play click sound: $error');
-      debugPrintStack(stackTrace: stackTrace);
-      _notePlayers.remove(player);
-      await _runSafely('dispose failed note player', player.dispose);
+    await _ensureSfxPools();
+    if (!_isSfxEnabled) {
+      return;
     }
+
+    final pool = _clickSfxPool;
+    if (pool == null) {
+      return;
+    }
+
+    await _runSafely(
+      'play click sound',
+      () => pool.start(volume: _clickSfxVolume),
+    );
   }
 
   Future<void> setBgmEnabled(bool enabled) async {
     _isBgmEnabled = enabled;
     if (!enabled) {
       _isBgmPausedByLifecycle = false;
-      await _runSafely('stop disabled BGM', _bgmPlayer.stop);
+      await _queueBgmOperation('stop disabled BGM', _bgmPlayer.stop);
       return;
     }
 
@@ -158,37 +174,111 @@ class AudioService {
 
   Future<void> setSfxEnabled(bool enabled) async {
     _isSfxEnabled = enabled;
-    if (enabled) {
+    if (!enabled) {
+      await _disposeSfxPools();
       return;
     }
 
-    await _runSafely('stop clear sound player', _sfxPlayer.stop);
-    await _stopActiveNotes();
+    await _ensureSfxPools();
   }
 
   Future<void> _playBackgroundBgm(String action) async {
-    final asset = _currentBgmAsset;
-    if (asset == null) {
+    if (_currentBgmAsset == null) {
       return;
     }
 
-    await _runSafely(action, () async {
+    await _queueBgmOperation(action, () async {
+      final asset = _currentBgmAsset;
+      if (!_shouldPlayBgm || !_isBgmEnabled || asset == null) {
+        return;
+      }
+
       await _bgmPlayer.stop();
       await _bgmPlayer.setVolume(_currentBgmVolume);
       await _bgmPlayer.play(AssetSource(asset));
     });
   }
 
-  Future<void> _stopActiveNotes() async {
-    final players = List<AudioPlayer>.from(_notePlayers);
-    _notePlayers.clear();
+  Future<void> _queueBgmOperation(
+    String action,
+    Future<void> Function() operation,
+  ) {
+    _bgmOperation = _bgmOperation.then((_) {
+      return _runSafely(action, operation);
+    });
+    return _bgmOperation;
+  }
 
-    for (final player in players) {
-      await _runSafely('stop active note player', () async {
-        await player.stop();
-        await player.dispose();
-      });
+  Future<void> _ensureSfxPools() {
+    if (!_isSfxEnabled) {
+      return Future<void>.value();
     }
+
+    if (_clickSfxPool != null && _clearSfxPool != null) {
+      return Future<void>.value();
+    }
+
+    final pending = _sfxPoolsReady;
+    if (pending != null) {
+      return pending;
+    }
+
+    late final Future<void> ready;
+    ready = _createSfxPools().whenComplete(() {
+      if (identical(_sfxPoolsReady, ready)) {
+        _sfxPoolsReady = null;
+      }
+    });
+    _sfxPoolsReady = ready;
+    return ready;
+  }
+
+  Future<void> _createSfxPools() async {
+    await _runSafely('preload SFX players', () async {
+      final clickPool = await AudioPool.createFromAsset(
+        path: _clickSfxAsset,
+        minPlayers: _clickSfxMinPlayers,
+        maxPlayers: _clickSfxMaxPlayers,
+      );
+      AudioPool? clearPool;
+
+      try {
+        clearPool = await AudioPool.createFromAsset(
+          path: _clearSfxAsset,
+          minPlayers: _clearSfxMinPlayers,
+          maxPlayers: _clearSfxMaxPlayers,
+        );
+      } catch (_) {
+        await clickPool.dispose();
+        rethrow;
+      }
+
+      if (!_isSfxEnabled) {
+        await Future.wait([
+          clickPool.dispose(),
+          clearPool.dispose(),
+        ]);
+        return;
+      }
+
+      await _disposeSfxPools();
+      _clickSfxPool = clickPool;
+      _clearSfxPool = clearPool;
+    });
+  }
+
+  Future<void> _disposeSfxPools() async {
+    final clickPool = _clickSfxPool;
+    final clearPool = _clearSfxPool;
+    _clickSfxPool = null;
+    _clearSfxPool = null;
+
+    await _runSafely('dispose SFX players', () async {
+      await Future.wait([
+        if (clickPool != null) clickPool.dispose(),
+        if (clearPool != null) clearPool.dispose(),
+      ]);
+    });
   }
 
   Future<void> _runSafely(
