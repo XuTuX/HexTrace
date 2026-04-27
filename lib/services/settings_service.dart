@@ -7,16 +7,19 @@ class SettingsService extends GetxService {
   final RxBool isHapticsOn = true.obs;
   final RxBool isBgmOn = true.obs;
   final RxBool isSfxOn = true.obs;
+  final RxBool hasCompletedTutorial = false.obs;
 
   static const String _hapticsKey = 'haptics_enabled';
   static const String _bgmKey = 'bgm_enabled';
   static const String _sfxKey = 'sfx_enabled';
+  static const String _tutorialKey = 'tutorial_completed';
 
   Future<SettingsService> init() async {
     final prefs = await SharedPreferences.getInstance();
     isHapticsOn.value = prefs.getBool(_hapticsKey) ?? true;
     isBgmOn.value = prefs.getBool(_bgmKey) ?? true;
     isSfxOn.value = prefs.getBool(_sfxKey) ?? true;
+    hasCompletedTutorial.value = prefs.getBool(_tutorialKey) ?? false;
     return this;
   }
 
@@ -38,5 +41,11 @@ class SettingsService extends GetxService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_sfxKey, isSfxOn.value);
     await AudioService().setSfxEnabled(isSfxOn.value);
+  }
+
+  Future<void> completeTutorial() async {
+    hasCompletedTutorial.value = true;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_tutorialKey, true);
   }
 }

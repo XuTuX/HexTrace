@@ -204,6 +204,7 @@ class ColorBarPanel extends StatelessWidget {
           AnimatedColorStream(
             entries: controller.colorBar,
             highlightedWindows: controller.activeBarWindows,
+            tutorialHighlightedIndices: controller.tutorialBarHighlight,
           ),
         ],
       ),

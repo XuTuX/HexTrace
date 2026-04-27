@@ -6,6 +6,8 @@ import 'package:get/get.dart';
 import 'package:hexor/controllers/score_controller.dart';
 import 'package:hexor/services/auth_service.dart';
 import 'package:hexor/services/audio_service.dart';
+import 'package:hexor/services/settings_service.dart';
+import 'package:hexor/game/hex_game_models.dart';
 
 import 'home_screen_flows.dart';
 import 'widgets/home_screen_content.dart';
@@ -98,7 +100,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       scoreController: scoreController,
       authService: authService,
       onSettingsTap: () => showSettingsScreen(authService),
-      onStartGame: () => openGameScreen(),
+      onStartGame: () {
+        final settings = Get.find<SettingsService>();
+        if (!settings.hasCompletedTutorial.value) {
+          openGameScreen(const GameSessionConfig(mode: GameMode.tutorial));
+        } else {
+          openGameScreen();
+        }
+      },
       onStartDaily: () => openDailyChallenge(authService),
       onStartDailyTest: openDailyChallengeTest,
       onShowDailyRanking: () {

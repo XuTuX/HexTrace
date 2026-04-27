@@ -18,6 +18,8 @@ class HexBoardPainter extends CustomPainter {
     required this.animatedTiles,
     required this.refillProgress,
     required this.pressProgress,
+    this.tutorialHighlights = const {},
+    this.tutorialPathHint,
   });
 
   final HexBoardLayout layout;
@@ -28,6 +30,8 @@ class HexBoardPainter extends CustomPainter {
   final Set<HexCoord> animatedTiles;
   final double refillProgress;
   final Map<HexCoord, double> pressProgress;
+  final Set<HexCoord> tutorialHighlights;
+  final List<HexCoord>? tutorialPathHint;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -86,8 +90,10 @@ class HexBoardPainter extends CustomPainter {
           gameColor: board[row][col],
           opacity: isAnimated ? opacity : 1,
           scale: isAnimated ? scale : 1,
-          borderColor: charcoalBlack,
-          borderWidth: 2.5,
+          borderColor: tutorialHighlights.contains(coord)
+              ? Colors.white
+              : charcoalBlack,
+          borderWidth: tutorialHighlights.contains(coord) ? 5.0 : 2.5,
           coreAlpha: 0.12 + (0.68 * pressVal),
           isClearing: clearingSet.contains(coord),
           pressVal: pressVal,
@@ -115,6 +121,29 @@ class HexBoardPainter extends CustomPainter {
           ..strokeCap = StrokeCap.round
           ..strokeJoin = StrokeJoin.round
           ..color = dragColor,
+      );
+    }
+
+    if (tutorialPathHint != null && tutorialPathHint!.length > 1) {
+      final line = Path()
+        ..moveTo(
+          layout.centers[tutorialPathHint!.first]!.dx,
+          layout.centers[tutorialPathHint!.first]!.dy + 6,
+        );
+
+      for (var index = 1; index < tutorialPathHint!.length; index++) {
+        final point = layout.centers[tutorialPathHint![index]]!;
+        line.lineTo(point.dx, point.dy + 6);
+      }
+
+      canvas.drawPath(
+        line,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = layout.radius * 0.15
+          ..strokeCap = StrokeCap.round
+          ..strokeJoin = StrokeJoin.round
+          ..color = Colors.white.withValues(alpha: 0.8),
       );
     }
 
@@ -219,6 +248,8 @@ class HexBoardPainter extends CustomPainter {
         oldDelegate.layout.height != layout.height ||
         oldDelegate.animatedTiles != animatedTiles ||
         oldDelegate.refillProgress != refillProgress ||
-        oldDelegate.pressProgress != pressProgress;
+        oldDelegate.pressProgress != pressProgress ||
+        oldDelegate.tutorialHighlights != tutorialHighlights ||
+        oldDelegate.tutorialPathHint != tutorialPathHint;
   }
 }

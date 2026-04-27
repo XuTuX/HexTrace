@@ -4,6 +4,7 @@ class _AnimatedColorStreamView extends StatelessWidget {
   const _AnimatedColorStreamView({
     required this.entries,
     required this.highlightedWindows,
+    required this.tutorialHighlightedIndices,
     required this.visualEntries,
     required this.moveDuration,
   });
@@ -12,12 +13,17 @@ class _AnimatedColorStreamView extends StatelessWidget {
 
   final List<ColorBarEntry> entries;
   final List<BarWindow> highlightedWindows;
+  final Set<int> tutorialHighlightedIndices;
   final List<_VisualBarEntry> visualEntries;
   final Duration moveDuration;
 
   @override
   Widget build(BuildContext context) {
     final highlightedIds = _highlightedEntryIds(entries, highlightedWindows);
+    final tutorialHighlightedIds = entries.asMap().entries
+        .where((e) => tutorialHighlightedIndices.contains(e.key))
+        .map((e) => e.value.id)
+        .toSet();
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -33,6 +39,8 @@ class _AnimatedColorStreamView extends StatelessWidget {
             children: visualEntries.map((visual) {
               final isFirst = visual.index <= 0.1;
               final isLast = visual.index >= entries.length - 1 - 0.1;
+
+              final isTutorialHighlighted = tutorialHighlightedIds.contains(visual.entry.id);
 
               return AnimatedPositioned(
                 key: ValueKey<int>(visual.entry.id),
@@ -53,9 +61,10 @@ class _AnimatedColorStreamView extends StatelessWidget {
                     child: _ColorStreamSlot(
                       color: visual.entry.color,
                       highlighted: !visual.removing &&
-                          highlightedIds.contains(visual.entry.id),
+                          (highlightedIds.contains(visual.entry.id) || isTutorialHighlighted),
                       isFirst: isFirst,
                       isLast: isLast,
+                      tutorialMode: isTutorialHighlighted,
                     ),
                   ),
                 ),
@@ -102,12 +111,14 @@ class _ColorStreamSlot extends StatelessWidget {
     required this.highlighted,
     required this.isFirst,
     required this.isLast,
+    this.tutorialMode = false,
   });
 
   final GameColor color;
   final bool highlighted;
   final bool isFirst;
   final bool isLast;
+  final bool tutorialMode;
 
   @override
   Widget build(BuildContext context) {
@@ -130,8 +141,8 @@ class _ColorStreamSlot extends StatelessWidget {
         color: fill,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: charcoalBlack,
-          width: 2.0,
+          color: tutorialMode ? Colors.white : charcoalBlack,
+          width: tutorialMode ? 3.0 : 2.0,
         ),
         boxShadow: [
           BoxShadow(

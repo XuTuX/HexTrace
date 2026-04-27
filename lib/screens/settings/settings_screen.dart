@@ -6,7 +6,8 @@ import 'package:hexor/services/auth_service.dart';
 import 'package:hexor/services/database_service.dart';
 import 'package:hexor/services/settings_service.dart';
 import 'package:hexor/widgets/dialogs/edit_nickname_dialog.dart';
-import 'package:hexor/widgets/dialogs/tutorial_dialog.dart';
+import 'package:hexor/game/hex_game_models.dart';
+import 'package:hexor/screens/home/home_screen_flows.dart';
 import 'package:hexor/widgets/home_screen/background_painter.dart';
 import 'package:hexor/widgets/home_screen/login_sheet.dart';
 
@@ -126,10 +127,7 @@ class SettingsScreen extends StatelessWidget {
   }
 
   void _showTutorialDialog(BuildContext context) {
-    Get.dialog(
-      const TutorialDialog(),
-      barrierColor: Colors.black.withValues(alpha: 0.8),
-    );
+    openGameScreen(const GameSessionConfig(mode: GameMode.tutorial));
   }
 
   void _showEditNicknameDialog(

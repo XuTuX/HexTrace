@@ -11,10 +11,12 @@ class AnimatedColorStream extends StatefulWidget {
     super.key,
     required this.entries,
     required this.highlightedWindows,
+    this.tutorialHighlightedIndices = const {},
   });
 
   final List<ColorBarEntry> entries;
   final List<BarWindow> highlightedWindows;
+  final Set<int> tutorialHighlightedIndices;
 
   @override
   State<AnimatedColorStream> createState() => _AnimatedColorStreamState();
@@ -123,6 +125,7 @@ class _AnimatedColorStreamState extends State<AnimatedColorStream> {
     return _AnimatedColorStreamView(
       entries: widget.entries,
       highlightedWindows: widget.highlightedWindows,
+      tutorialHighlightedIndices: widget.tutorialHighlightedIndices,
       visualEntries: _visualEntries.values.toList(growable: false),
       moveDuration: _moveDuration,
     );

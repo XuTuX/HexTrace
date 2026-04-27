@@ -13,6 +13,7 @@ import '../services/audio_service.dart';
 import '../services/database_service.dart';
 import '../services/daily_submission_service.dart';
 import '../services/replay_share_service.dart';
+import '../services/settings_service.dart';
 import '../utils/app_snackbar.dart';
 import '../utils/browser_back_blocker.dart';
 import '../widgets/dialogs/share_preview_dialog.dart';
@@ -59,6 +60,14 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         unawaited(AudioService().startBGM());
+        final settings = Get.find<SettingsService>();
+        if (!settings.hasCompletedTutorial.value &&
+            !_controller.isReplaying &&
+            !_controller.sessionConfig.isDailyMode) {
+          _controller.startTutorial();
+        } else if (_controller.sessionConfig.isTutorialMode) {
+          _controller.startTutorial();
+        }
       }
     });
   }
@@ -253,6 +262,76 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                                 },
                                 onRanking: _openRanking,
                                 isSharing: _isSharingReplay,
+                              ),
+                            ),
+                          if (_controller.isTutorialMode &&
+                              _controller.tutorialMessage != null)
+                            Positioned(
+                              left: 20,
+                              right: 20,
+                              bottom: 40,
+                              child: TweenAnimationBuilder<double>(
+                                key: ValueKey(_controller.tutorialStepIndex),
+                                duration: const Duration(milliseconds: 400),
+                                tween: Tween(begin: 0.0, end: 1.0),
+                                curve: Curves.easeOutBack,
+                                builder: (context, value, child) {
+                                  return Transform.scale(
+                                    scale: 0.8 + (0.2 * value),
+                                    child: Opacity(
+                                      opacity: value.clamp(0.0, 1.0),
+                                      child: child,
+                                    ),
+                                  );
+                                },
+                                child: GestureDetector(
+                                  onTap: _controller.tutorialRequiresInteraction
+                                      ? null
+                                      : _controller.nextTutorialStep,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(20),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(
+                                        color: charcoalBlack,
+                                        width: 2,
+                                      ),
+                                      boxShadow: const [
+                                        BoxShadow(
+                                          color: Color(0x261A1A1A),
+                                          offset: Offset(0, 4),
+                                          blurRadius: 0,
+                                        ),
+                                      ],
+                                    ),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          _controller.tutorialMessage!,
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: charcoalBlack,
+                                          ),
+                                        ),
+                                        if (!_controller
+                                            .tutorialRequiresInteraction) ...[
+                                          const SizedBox(height: 12),
+                                          const Text(
+                                            '터치해서 계속하기',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.black45,
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
                         ],

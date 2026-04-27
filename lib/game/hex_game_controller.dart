@@ -2,10 +2,12 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import 'hex_game_models.dart';
 import '../services/app_haptics.dart';
 import '../services/audio_service.dart';
+import '../services/settings_service.dart';
 
 export 'hex_game_models.dart';
 
@@ -13,6 +15,7 @@ part 'hex_game/hex_game_drag.dart';
 part 'hex_game/hex_game_generation.dart';
 part 'hex_game/hex_game_matching.dart';
 part 'hex_game/hex_game_round.dart';
+part 'hex_game/hex_game_tutorial.dart';
 
 class HexGameController extends ChangeNotifier {
   HexGameController({
@@ -66,6 +69,15 @@ class HexGameController extends ChangeNotifier {
 
   String statusText = '';
   GameMessageTone statusTone = GameMessageTone.info;
+
+  int tutorialStepIndex = 0;
+  String? tutorialMessage;
+  Set<HexCoord> tutorialHighlights = const {};
+  List<HexCoord>? tutorialPathHint;
+
+  bool get isTutorialMode => sessionConfig.isTutorialMode || tutorialMessage != null;
+  bool tutorialRequiresInteraction = false;
+  Set<int> tutorialBarHighlight = const {};
 
   DateTime? _lastTimeFlashAt;
   DateTime? get lastTimeFlashAt => _lastTimeFlashAt;
@@ -233,6 +245,14 @@ class HexGameController extends ChangeNotifier {
 
   void syncTimer() {
     _syncTimerState(this);
+  }
+
+  void startTutorial() {
+    _startTutorial(this);
+  }
+
+  void nextTutorialStep() {
+    _nextTutorialStep(this);
   }
 
   @override

@@ -188,6 +188,8 @@ class _HexBoardViewState extends State<HexBoardView>
                   animatedTiles: widget.controller.animatedTiles,
                   refillProgress: _refillController.value,
                   pressProgress: _pressProgress,
+                  tutorialHighlights: widget.controller.tutorialHighlights,
+                  tutorialPathHint: widget.controller.tutorialPathHint,
                 ),
                 size: Size.infinite,
               );

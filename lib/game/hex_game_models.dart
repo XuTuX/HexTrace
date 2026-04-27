@@ -27,7 +27,7 @@ enum DragState { idle, building, valid, invalid }
 
 enum GameMessageTone { info, success, warning, error }
 
-enum GameMode { normal, dailyPractice, dailyOfficial, replay }
+enum GameMode { normal, dailyPractice, dailyOfficial, replay, tutorial }
 
 @immutable
 class GameSessionConfig {
@@ -52,6 +52,7 @@ class GameSessionConfig {
   final String? weekKey;
   final bool isOfficialScoreSubmission;
 
+  bool get isTutorialMode => mode == GameMode.tutorial;
   bool get isDailyMode =>
       mode == GameMode.dailyPractice || mode == GameMode.dailyOfficial;
 
@@ -62,6 +63,7 @@ class GameSessionConfig {
         GameMode.dailyPractice => '오늘의 퍼즐 연습',
         GameMode.dailyOfficial => '오늘의 퍼즐',
         GameMode.replay => '리플레이',
+        GameMode.tutorial => '튜토리얼',
       };
 }
 
