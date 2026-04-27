@@ -7,9 +7,14 @@ import '../../services/settings_service.dart';
 import 'animated_color_stream.dart';
 
 class GameHud extends StatelessWidget {
-  const GameHud({super.key, required this.controller});
+  const GameHud({
+    super.key,
+    required this.controller,
+    this.tutorialAnimValue = 0.0,
+  });
 
   final HexGameController controller;
+  final double tutorialAnimValue;
 
   @override
   Widget build(BuildContext context) {
@@ -95,6 +100,7 @@ class GameHud extends StatelessWidget {
           const SizedBox(height: 16),
           ColorBarPanel(
             controller: controller,
+            tutorialAnimValue: tutorialAnimValue,
           ),
         ],
       ),
@@ -162,9 +168,11 @@ class ColorBarPanel extends StatelessWidget {
   const ColorBarPanel({
     super.key,
     required this.controller,
+    this.tutorialAnimValue = 0.0,
   });
 
   final HexGameController controller;
+  final double tutorialAnimValue;
 
   @override
   Widget build(BuildContext context) {
@@ -205,6 +213,7 @@ class ColorBarPanel extends StatelessWidget {
             entries: controller.colorBar,
             highlightedWindows: controller.activeBarWindows,
             tutorialHighlightedIndices: controller.tutorialBarHighlight,
+            tutorialAnimValue: tutorialAnimValue,
           ),
         ],
       ),

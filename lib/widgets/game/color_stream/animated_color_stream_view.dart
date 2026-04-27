@@ -5,6 +5,7 @@ class _AnimatedColorStreamView extends StatelessWidget {
     required this.entries,
     required this.highlightedWindows,
     required this.tutorialHighlightedIndices,
+    required this.tutorialAnimValue,
     required this.visualEntries,
     required this.moveDuration,
   });
@@ -14,6 +15,7 @@ class _AnimatedColorStreamView extends StatelessWidget {
   final List<ColorBarEntry> entries;
   final List<BarWindow> highlightedWindows;
   final Set<int> tutorialHighlightedIndices;
+  final double tutorialAnimValue;
   final List<_VisualBarEntry> visualEntries;
   final Duration moveDuration;
 
@@ -41,6 +43,17 @@ class _AnimatedColorStreamView extends StatelessWidget {
               final isLast = visual.index >= entries.length - 1 - 0.1;
 
               final isTutorialHighlighted = tutorialHighlightedIds.contains(visual.entry.id);
+              
+              int? tutorialStepNumber;
+              if (isTutorialHighlighted) {
+                // Find index in the sorted list of highlighted indices
+                final sortedIndices = tutorialHighlightedIndices.toList()..sort();
+                final currentIdx = entries.indexWhere((e) => e.id == visual.entry.id);
+                final order = sortedIndices.indexOf(currentIdx);
+                if (order != -1) {
+                  tutorialStepNumber = order + 1;
+                }
+              }
 
               return AnimatedPositioned(
                 key: ValueKey<int>(visual.entry.id),
@@ -65,6 +78,8 @@ class _AnimatedColorStreamView extends StatelessWidget {
                       isFirst: isFirst,
                       isLast: isLast,
                       tutorialMode: isTutorialHighlighted,
+                      tutorialAnimValue: tutorialAnimValue,
+                      tutorialNumber: tutorialStepNumber,
                     ),
                   ),
                 ),
@@ -112,6 +127,8 @@ class _ColorStreamSlot extends StatelessWidget {
     required this.isFirst,
     required this.isLast,
     this.tutorialMode = false,
+    this.tutorialAnimValue = 0.0,
+    this.tutorialNumber,
   });
 
   final GameColor color;
@@ -119,15 +136,23 @@ class _ColorStreamSlot extends StatelessWidget {
   final bool isFirst;
   final bool isLast;
   final bool tutorialMode;
+  final double tutorialAnimValue;
+  final int? tutorialNumber;
 
   @override
   Widget build(BuildContext context) {
     final fill = GamePalette.colorFor(color);
-    final topMargin = highlighted ? 1.5 : 0.0;
-    final leftMargin = highlighted ? 1.5 : 0.0;
-    final bottomMargin = highlighted ? 0.0 : 1.5;
-    final rightMargin = highlighted ? 0.0 : 1.5;
-    final shadowDepth = highlighted ? 0.0 : 1.5;
+    
+    // Regular highlight (pressed state)
+    final isPressed = highlighted && !tutorialMode;
+    
+    final topMargin = isPressed ? 1.5 : 0.0;
+    final leftMargin = isPressed ? 1.5 : 0.0;
+    final bottomMargin = isPressed ? 0.0 : 1.5;
+    final rightMargin = isPressed ? 0.0 : 1.5;
+    final shadowDepth = isPressed ? 0.0 : 1.5;
+
+    final pulse = tutorialMode ? (math.sin(tutorialAnimValue * math.pi * 2).abs()) : 0.0;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 120),
@@ -141,10 +166,18 @@ class _ColorStreamSlot extends StatelessWidget {
         color: fill,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: tutorialMode ? Colors.white : charcoalBlack,
-          width: tutorialMode ? 3.0 : 2.0,
+          color: tutorialMode 
+            ? Colors.white.withValues(alpha: 0.8 + (0.2 * pulse)) 
+            : charcoalBlack,
+          width: tutorialMode ? 2.5 + (1.5 * pulse) : 2.0,
         ),
         boxShadow: [
+          if (tutorialMode)
+            BoxShadow(
+              color: Colors.white.withValues(alpha: 0.5 * pulse),
+              blurRadius: 10 * pulse,
+              spreadRadius: 2 * pulse,
+            ),
           BoxShadow(
             color: charcoalBlack,
             offset: Offset(shadowDepth, shadowDepth),
@@ -153,24 +186,41 @@ class _ColorStreamSlot extends StatelessWidget {
         ],
       ),
       child: Center(
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 120),
-          width: highlighted ? 10 : 6,
-          height: highlighted ? 10 : 6,
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: highlighted ? 0.8 : 0.25),
-            shape: BoxShape.circle,
-            boxShadow: highlighted
-                ? [
-                    BoxShadow(
-                      color: Colors.white.withValues(alpha: 0.4),
-                      blurRadius: 4,
-                      spreadRadius: 1,
+        child: tutorialNumber != null
+            ? Text(
+                '$tutorialNumber',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 16,
+                  shadows: [
+                    Shadow(
+                      color: Colors.black26,
+                      offset: Offset(1, 1),
+                      blurRadius: 2,
                     ),
-                  ]
-                : null,
-          ),
-        ),
+                  ],
+                ),
+              )
+            : AnimatedContainer(
+                duration: const Duration(milliseconds: 120),
+                width: highlighted ? 10 : 6,
+                height: highlighted ? 10 : 6,
+                decoration: BoxDecoration(
+                  color:
+                      Colors.white.withValues(alpha: highlighted ? 0.8 : 0.25),
+                  shape: BoxShape.circle,
+                  boxShadow: highlighted
+                      ? [
+                          BoxShadow(
+                            color: Colors.white.withValues(alpha: 0.4),
+                            blurRadius: 4,
+                            spreadRadius: 1,
+                          ),
+                        ]
+                      : null,
+                ),
+              ),
       ),
     );
   }

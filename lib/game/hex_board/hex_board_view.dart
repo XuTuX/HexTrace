@@ -9,9 +9,14 @@ import 'hex_board_layout.dart';
 import 'hex_board_painter.dart';
 
 class HexBoardView extends StatefulWidget {
-  const HexBoardView({super.key, required this.controller});
+  const HexBoardView({
+    super.key,
+    required this.controller,
+    this.tutorialAnimation,
+  });
 
   final HexGameController controller;
+  final Animation<double>? tutorialAnimation;
 
   @override
   State<HexBoardView> createState() => _HexBoardViewState();
@@ -176,7 +181,11 @@ class _HexBoardViewState extends State<HexBoardView>
           onPanEnd: _handlePanEnd,
           onPanCancel: _handlePanCancel,
           child: AnimatedBuilder(
-            animation: Listenable.merge([widget.controller, _refillController]),
+            animation: Listenable.merge([
+              widget.controller,
+              _refillController,
+              if (widget.tutorialAnimation != null) widget.tutorialAnimation!,
+            ]),
             builder: (context, _) {
               return CustomPaint(
                 painter: HexBoardPainter(
@@ -190,6 +199,7 @@ class _HexBoardViewState extends State<HexBoardView>
                   pressProgress: _pressProgress,
                   tutorialHighlights: widget.controller.tutorialHighlights,
                   tutorialPathHint: widget.controller.tutorialPathHint,
+                  tutorialAnimValue: widget.tutorialAnimation?.value ?? 0,
                 ),
                 size: Size.infinite,
               );

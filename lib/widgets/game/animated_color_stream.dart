@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import 'package:hexor/constant.dart';
@@ -12,11 +13,13 @@ class AnimatedColorStream extends StatefulWidget {
     required this.entries,
     required this.highlightedWindows,
     this.tutorialHighlightedIndices = const {},
+    this.tutorialAnimValue = 0.0,
   });
 
   final List<ColorBarEntry> entries;
   final List<BarWindow> highlightedWindows;
   final Set<int> tutorialHighlightedIndices;
+  final double tutorialAnimValue;
 
   @override
   State<AnimatedColorStream> createState() => _AnimatedColorStreamState();
@@ -81,6 +84,11 @@ class _AnimatedColorStreamState extends State<AnimatedColorStream> {
       changed = true;
     }
 
+    if (oldWidget.tutorialAnimValue != widget.tutorialAnimValue && 
+        widget.tutorialHighlightedIndices.isNotEmpty) {
+      changed = true;
+    }
+
     if (changed && mounted) {
       setState(() {});
     }
@@ -126,6 +134,7 @@ class _AnimatedColorStreamState extends State<AnimatedColorStream> {
       entries: widget.entries,
       highlightedWindows: widget.highlightedWindows,
       tutorialHighlightedIndices: widget.tutorialHighlightedIndices,
+      tutorialAnimValue: widget.tutorialAnimValue,
       visualEntries: _visualEntries.values.toList(growable: false),
       moveDuration: _moveDuration,
     );

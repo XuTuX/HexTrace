@@ -36,7 +36,8 @@ class GameScreen extends StatefulWidget {
   State<GameScreen> createState() => _GameScreenState();
 }
 
-class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
+class _GameScreenState extends State<GameScreen>
+    with WidgetsBindingObserver, TickerProviderStateMixin {
   late final HexGameController _controller;
   late final ScoreController _scoreController;
   final BrowserBackBlocker _browserBackBlocker = BrowserBackBlocker();
@@ -47,6 +48,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   bool _isDailyRankLoading = false;
   bool _isLeavingScreen = false;
 
+  late final AnimationController _tutorialAnimController;
+
   @override
   void initState() {
     super.initState();
@@ -56,6 +59,12 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     _scoreController.resetScore();
     _controller = HexGameController(sessionConfig: widget.sessionConfig);
     _controller.addListener(_handleControllerChanged);
+
+    _tutorialAnimController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2000),
+    )..repeat();
+
     _browserBackBlocker.attach();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -74,6 +83,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    _tutorialAnimController.dispose();
     WidgetsBinding.instance.removeObserver(this);
     _browserBackBlocker.detach();
     _controller.removeListener(_handleControllerChanged);
@@ -219,7 +229,11 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                                   ),
                                 ),
                               const Spacer(flex: 1),
-                              GameHud(controller: _controller),
+                               GameHud(
+                                 controller: _controller,
+                                 tutorialAnimValue:
+                                     _tutorialAnimController.value,
+                               ),
                               const SizedBox(height: 16),
                               Expanded(
                                 flex: 12,
@@ -230,7 +244,10 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                                     children: [
                                       Positioned.fill(
                                         child: HexBoardView(
-                                            controller: _controller),
+                                          controller: _controller,
+                                          tutorialAnimation:
+                                              _tutorialAnimController,
+                                        ),
                                       ),
                                       Positioned.fill(
                                         child: IgnorePointer(

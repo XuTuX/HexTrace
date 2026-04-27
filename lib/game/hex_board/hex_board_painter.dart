@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import 'package:hexor/constant.dart';
@@ -20,6 +21,7 @@ class HexBoardPainter extends CustomPainter {
     required this.pressProgress,
     this.tutorialHighlights = const {},
     this.tutorialPathHint,
+    this.tutorialAnimValue = 0.0,
   });
 
   final HexBoardLayout layout;
@@ -32,6 +34,7 @@ class HexBoardPainter extends CustomPainter {
   final Map<HexCoord, double> pressProgress;
   final Set<HexCoord> tutorialHighlights;
   final List<HexCoord>? tutorialPathHint;
+  final double tutorialAnimValue;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -91,9 +94,12 @@ class HexBoardPainter extends CustomPainter {
           opacity: isAnimated ? opacity : 1,
           scale: isAnimated ? scale : 1,
           borderColor: tutorialHighlights.contains(coord)
-              ? Colors.white
+              ? Colors.white.withValues(
+                  alpha: 0.6 + (0.4 * math.sin(tutorialAnimValue * math.pi * 2).abs()))
               : charcoalBlack,
-          borderWidth: tutorialHighlights.contains(coord) ? 5.0 : 2.5,
+          borderWidth: tutorialHighlights.contains(coord)
+              ? 5.0 + (2.0 * math.sin(tutorialAnimValue * math.pi * 2).abs())
+              : 2.5,
           coreAlpha: 0.12 + (0.68 * pressVal),
           isClearing: clearingSet.contains(coord),
           pressVal: pressVal,
@@ -125,26 +131,110 @@ class HexBoardPainter extends CustomPainter {
     }
 
     if (tutorialPathHint != null && tutorialPathHint!.length > 1) {
-      final line = Path()
-        ..moveTo(
-          layout.centers[tutorialPathHint!.first]!.dx,
-          layout.centers[tutorialPathHint!.first]!.dy + 6,
-        );
+      // Draw animated dashed line
+      final Paint hintPaint = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = layout.radius * 0.12
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round
+        ..color = Colors.white.withValues(alpha: 0.6);
+
+      final line = Path();
+      line.moveTo(
+        layout.centers[tutorialPathHint!.first]!.dx,
+        layout.centers[tutorialPathHint!.first]!.dy + 6,
+      );
 
       for (var index = 1; index < tutorialPathHint!.length; index++) {
         final point = layout.centers[tutorialPathHint![index]]!;
         line.lineTo(point.dx, point.dy + 6);
       }
 
-      canvas.drawPath(
-        line,
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = layout.radius * 0.15
-          ..strokeCap = StrokeCap.round
-          ..strokeJoin = StrokeJoin.round
-          ..color = Colors.white.withValues(alpha: 0.8),
-      );
+      canvas.drawPath(line, hintPaint);
+
+      // Draw step numbers on tiles
+      for (int i = 0; i < tutorialPathHint!.length; i++) {
+        final coord = tutorialPathHint![i];
+        final center = layout.centers[coord]!;
+        final textPainter = TextPainter(
+          text: TextSpan(
+            text: '${i + 1}',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 24,
+              fontWeight: FontWeight.w900,
+              shadows: [
+                Shadow(color: Colors.black, blurRadius: 4, offset: Offset(1, 1)),
+              ],
+            ),
+          ),
+          textDirection: TextDirection.ltr,
+        );
+        textPainter.layout();
+        textPainter.paint(canvas, center.translate(-textPainter.width / 2, -textPainter.height / 2 + 6));
+      }
+
+      // Draw trace "finger" and trail
+      final t = (tutorialAnimValue * 1.2) % 1.0;
+      final metrics = line.computeMetrics();
+      if (metrics.isNotEmpty) {
+        final metric = metrics.first;
+        
+        // Draw partial trail up to current finger position
+        final trailPath = metric.extractPath(0, metric.length * t);
+        canvas.drawPath(
+          trailPath,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = layout.radius * 0.2
+            ..strokeCap = StrokeCap.round
+            ..strokeJoin = StrokeJoin.round
+            ..color = Colors.white.withValues(alpha: 0.4),
+        );
+
+        final tangent = metric.getTangentForOffset(metric.length * t);
+        final pos = tangent?.position;
+        if (pos != null) {
+          // Draw a soft pulse around the finger
+          canvas.drawCircle(
+            pos,
+            layout.radius * 0.4 * (1.0 + 0.2 * math.sin(tutorialAnimValue * math.pi * 8).abs()),
+            Paint()
+              ..color = Colors.white.withValues(alpha: 0.2)
+              ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12),
+          );
+          
+          // Draw the hand icon
+          final handPainter = TextPainter(
+            text: TextSpan(
+              text: String.fromCharCode(Icons.touch_app_rounded.codePoint),
+              style: TextStyle(
+                fontSize: 48,
+                fontFamily: Icons.touch_app_rounded.fontFamily,
+                package: Icons.touch_app_rounded.fontPackage,
+                color: Colors.white.withValues(alpha: 0.9),
+                shadows: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.3),
+                    offset: const Offset(2, 2),
+                    blurRadius: 4,
+                  ),
+                ],
+              ),
+            ),
+            textDirection: TextDirection.ltr,
+          );
+          handPainter.layout();
+          
+          canvas.save();
+          canvas.translate(pos.dx, pos.dy);
+          canvas.rotate(-math.pi * 0.05);
+          final scale = 1.0 + (0.1 * math.sin(tutorialAnimValue * math.pi * 6).abs());
+          canvas.scale(scale, scale);
+          handPainter.paint(canvas, const Offset(-24, -20));
+          canvas.restore();
+        }
+      }
     }
 
     canvas.restore();
@@ -250,6 +340,7 @@ class HexBoardPainter extends CustomPainter {
         oldDelegate.refillProgress != refillProgress ||
         oldDelegate.pressProgress != pressProgress ||
         oldDelegate.tutorialHighlights != tutorialHighlights ||
-        oldDelegate.tutorialPathHint != tutorialPathHint;
+        oldDelegate.tutorialPathHint != tutorialPathHint ||
+        oldDelegate.tutorialAnimValue != tutorialAnimValue;
   }
 }

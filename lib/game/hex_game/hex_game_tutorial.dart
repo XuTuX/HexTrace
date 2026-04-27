@@ -131,13 +131,6 @@ void _updateTutorialStep(HexGameController controller) {
       controller.tutorialRequiresInteraction = false;
       break;
     case 4:
-      controller.tutorialMessage = '물론 같은 색깔의 타일만 3개 이상 연결해도 점수를 얻을 수 있습니다.';
-      controller.tutorialHighlights = {};
-      controller.tutorialBarHighlight = {};
-      controller.tutorialPathHint = null;
-      controller.tutorialRequiresInteraction = false;
-      break;
-    case 5:
       controller.tutorialMessage = '축하합니다! 이제 진짜 게임에서 실력을 발휘해 보세요!';
       controller.tutorialHighlights = {};
       controller.tutorialBarHighlight = {};
@@ -149,7 +142,7 @@ void _updateTutorialStep(HexGameController controller) {
 
 void _nextTutorialStep(HexGameController controller) {
   controller.tutorialStepIndex++;
-  if (controller.tutorialStepIndex > 5) {
+  if (controller.tutorialStepIndex > 4) {
     // End tutorial
     Get.find<SettingsService>().completeTutorial();
     
@@ -161,6 +154,7 @@ void _nextTutorialStep(HexGameController controller) {
     controller.tutorialRequiresInteraction = false;
     
     _resetGame(controller);
+    Get.back();
     return;
   }
   _updateTutorialStep(controller);
