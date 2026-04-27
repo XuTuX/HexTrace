@@ -139,15 +139,21 @@ class HexBoardPainter extends CustomPainter {
         ..strokeJoin = StrokeJoin.round
         ..color = Colors.white.withValues(alpha: 0.6);
 
+      final firstCoord = tutorialPathHint!.first;
+      final firstCenter = layout.centers[firstCoord];
+      if (firstCenter == null) return;
+
       final line = Path();
       line.moveTo(
-        layout.centers[tutorialPathHint!.first]!.dx,
-        layout.centers[tutorialPathHint!.first]!.dy + 6,
+        firstCenter.dx,
+        firstCenter.dy + 6,
       );
 
       for (var index = 1; index < tutorialPathHint!.length; index++) {
-        final point = layout.centers[tutorialPathHint![index]]!;
-        line.lineTo(point.dx, point.dy + 6);
+        final point = layout.centers[tutorialPathHint![index]];
+        if (point != null) {
+          line.lineTo(point.dx, point.dy + 6);
+        }
       }
 
       canvas.drawPath(line, hintPaint);
@@ -155,7 +161,9 @@ class HexBoardPainter extends CustomPainter {
       // Draw step numbers on tiles
       for (int i = 0; i < tutorialPathHint!.length; i++) {
         final coord = tutorialPathHint![i];
-        final center = layout.centers[coord]!;
+        final center = layout.centers[coord];
+        if (center == null) continue;
+        
         final textPainter = TextPainter(
           text: TextSpan(
             text: '${i + 1}',
@@ -176,7 +184,7 @@ class HexBoardPainter extends CustomPainter {
 
       // Draw trace "finger" and trail
       final t = (tutorialAnimValue * 1.2) % 1.0;
-      final metrics = line.computeMetrics();
+      final metrics = line.computeMetrics().toList();
       if (metrics.isNotEmpty) {
         final metric = metrics.first;
         

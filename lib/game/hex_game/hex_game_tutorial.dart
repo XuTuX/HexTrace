@@ -102,6 +102,17 @@ void _updateTutorialStep(HexGameController controller) {
       break;
     case 2:
       controller.tutorialMessage = '시퀀스는 꼭 처음부터 시작하지 않아도 돼요.\n컬러바의 중간 어디든 3개 이상 이어지면 보너스!';
+      
+      // Force color bar to have Mint, Azure, Violet at indices 1, 2, 3
+      final bar = List<ColorBarEntry>.from(controller.colorBar);
+      if (bar.length >= 4) {
+        bar[0] = ColorBarEntry(id: bar[0].id, color: GameColor.azure); // Padding
+        bar[1] = ColorBarEntry(id: bar[1].id, color: GameColor.mint);
+        bar[2] = ColorBarEntry(id: bar[2].id, color: GameColor.azure);
+        bar[3] = ColorBarEntry(id: bar[3].id, color: GameColor.violet);
+      }
+      controller.colorBar = bar;
+
       // Update board for second match (Mint, Azure, Violet)
       final board = controller.board;
       board[1][4] = GameColor.mint;

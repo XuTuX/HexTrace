@@ -105,30 +105,15 @@ Future<void> _resolveCurrentMatch(HexGameController controller) async {
   controller.isResolvingMatch = false;
   if (controller.isTutorialMode &&
       controller.tutorialStepIndex == 1) {
-    // In step 1, we only advance if they made the correct match
-    // Actually, any match in Step 1 is fine since we force the board,
-    // but checking the hint is safer.
-    final hint = controller.tutorialPathHint;
-    if (hint != null && matchedPath.length >= 3) {
-       // Check if the matched path contains at least the highlighted tiles
-       if (matchedColors.length >= 3 &&
-           matchedColors[0] == GameColor.coral &&
-           matchedColors[1] == GameColor.mint &&
-           matchedColors[2] == GameColor.azure) {
-         controller.nextTutorialStep();
-       }
+    // In step 1, we advance if the matched sequence covers the first 3 colors (indices 0, 1, 2)
+    if (usedWindow.start <= 0 && usedWindow.end >= 2) {
+      controller.nextTutorialStep();
     }
   } else if (controller.isTutorialMode &&
       controller.tutorialStepIndex == 2) {
-    final hint = controller.tutorialPathHint;
-    if (hint != null && matchedPath.length >= 3) {
-       // In step 2, they must match Mint-Azure-Violet sequence
-       if (matchedColors.length >= 3 &&
-           matchedColors[0] == GameColor.mint &&
-           matchedColors[1] == GameColor.azure &&
-           matchedColors[2] == GameColor.violet) {
-         controller.nextTutorialStep();
-       }
+    // In step 2, we advance if the matched sequence covers the target window (indices 1, 2, 3)
+    if (usedWindow.start <= 1 && usedWindow.end >= 3) {
+      controller.nextTutorialStep();
     }
   }
   controller._notify();
